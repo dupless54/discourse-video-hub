@@ -33,7 +33,10 @@ describe VideoHub::ProviderUrlParser do
     end
 
     it "normalizes canonical TikTok video URLs" do
-      result = described_class.parse("https://www.tiktok.com/@creator.name/video/7481234567890123456?is_from_webapp=1")
+      result =
+        described_class.parse(
+          "https://www.tiktok.com/@creator.name/video/7481234567890123456?is_from_webapp=1",
+        )
 
       expect(result).to have_attributes(
         provider: "tiktok",
@@ -67,11 +70,17 @@ describe VideoHub::ProviderUrlParser do
     end
 
     it "rejects credential components even when the final host is allowed" do
-      expect_parse_error("https://evil.example@www.youtube.com/watch?v=dQw4w9WgXcQ", :credentials_not_allowed)
+      expect_parse_error(
+        "https://evil.example@www.youtube.com/watch?v=dQw4w9WgXcQ",
+        :credentials_not_allowed,
+      )
     end
 
     it "uses exact host matching instead of suffix matching" do
-      expect_parse_error("https://www.youtube.com.evil.example/watch?v=dQw4w9WgXcQ", :unsupported_host)
+      expect_parse_error(
+        "https://www.youtube.com.evil.example/watch?v=dQw4w9WgXcQ",
+        :unsupported_host,
+      )
     end
 
     it "rejects unexpected ports" do

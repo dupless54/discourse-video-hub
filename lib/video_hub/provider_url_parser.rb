@@ -55,7 +55,8 @@ module VideoHub
     attr_reader :input
 
     def parse_uri
-      unless input.is_a?(String) && input == input.strip && !input.empty? && !input.match?(/[[:cntrl:]]/)
+      unless input.is_a?(String) && input == input.strip && !input.empty? &&
+               !input.match?(/[[:cntrl:]]/)
         raise ParseError.new(:invalid_url)
       end
 
@@ -80,7 +81,9 @@ module VideoHub
       raise ParseError.new(:unsupported_path) unless uri.path == "/watch"
 
       video_ids = query_values(uri, "v")
-      raise ParseError.new(:invalid_external_id) unless video_ids.length == 1 && video_ids.first.match?(YOUTUBE_ID)
+      unless video_ids.length == 1 && video_ids.first.match?(YOUTUBE_ID)
+        raise ParseError.new(:invalid_external_id)
+      end
 
       external_id = video_ids.first
       result("youtube", external_id, "https://www.youtube.com/watch?v=#{external_id}")
