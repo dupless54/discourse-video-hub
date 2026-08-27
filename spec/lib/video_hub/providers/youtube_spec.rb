@@ -3,7 +3,7 @@
 describe VideoHub::Providers::Youtube do
   describe ".fetch" do
     it "fetches normalized metadata through the fixed YouTube oEmbed endpoint" do
-      ProviderJsonFetcher
+      VideoHub::ProviderJsonFetcher
         .expects(:fetch)
         .with do |url, allowed_hosts:|
           uri = URI.parse(url)
@@ -36,7 +36,7 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "preserves Shorts identity and marks the normalized kind as shorts" do
-      ProviderJsonFetcher.expects(:fetch).returns(oembed_payload)
+      VideoHub::ProviderJsonFetcher.expects(:fetch).returns(oembed_payload)
 
       result = described_class.fetch("https://www.youtube.com/shorts/dQw4w9WgXcQ?feature=share")
 
@@ -55,7 +55,7 @@ describe VideoHub::Providers::Youtube do
           "thumbnail_url" => "https://evil.test/tracker.jpg",
           "html" => '<iframe src="https://evil.test/embed"></iframe>',
         )
-      ProviderJsonFetcher.expects(:fetch).returns(payload)
+      VideoHub::ProviderJsonFetcher.expects(:fetch).returns(payload)
 
       result = described_class.fetch("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
@@ -72,7 +72,7 @@ describe VideoHub::Providers::Youtube do
           "title" => "T" * (described_class::TITLE_MAX_LENGTH + 20),
           "author_name" => "A" * (described_class::AUTHOR_MAX_LENGTH + 20),
         )
-      ProviderJsonFetcher.expects(:fetch).returns(payload)
+      VideoHub::ProviderJsonFetcher.expects(:fetch).returns(payload)
 
       result = described_class.fetch("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
@@ -81,7 +81,9 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "allows a missing optional author name" do
-      ProviderJsonFetcher.expects(:fetch).returns(oembed_payload.merge("author_name" => nil))
+      VideoHub::ProviderJsonFetcher
+        .expects(:fetch)
+        .returns(oembed_payload.merge("author_name" => nil))
 
       result = described_class.fetch("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
@@ -89,7 +91,7 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "rejects non-YouTube sources before metadata network access" do
-      ProviderJsonFetcher.expects(:fetch).never
+      VideoHub::ProviderJsonFetcher.expects(:fetch).never
 
       expect_metadata_error(
         "https://www.instagram.com/reel/AbCdEf123/",
@@ -98,13 +100,13 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "rejects unsafe or malformed YouTube URLs before metadata network access" do
-      ProviderJsonFetcher.expects(:fetch).never
+      VideoHub::ProviderJsonFetcher.expects(:fetch).never
 
       expect_metadata_error("http://www.youtube.com/watch?v=dQw4w9WgXcQ", :unsupported_source)
     end
 
     it "rejects unexpected provider identity from oEmbed" do
-      ProviderJsonFetcher
+      VideoHub::ProviderJsonFetcher
         .expects(:fetch)
         .returns(oembed_payload.merge("provider_name" => "Not YouTube"))
 
@@ -115,7 +117,7 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "rejects unexpected oEmbed types" do
-      ProviderJsonFetcher.expects(:fetch).returns(oembed_payload.merge("type" => "rich"))
+      VideoHub::ProviderJsonFetcher.expects(:fetch).returns(oembed_payload.merge("type" => "rich"))
 
       expect_metadata_error(
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -124,7 +126,9 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "requires a non-empty sanitized title" do
-      ProviderJsonFetcher.expects(:fetch).returns(oembed_payload.merge("title" => "   \n\t"))
+      VideoHub::ProviderJsonFetcher
+        .expects(:fetch)
+        .returns(oembed_payload.merge("title" => "   \n\t"))
 
       expect_metadata_error(
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -133,7 +137,9 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "rejects malformed optional text fields" do
-      ProviderJsonFetcher.expects(:fetch).returns(oembed_payload.merge("author_name" => { "x" => 1 }))
+      VideoHub::ProviderJsonFetcher
+        .expects(:fetch)
+        .returns(oembed_payload.merge("author_name" => { "x" => 1 }))
 
       expect_metadata_error(
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -142,9 +148,9 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "maps bounded fetcher failures without leaking provider response details" do
-      ProviderJsonFetcher
+      VideoHub::ProviderJsonFetcher
         .expects(:fetch)
-        .raises(ProviderJsonFetcher::FetchError.new(:network_error))
+        .raises(VideoHub::ProviderJsonFetcher::FetchError.new(:network_error))
 
       expect_metadata_error(
         "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
