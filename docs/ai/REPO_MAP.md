@@ -15,7 +15,7 @@ Navigation hint only; source/tests are authority. Phase 0 paths below exist; lat
 - `config/settings.yml`: provider, permission, feed and privacy settings
 - `config/locales/{client,server}.{en,tr_TR}.yml`: paired locales
 - `assets/javascripts/discourse/`: Phase 0 route, route model, template and landing component
-- `stylesheets/common/video-hub.scss`: Discourse-variable-based responsive foundation
+- `assets/stylesheets/common/video-hub.scss`: Discourse-variable-based responsive foundation
 - `spec/requests/video_hub/`: Phase 0 feed contract test; domain/security specs planned
 - `test/javascripts/integration/components/`: Phase 0 landing component test
 - `docs/ai/scopes/frontend/`: frontend AI context; never runtime source
