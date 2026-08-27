@@ -11,7 +11,7 @@ module VideoHub
     MAX_RESPONSE_BYTES = 256 * 1024
     MAX_JSON_DEPTH = 16
     TIMEOUT_SECONDS = 3
-    JSON_MEDIA_TYPE = %r{\Aapplication/(?:json|[a-z0-9!#$&^_.+-]+\+json)\z}
+    JSON_MEDIA_TYPE = %r{\Aapplication/(?:json|[a-z0-9._+-]+\+json)\z}
     REQUEST_HEADERS = {
       "Accept" => "application/json",
       "Accept-Encoding" => "identity",
@@ -142,7 +142,7 @@ module VideoHub
           status = response.code.to_i
           body = +""
 
-          unless REDIRECT_STATUSES.include?(status)
+          if REDIRECT_STATUSES.exclude?(status)
             ensure_content_length!(response["content-length"])
 
             response.read_body do |chunk|
