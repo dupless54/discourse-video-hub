@@ -20,6 +20,7 @@ jobs:
           bundle install
       - name: Print canonical formatting diff
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           pnpm prettier "assets/**/*.{scss,js,gjs}" "test/**/*.{js,gjs}" --write
           bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
           git diff -- app/controllers/video_hub/videos_controller.rb config/routes.rb test/javascripts/integration/components/video-hub-landing-test.gjs
