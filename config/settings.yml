@@ -1,0 +1,18 @@
+video_hub:
+  video_hub_enabled:
+    client: true
+    default: false
+  video_hub_min_trust_level:
+    client: true
+    default: 1
+    min: 0
+    max: 4
+  video_hub_youtube_enabled:
+    client: true
+    default: true
+  video_hub_tiktok_enabled:
+    client: true
+    default: true
+  video_hub_instagram_enabled:
+    client: true
+    default: false

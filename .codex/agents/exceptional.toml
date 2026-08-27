@@ -1,0 +1,9 @@
+name = "exceptional"
+description = "T3 exceptional Video Hub investigation."
+model = "<STRONG_REASONING_MODEL>"
+model_reasoning_effort = "xhigh"
+
+developer_instructions = """
+Follow AGENTS.md and docs/ai/EFFORT_ROUTER.md.
+Keep scope bounded and preserve safety/validation rules.
+"""

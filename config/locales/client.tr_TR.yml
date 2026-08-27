@@ -1,0 +1,13 @@
+tr_TR:
+  js:
+    video_hub:
+      title: "Videolar"
+      eyebrow: "Topluluk video merkezi"
+      description: "Topluluk üyelerinin paylaştığı herkese açık videoları keşfet."
+      empty_title: "Henüz video paylaşılmadı"
+      empty_description: "Video paylaşma özelliği bir sonraki geliştirme aşamasında eklenecek."
+      supported_providers: "Desteklenen platformlar"
+      providers:
+        youtube: "YouTube"
+        tiktok: "TikTok"
+        instagram: "Instagram"

@@ -1,0 +1,10 @@
+name = "critical"
+description = "T2 Video Hub Guardian/SSRF/schema/data-integrity/public-contract work."
+model = "<STRONG_REASONING_MODEL>"
+model_reasoning_effort = "high"
+
+developer_instructions = """
+Follow AGENTS.md and docs/ai/EFFORT_ROUTER.md.
+Keep scope bounded and preserve safety/validation rules.
+Preserve Topic/Post ownership and reject parallel comment/reaction truth.
+"""

@@ -1,0 +1,13 @@
+en:
+  js:
+    video_hub:
+      title: "Videos"
+      eyebrow: "Community video hub"
+      description: "Discover public videos shared by community members."
+      empty_title: "No videos have been shared yet"
+      empty_description: "Video publishing will arrive in the next implementation phase."
+      supported_providers: "Supported providers"
+      providers:
+        youtube: "YouTube"
+        tiktok: "TikTok"
+        instagram: "Instagram"
