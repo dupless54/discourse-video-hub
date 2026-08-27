@@ -5,7 +5,8 @@ describe VideoHub::ProviderJsonFetcher do
 
   describe ".fetch" do
     it "returns a top-level JSON object from an allowlisted HTTPS endpoint" do
-      fetcher = described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
+      fetcher =
+        described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
       fetcher
         .expects(:request_once)
         .once
@@ -21,7 +22,8 @@ describe VideoHub::ProviderJsonFetcher do
     end
 
     it "accepts structured JSON media types" do
-      fetcher = described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
+      fetcher =
+        described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
       fetcher
         .expects(:request_once)
         .once
@@ -132,14 +134,16 @@ describe VideoHub::ProviderJsonFetcher do
     end
 
     it "rejects non-success provider responses with a stable error" do
-      fetcher = described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
+      fetcher =
+        described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
       fetcher.expects(:request_once).once.returns(response(503))
 
       expect_fetch_error(fetcher, :provider_response_error)
     end
 
     it "rejects non-JSON MIME types" do
-      fetcher = described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
+      fetcher =
+        described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
       fetcher
         .expects(:request_once)
         .once
@@ -149,7 +153,8 @@ describe VideoHub::ProviderJsonFetcher do
     end
 
     it "rejects malformed JSON" do
-      fetcher = described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
+      fetcher =
+        described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
       fetcher
         .expects(:request_once)
         .once
@@ -159,9 +164,11 @@ describe VideoHub::ProviderJsonFetcher do
     end
 
     it "rejects JSON deeper than the configured nesting bound" do
-      nested = '{"root":' + ("[" * (described_class::MAX_JSON_DEPTH + 1)) + "0" +
-        ("]" * (described_class::MAX_JSON_DEPTH + 1)) + "}"
-      fetcher = described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
+      nested =
+        '{"root":' + ("[" * (described_class::MAX_JSON_DEPTH + 1)) + "0" +
+          ("]" * (described_class::MAX_JSON_DEPTH + 1)) + "}"
+      fetcher =
+        described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
       fetcher
         .expects(:request_once)
         .once
@@ -171,7 +178,8 @@ describe VideoHub::ProviderJsonFetcher do
     end
 
     it "requires a top-level JSON object" do
-      fetcher = described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
+      fetcher =
+        described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
       fetcher
         .expects(:request_once)
         .once
@@ -183,7 +191,10 @@ describe VideoHub::ProviderJsonFetcher do
     it "rejects oversized Content-Length before reading the body" do
       raw_response = mock
       raw_response.stubs(:code).returns("200")
-      raw_response.stubs(:[]).with("content-length").returns((described_class::MAX_RESPONSE_BYTES + 1).to_s)
+      raw_response
+        .stubs(:[])
+        .with("content-length")
+        .returns((described_class::MAX_RESPONSE_BYTES + 1).to_s)
       raw_response.stubs(:[]).with("location").returns(nil)
       raw_response.stubs(:[]).with("content-type").returns("application/json")
       raw_response.expects(:read_body).never
@@ -202,9 +213,7 @@ describe VideoHub::ProviderJsonFetcher do
       raw_response.stubs(:[]).with("content-length").returns(nil)
       raw_response.stubs(:[]).with("location").returns(nil)
       raw_response.stubs(:[]).with("content-type").returns("application/json")
-      raw_response
-        .expects(:read_body)
-        .yields("x" * (described_class::MAX_RESPONSE_BYTES + 1))
+      raw_response.expects(:read_body).yields("x" * (described_class::MAX_RESPONSE_BYTES + 1))
 
       expect_http_request(raw_response)
 
@@ -243,18 +252,15 @@ describe VideoHub::ProviderJsonFetcher do
         .yields(http)
 
       result =
-        described_class.fetch(
-          "https://api.example.com/video/123",
-          allowed_hosts: allowed_hosts,
-        )
+        described_class.fetch("https://api.example.com/video/123", allowed_hosts: allowed_hosts)
 
       expect(result).to eq("ok" => true)
     end
 
     it "maps Discourse SSRF rejections to a stable safe error" do
-      FinalDestination::HTTP
-        .expects(:start)
-        .raises(FinalDestination::SSRFDetector::DisallowedIpError)
+      FinalDestination::HTTP.expects(:start).raises(
+        FinalDestination::SSRFDetector::DisallowedIpError,
+      )
 
       expect_fetch_error(
         described_class.new("https://api.example.com/video/123", allowed_hosts: allowed_hosts),
