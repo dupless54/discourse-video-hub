@@ -1,17 +1,18 @@
 # Current State
 
 ## Project
-- repository: local `discourse-video-hub`
-- phase: Phase 0 foundation implemented locally; not committed or pushed
-- current main SHA: `UNBORN_BRANCH`
+- repository: `https://github.com/dupless54/discourse-video-hub`
+- visibility: public
+- phase: Phase 0 foundation published to `main`; Discourse runtime verification pending
+- current main SHA: `FRESH_READ_REQUIRED` (do not hard-code a self-changing state-file commit)
+- verified foundation commit: `7aafc1945ddb42d163937be535faa1a81b8df6d4`
 - last verified: 2026-08-27 UTC
 
 ## Active work
-- branch: `main` (unborn)
+- branch: `main`, tracking `origin/main`
 - PR: `NONE`
-- exact head SHA: `NONE`
-- changed paths: all repository files are currently untracked
-- ahead/behind: `NO_REMOTE`
+- changed paths: state/navigation refresh only after the foundation commit
+- ahead/behind: clean before this state refresh
 
 ## Implemented foundation
 - plugin metadata, enabled SiteSetting, isolated Rails engine and `/videos` mount
@@ -22,6 +23,7 @@
 - request/component test sources and official reusable Discourse plugin CI workflow
 
 ## Validation
+- exact remote foundation paths/file content: `PASS`
 - YAML duplicate-key/parse validation: `PASS`
 - JavaScript route syntax (`node --check`): `PASS`
 - SCSS delimiter/static text checks: `PASS`
@@ -29,16 +31,14 @@
 - Ruby syntax: `NOT_RUN` (Ruby unavailable in workspace)
 - RSpec: `NOT_RUN` (no Discourse development runtime)
 - QUnit/Glimmer compile: `NOT_RUN` (no Discourse development runtime)
-- CI workflow: present but `NO_CI` (no remote/head)
-- exact-head result: `NO_CI`
+- CI workflow: present; exact-head result not exposed/verified yet
+- exact-head CI result: `NO_CI_EVIDENCE`
 
 ## Known blockers
-- connected GitHub integration cannot create a brand-new repository; a blank `dupless54/discourse-video-hub` remote must be created before push
-- repository visibility (public/private) is not yet confirmed
-- commit/push require explicit user authorization under repository governance
-- Discourse runtime verification remains required before Phase 0 can be marked READY
+- Discourse runtime verification is required before Phase 0 can be marked `READY`
+- `NO_CI_EVIDENCE != GREEN`; do not infer CI success from the workflow file existing
 
 ## Next action
-- create/confirm the remote repository and authorize initial commit/push, then run the reusable CI against that exact head
+- inspect the latest exact `main` GitHub Actions result; if green, begin Phase 1 provider URL parser contract on a feature branch
 
-Rules: no history dump; refresh stale SHA/CI claims; `NO_CI != GREEN`; `NOT_RUN != PASS`.
+Rules: no history dump; fresh-read remote SHA/CI before claims; `NO_CI != GREEN`; `NOT_RUN != PASS`.
