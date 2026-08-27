@@ -31,7 +31,7 @@ module VideoHub
       def fetch
         parsed = parse_source
         payload =
-          ProviderJsonFetcher.fetch(oembed_url(parsed), allowed_hosts: [OEMBED_HOST])
+          VideoHub::ProviderJsonFetcher.fetch(oembed_url(parsed), allowed_hosts: [OEMBED_HOST])
 
         validate_payload!(payload)
 
@@ -46,7 +46,7 @@ module VideoHub
           duration_seconds: nil,
           author_name: sanitize_text(payload["author_name"], max_length: AUTHOR_MAX_LENGTH),
         }.freeze
-      rescue ProviderJsonFetcher::FetchError => error
+      rescue VideoHub::ProviderJsonFetcher::FetchError => error
         raise MetadataError.new(error.code)
       end
 
@@ -55,11 +55,11 @@ module VideoHub
       attr_reader :input
 
       def parse_source
-        parsed = ProviderUrlParser.parse(input)
+        parsed = VideoHub::ProviderUrlParser.parse(input)
         raise MetadataError.new(:unsupported_source) unless parsed.provider == "youtube"
 
         parsed
-      rescue ProviderUrlParser::ParseError
+      rescue VideoHub::ProviderUrlParser::ParseError
         raise MetadataError.new(:unsupported_source)
       end
 
