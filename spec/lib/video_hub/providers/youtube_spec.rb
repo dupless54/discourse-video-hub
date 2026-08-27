@@ -11,11 +11,7 @@ describe VideoHub::Providers::Youtube do
 
           uri.scheme == "https" && uri.host == "www.youtube.com" && uri.port == 443 &&
             uri.path == "/oembed" && allowed_hosts == ["www.youtube.com"] &&
-            query ==
-              {
-                "url" => "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                "format" => "json",
-              }
+            query == { "url" => "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "format" => "json" }
         end
         .returns(oembed_payload)
 
@@ -81,9 +77,9 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "allows a missing optional author name" do
-      VideoHub::ProviderJsonFetcher
-        .expects(:fetch)
-        .returns(oembed_payload.merge("author_name" => nil))
+      VideoHub::ProviderJsonFetcher.expects(:fetch).returns(
+        oembed_payload.merge("author_name" => nil),
+      )
 
       result = described_class.fetch("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
@@ -93,10 +89,7 @@ describe VideoHub::Providers::Youtube do
     it "rejects non-YouTube sources before metadata network access" do
       VideoHub::ProviderJsonFetcher.expects(:fetch).never
 
-      expect_metadata_error(
-        "https://www.instagram.com/reel/AbCdEf123/",
-        :unsupported_source,
-      )
+      expect_metadata_error("https://www.instagram.com/reel/AbCdEf123/", :unsupported_source)
     end
 
     it "rejects unsafe or malformed YouTube URLs before metadata network access" do
@@ -106,56 +99,41 @@ describe VideoHub::Providers::Youtube do
     end
 
     it "rejects unexpected provider identity from oEmbed" do
-      VideoHub::ProviderJsonFetcher
-        .expects(:fetch)
-        .returns(oembed_payload.merge("provider_name" => "Not YouTube"))
-
-      expect_metadata_error(
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        :invalid_metadata,
+      VideoHub::ProviderJsonFetcher.expects(:fetch).returns(
+        oembed_payload.merge("provider_name" => "Not YouTube"),
       )
+
+      expect_metadata_error("https://www.youtube.com/watch?v=dQw4w9WgXcQ", :invalid_metadata)
     end
 
     it "rejects unexpected oEmbed types" do
       VideoHub::ProviderJsonFetcher.expects(:fetch).returns(oembed_payload.merge("type" => "rich"))
 
-      expect_metadata_error(
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        :invalid_metadata,
-      )
+      expect_metadata_error("https://www.youtube.com/watch?v=dQw4w9WgXcQ", :invalid_metadata)
     end
 
     it "requires a non-empty sanitized title" do
-      VideoHub::ProviderJsonFetcher
-        .expects(:fetch)
-        .returns(oembed_payload.merge("title" => "   \n\t"))
-
-      expect_metadata_error(
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        :invalid_metadata,
+      VideoHub::ProviderJsonFetcher.expects(:fetch).returns(
+        oembed_payload.merge("title" => "   \n\t"),
       )
+
+      expect_metadata_error("https://www.youtube.com/watch?v=dQw4w9WgXcQ", :invalid_metadata)
     end
 
     it "rejects malformed optional text fields" do
-      VideoHub::ProviderJsonFetcher
-        .expects(:fetch)
-        .returns(oembed_payload.merge("author_name" => { "x" => 1 }))
-
-      expect_metadata_error(
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        :invalid_metadata,
+      VideoHub::ProviderJsonFetcher.expects(:fetch).returns(
+        oembed_payload.merge("author_name" => { "x" => 1 }),
       )
+
+      expect_metadata_error("https://www.youtube.com/watch?v=dQw4w9WgXcQ", :invalid_metadata)
     end
 
     it "maps bounded fetcher failures without leaking provider response details" do
-      VideoHub::ProviderJsonFetcher
-        .expects(:fetch)
-        .raises(VideoHub::ProviderJsonFetcher::FetchError.new(:network_error))
-
-      expect_metadata_error(
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        :network_error,
+      VideoHub::ProviderJsonFetcher.expects(:fetch).raises(
+        VideoHub::ProviderJsonFetcher::FetchError.new(:network_error),
       )
+
+      expect_metadata_error("https://www.youtube.com/watch?v=dQw4w9WgXcQ", :network_error)
     end
   end
 
@@ -176,7 +154,9 @@ describe VideoHub::Providers::Youtube do
   end
 
   def expect_metadata_error(input, code)
-    expect { described_class.fetch(input) }.to raise_error(described_class::MetadataError) do |error|
+    expect { described_class.fetch(input) }.to raise_error(
+      described_class::MetadataError,
+    ) do |error|
       expect(error.code).to eq(code)
       expect(error.message).to eq(code.to_s)
     end
