@@ -6,8 +6,7 @@ require "uri"
 module VideoHub
   class ProviderUrlResolver
     SHORT_TIKTOK_HOSTS = %w[vm.tiktok.com vt.tiktok.com].freeze
-    TIKTOK_RESOLUTION_HOSTS =
-      (ProviderUrlParser::TIKTOK_HOSTS + SHORT_TIKTOK_HOSTS).uniq.freeze
+    TIKTOK_RESOLUTION_HOSTS = (ProviderUrlParser::TIKTOK_HOSTS + SHORT_TIKTOK_HOSTS).uniq.freeze
     SHORT_HOST_PATH = %r{\A/[A-Za-z0-9_-]{4,128}/?\z}
     WEB_SHARE_PATH = %r{\A/t/[A-Za-z0-9_-]{4,128}/?\z}
     REDIRECT_STATUSES = [301, 302, 303, 307, 308].freeze
@@ -100,7 +99,9 @@ module VideoHub
         response = request_once(uri)
 
         if REDIRECT_STATUSES.include?(response.status)
-          raise ResolveError.new(:missing_redirect) if response.location.nil? || response.location.empty?
+          if response.location.nil? || response.location.empty?
+            raise ResolveError.new(:missing_redirect)
+          end
           raise ResolveError.new(:too_many_redirects) if redirect_count >= MAX_REDIRECTS
 
           uri = redirect_uri(uri, response.location)
@@ -129,7 +130,7 @@ module VideoHub
       raise ResolveError.new(:invalid_redirect) unless uri.port == 443
 
       host = uri.host&.downcase
-      raise ResolveError.new(:redirect_host_not_allowed) unless TIKTOK_RESOLUTION_HOSTS.include?(host)
+      raise ResolveError.new(:redirect_host_not_allowed) if TIKTOK_RESOLUTION_HOSTS.exclude?(host)
     end
 
     def parse_final_uri(uri)

@@ -32,10 +32,10 @@ describe VideoHub::ProviderUrlResolver do
       result = resolver.resolve
 
       expect(requested).to eq(
-        [
-          "https://vm.tiktok.com/ZMabc123/",
-          "https://www.tiktok.com/t/ZMabc123/",
-          "https://www.tiktok.com/@creator/video/7481234567890123456?is_from_webapp=1",
+        %w[
+          https://vm.tiktok.com/ZMabc123/
+          https://www.tiktok.com/t/ZMabc123/
+          https://www.tiktok.com/@creator/video/7481234567890123456?is_from_webapp=1
         ],
       )
       expect(result).to have_attributes(
@@ -47,12 +47,10 @@ describe VideoHub::ProviderUrlResolver do
 
     it "accepts direct www.tiktok.com short share URLs" do
       resolver = described_class.new("https://www.tiktok.com/t/ZMabc123/?_t=tracking")
-      resolver
-        .stubs(:request_once)
-        .returns(
-          response(302, "https://www.tiktok.com/@creator/video/7481234567890123456"),
-          response(200),
-        )
+      resolver.stubs(:request_once).returns(
+        response(302, "https://www.tiktok.com/@creator/video/7481234567890123456"),
+        response(200),
+      )
 
       result = resolver.resolve
 
@@ -157,12 +155,7 @@ describe VideoHub::ProviderUrlResolver do
 
       FinalDestination::HTTP
         .expects(:start)
-        .with(
-          "vm.tiktok.com",
-          443,
-          use_ssl: true,
-          open_timeout: described_class::TIMEOUT_SECONDS,
-        )
+        .with("vm.tiktok.com", 443, use_ssl: true, open_timeout: described_class::TIMEOUT_SECONDS)
         .yields(http)
 
       expect_resolve_error(
@@ -172,9 +165,9 @@ describe VideoHub::ProviderUrlResolver do
     end
 
     it "maps Discourse SSRF rejections without leaking target details" do
-      FinalDestination::HTTP
-        .expects(:start)
-        .raises(FinalDestination::SSRFDetector::DisallowedIpError)
+      FinalDestination::HTTP.expects(:start).raises(
+        FinalDestination::SSRFDetector::DisallowedIpError,
+      )
 
       expect_resolve_error(
         described_class.new("https://vm.tiktok.com/ZMabc123/"),
@@ -185,10 +178,7 @@ describe VideoHub::ProviderUrlResolver do
     it "maps network failures to a stable safe error" do
       FinalDestination::HTTP.expects(:start).raises(Timeout::Error)
 
-      expect_resolve_error(
-        described_class.new("https://vm.tiktok.com/ZMabc123/"),
-        :network_error,
-      )
+      expect_resolve_error(described_class.new("https://vm.tiktok.com/ZMabc123/"), :network_error)
     end
   end
 
