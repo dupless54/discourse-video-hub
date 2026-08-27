@@ -17,7 +17,7 @@ module VideoHub
     private
 
     def ensure_video_hub_enabled
-      raise Discourse::NotFound if !SiteSetting.video_hub_enabled
+      raise Discourse::NotFound unless SiteSetting.video_hub_enabled
     end
 
     def enabled_providers

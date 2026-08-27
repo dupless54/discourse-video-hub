@@ -13,9 +13,14 @@ describe VideoHub::VideosController do
 
     expect(response.status).to eq(200)
     expect(response.parsed_body).to eq(
-      "videos" => [],
-      "providers" => %w[youtube tiktok],
-      "pagination" => { "has_more" => false, "next_cursor" => nil },
+      {
+        "videos" => [],
+        "providers" => %w[youtube tiktok],
+        "pagination" => {
+          "has_more" => false,
+          "next_cursor" => nil,
+        },
+      },
     )
   end
 

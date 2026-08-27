@@ -13,9 +13,9 @@ export default class VideoHubLanding extends Component {
     <main class="wrap video-hub-page">
       <header class="video-hub-page__hero">
         <div class="video-hub-page__intro">
-          <p class="video-hub-page__eyebrow">{{i18n
-              "video_hub.eyebrow"
-            }}</p>
+          <p class="video-hub-page__eyebrow">
+            {{i18n "video_hub.eyebrow"}}
+          </p>
           <h1>{{i18n "video_hub.title"}}</h1>
           <p>{{i18n "video_hub.description"}}</p>
         </div>
