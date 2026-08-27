@@ -3,7 +3,7 @@ name: Format Probe
 on:
   push:
     branches:
-      - main
+      - probe/provider-json-format
 
 permissions:
   contents: read
@@ -21,6 +21,6 @@ jobs:
       - name: Print canonical formatting diff
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pnpm prettier "assets/**/*.{scss,js,gjs}" "test/**/*.{js,gjs}" --write
+          bundle exec rubocop -A lib/video_hub/provider_json_fetcher.rb spec/lib/video_hub/provider_json_fetcher_spec.rb
           bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
-          git diff -- app/controllers/video_hub/videos_controller.rb config/routes.rb test/javascripts/integration/components/video-hub-landing-test.gjs
+          git diff -- lib/video_hub/provider_json_fetcher.rb spec/lib/video_hub/provider_json_fetcher_spec.rb
