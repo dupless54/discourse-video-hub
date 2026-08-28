@@ -15,24 +15,24 @@ export default <template>
 
     {{#if @controller.model.profile.sections.length}}
       <div class="video-hub-profile__sections">
-        {{#each @controller.model.profile.sections as |section|}}
+        {{#each @controller.model.profile.sections as |profileSection|}}
           <section
             class="video-hub-profile__section"
-            data-section-type={{section.section_type}}
+            data-section-type={{profileSection.section_type}}
           >
             <header class="video-hub-profile__section-header">
-              <h2>{{section.display_title}}</h2>
+              <h2>{{profileSection.display_title}}</h2>
               <span class="video-hub-profile__count">
-                {{section.item_count_label}}
+                {{profileSection.item_count_label}}
               </span>
             </header>
 
-            {{#if section.items.length}}
+            {{#if profileSection.items.length}}
               <div
                 class="video-hub-profile__grid"
-                data-section-type={{section.section_type}}
+                data-section-type={{profileSection.section_type}}
               >
-                {{#each section.items as |item|}}
+                {{#each profileSection.items as |item|}}
                   <div
                     class="video-hub-profile__item"
                     data-pinned={{item.pinned}}
