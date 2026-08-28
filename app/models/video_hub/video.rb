@@ -13,10 +13,11 @@ module VideoHub
     THUMBNAIL_URL_MAX_LENGTH = 2048
     AUTHOR_MAX_LENGTH = 200
 
-    belongs_to :user
+    belongs_to :user, optional: true
     belongs_to :topic, optional: true
     belongs_to :post, optional: true
 
+    validates :user, presence: true, on: :create
     validates :provider, inclusion: { in: PROVIDERS }
     validates :external_id,
               presence: true,
@@ -38,6 +39,7 @@ module VideoHub
     validates :post_id, uniqueness: true, allow_nil: true
 
     validate :mapping_pair_is_consistent
+    validate :mapped_post_is_topic_root
     validate :published_mapping_is_complete
 
     private
@@ -46,6 +48,13 @@ module VideoHub
       return if topic_id.nil? == post_id.nil?
 
       errors.add(:base, :invalid)
+    end
+
+    def mapped_post_is_topic_root
+      return if topic_id.nil? || post_id.nil?
+      return if post&.topic_id == topic_id && post.post_number == 1
+
+      errors.add(:post_id, :invalid)
     end
 
     def published_mapping_is_complete
