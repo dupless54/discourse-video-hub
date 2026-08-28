@@ -25,6 +25,13 @@ describe VideoHub::Video do
     expect(video.published_at).to be_nil
   end
 
+  it "requires an author when a new video record is created" do
+    video = described_class.new(base_attributes.merge(user: nil))
+
+    expect(video).not_to be_valid
+    expect(video.errors[:user]).to be_present
+  end
+
   it "restricts provider, kind, status, duration and bounded metadata values" do
     video = described_class.new(
       base_attributes.merge(
@@ -54,24 +61,36 @@ describe VideoHub::Video do
     expect(video.errors[:base]).to be_present
   end
 
-  it "requires published records to have Topic/Post mapping and published_at" do
+  it "rejects a reply Post as the canonical root Post mapping" do
+    topic = Fabricate(:topic, user: user)
+    Fabricate(:post, topic: topic, user: user)
+    reply_post = Fabricate(:post, topic: topic, user: user)
+    video = described_class.new(base_attributes.merge(topic: topic, post: reply_post))
+
+    expect(reply_post.post_number).to be > 1
+    expect(video).not_to be_valid
+    expect(video.errors[:post_id]).to be_present
+  end
+
+  it "requires published records to have Topic/root Post mapping and published_at" do
     incomplete = described_class.new(base_attributes.merge(status: "published"))
 
     expect(incomplete).not_to be_valid
     expect(incomplete.errors[:status]).to be_present
 
     topic = Fabricate(:topic, user: user)
-    post = Fabricate(:post, topic: topic, user: user)
+    root_post = Fabricate(:post, topic: topic, user: user)
     complete =
       described_class.new(
         base_attributes.merge(
           status: "published",
           topic: topic,
-          post: post,
+          post: root_post,
           published_at: Time.zone.now,
         ),
       )
 
+    expect(root_post.post_number).to eq(1)
     expect(complete).to be_valid
   end
 
@@ -100,6 +119,20 @@ describe VideoHub::Video do
     expect(topic_index.unique).to eq(true)
     expect(post_index).to be_present
     expect(post_index.unique).to eq(true)
+  end
+
+  it "allows core user deletion to nullify the author reference without orphaning the video" do
+    user_column =
+      described_class.connection.columns(:video_hub_videos).find { |column| column.name == "user_id" }
+    user_fk =
+      described_class.connection.foreign_keys(:video_hub_videos).find do |foreign_key|
+        foreign_key.to_table == "users"
+      end
+
+    expect(user_column).to be_present
+    expect(user_column.null).to eq(true)
+    expect(user_fk).to be_present
+    expect(user_fk.options[:on_delete]).to eq(:nullify)
   end
 
   it "installs database check constraints for the domain and publish mapping invariants" do
