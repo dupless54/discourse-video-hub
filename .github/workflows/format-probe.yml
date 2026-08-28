@@ -3,7 +3,7 @@ name: Format Probe
 on:
   push:
     branches:
-      - main
+      - feature/watch-terminal-seo
 
 permissions:
   contents: read
@@ -23,4 +23,4 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           pnpm prettier "assets/**/*.{scss,js,gjs}" "test/**/*.{js,gjs}" --write
           bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
-          git diff -- app/controllers/video_hub/videos_controller.rb config/routes.rb test/javascripts/integration/components/video-hub-landing-test.gjs
+          git diff -- spec/requests/video_hub/watch_terminal_seo_spec.rb spec/services/video_hub/watch_query_spec.rb
