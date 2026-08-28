@@ -24,7 +24,9 @@ class CreateVideoHubVideos < ActiveRecord::Migration[7.0]
     add_index :video_hub_videos, :topic_id, unique: true
     add_index :video_hub_videos, :post_id, unique: true
     add_index :video_hub_videos, %i[status published_at id]
-    add_index :video_hub_videos, %i[user_id status published_at id], name: "idx_video_hub_author_feed"
+    add_index :video_hub_videos,
+              %i[user_id status published_at id],
+              name: "idx_video_hub_author_feed"
 
     add_foreign_key :video_hub_videos, :users, on_delete: :nullify
     add_foreign_key :video_hub_videos, :topics, on_delete: :cascade
