@@ -96,7 +96,7 @@ export default class VideoHubDiscussion extends Component {
   startRequest(key, url, options) {
     this.pendingRequests.get(key)?.abort?.();
 
-    const request = ajax(url, options);
+    const request = options === undefined ? ajax(url) : ajax(url, options);
     this.pendingRequests.set(key, request);
     return request;
   }
