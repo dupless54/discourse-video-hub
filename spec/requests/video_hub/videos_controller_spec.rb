@@ -144,7 +144,7 @@ describe VideoHub::VideosController do
       get "/videos/#{video.id}/#{video.topic.slug}", headers: crawler_headers
 
       expect(response.status).to eq(200)
-      document = Nokogiri::HTML(response.body)
+      document = Nokogiri.HTML(response.body)
       canonical_links = document.css('link[rel="canonical"]')
       expect(canonical_links.length).to eq(1)
       expect(canonical_links.first["href"]).to eq(canonical_url)
@@ -189,7 +189,7 @@ describe VideoHub::VideosController do
       get "/videos/#{video.id}/#{video.topic.slug}", headers: crawler_headers
 
       expect(response.status).to eq(200)
-      document = Nokogiri::HTML(response.body)
+      document = Nokogiri.HTML(response.body)
       expect(document.css("script[data-evil]")).to be_empty
       expect(document.at_css('meta[property="og:title"]')["content"]).to eq(hostile_title)
       expect(document.at_css('meta[property="og:description"]')["content"]).to eq(

@@ -45,7 +45,9 @@ module VideoHub
       result = VideoHub::WatchQuery.fetch(user: current_user, id: params[:id])
       seo = VideoHub::WatchSeo.build(video: result.video, slug: result.slug)
 
-      return redirect_to(seo.canonical_url, status: :moved_permanently) if params[:slug] != result.slug
+      if params[:slug] != result.slug
+        return redirect_to(seo.canonical_url, status: :moved_permanently)
+      end
 
       @video_hub_watch_seo = seo
       @description_meta = seo.description

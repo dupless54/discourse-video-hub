@@ -23,7 +23,7 @@ after_initialize do
     get "/videos/:id/:slug" => "video_hub/videos#watch",
         :constraints => {
           id: /\d+/,
-          slug: /[^.\/]+/,
+          slug: %r{[^./]+},
           format: /html/,
         },
         :defaults => {
