@@ -20,6 +20,9 @@ describe VideoHub::WatchQuery do
     expect { described_class.fetch(user: nil, id: "not-an-id") }.to raise_error(Discourse::NotFound)
     expect { described_class.fetch(user: nil, id: "0") }.to raise_error(Discourse::NotFound)
     expect { described_class.fetch(user: nil, id: 999_999_999) }.to raise_error(Discourse::NotFound)
+    expect {
+      described_class.fetch(user: nil, id: described_class::MAX_RECORD_ID + 1)
+    }.to raise_error(Discourse::NotFound)
   end
 
   it "hides non-published videos and videos whose provider is disabled" do
