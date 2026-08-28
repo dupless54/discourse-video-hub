@@ -13,6 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.0 --activate
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
       - name: Print canonical frontend diff
