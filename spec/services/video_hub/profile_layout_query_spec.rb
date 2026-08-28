@@ -17,20 +17,14 @@ describe VideoHub::ProfileLayoutQuery do
     expect(result.sections.map(&:profile_section)).to eq([shorts, landscape])
     expect(result.sections.first.items.map(&:profile_item)).to eq([first_short, later_short])
     expect(result.sections.last.items.map(&:profile_item)).to eq([landscape_item])
-    expect(result.sections.first.items.map(&:video)).to eq(
-      [first_short.video, later_short.video],
-    )
+    expect(result.sections.first.items.map(&:video)).to eq([first_short.video, later_short.video])
   end
 
   it "allows staff to read another user's complete layout" do
     section = create_section("shorts", 0, visible: false)
     item = create_item(section, create_video("shorts"), 0, visible: false)
 
-    result =
-      described_class.fetch(
-        user: Fabricate(:admin),
-        username: profile_user.username,
-      )
+    result = described_class.fetch(user: Fabricate(:admin), username: profile_user.username)
 
     expect(result.sections.first.profile_section).to eq(section)
     expect(result.sections.first.items.first.profile_item).to eq(item)
@@ -45,9 +39,9 @@ describe VideoHub::ProfileLayoutQuery do
       described_class.fetch(user: profile_user, username: "missing-layout-profile")
     end.to raise_error(Discourse::NotFound)
 
-    expect do
-      described_class.fetch(user: nil, username: profile_user.username)
-    end.to raise_error(Discourse::NotFound)
+    expect do described_class.fetch(user: nil, username: profile_user.username) end.to raise_error(
+      Discourse::NotFound,
+    )
   end
 
   it "fails closed when an existing item points at a structurally hidden topic" do
