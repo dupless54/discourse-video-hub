@@ -17,7 +17,7 @@ export default class VideoHubWatchRoute extends DiscourseRoute {
     const canonicalPath = model?.video?.watch_path;
 
     if (canonicalPath && canonicalPath !== this.requestedPath) {
-      this.router.replaceWith(canonicalPath);
+      return this.router.replaceWith(canonicalPath);
     }
   }
 
