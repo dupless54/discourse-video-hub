@@ -70,3 +70,40 @@ module VideoHub
     end
   end
 end
+
+# == Schema Information
+#
+# Table name: video_hub_videos
+#
+#  id               :bigint           not null, primary key
+#  author_name      :string(200)
+#  canonical_url    :string(2048)     not null
+#  description      :text
+#  duration_seconds :integer
+#  kind             :string(20)       not null
+#  provider         :string(20)       not null
+#  published_at     :datetime
+#  status           :string(20)       default("pending"), not null
+#  thumbnail_url    :string(2048)
+#  title            :string(300)
+#  created_at       :datetime         not null
+#  updated_at       :datetime         not null
+#  external_id      :string(64)       not null
+#  post_id          :integer
+#  topic_id         :integer
+#  user_id          :integer
+#
+# Indexes
+#
+#  idx_video_hub_author_feed                                 (user_id,status,published_at,id)
+#  index_video_hub_videos_on_post_id                         (post_id) UNIQUE
+#  index_video_hub_videos_on_provider_and_external_id        (provider,external_id) UNIQUE
+#  index_video_hub_videos_on_status_and_published_at_and_id  (status,published_at,id)
+#  index_video_hub_videos_on_topic_id                        (topic_id) UNIQUE
+#
+# Foreign Keys
+#
+#  fk_rails_...  (post_id => posts.id) ON DELETE => cascade
+#  fk_rails_...  (topic_id => topics.id) ON DELETE => cascade
+#  fk_rails_...  (user_id => users.id) ON DELETE => nullify
+#
