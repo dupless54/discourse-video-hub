@@ -259,3 +259,167 @@ describe VideoHub::ProfileLayoutUpdater do
     { id: item.id, position: position, pinned: pinned, visible: visible }
   end
 end
+
+describe VideoHub::ProfileLayoutUpdater, "concurrent reorders" do
+  self.use_transactional_tests = false
+
+  it "serializes competing reorder snapshots without leaving a partial layout" do
+    profile_user = Fabricate(:user)
+    category = Fabricate(:category)
+    video_sequence = 0
+    create_video =
+      lambda do |kind|
+        video_sequence += 1
+        author = Fabricate(:user)
+        topic = Fabricate(:topic, user: author, category: category)
+        post = Fabricate(:post, topic: topic, user: author)
+
+        VideoHub::Video.create!(
+          user: author,
+          topic: topic,
+          post: post,
+          provider: "youtube",
+          external_id: "concurrent-profile-layout-#{topic.id}-#{video_sequence}",
+          canonical_url: "https://www.youtube.com/watch?v=concurrent-#{topic.id}-#{video_sequence}",
+          kind: kind,
+          title: "Concurrent profile layout #{video_sequence}",
+          author_name: "Profile author",
+          status: "published",
+          published_at: Time.zone.now,
+        )
+      end
+
+    shorts =
+      VideoHub::ProfileSection.create!(
+        user: profile_user,
+        section_type: "shorts",
+        title: "Shorts",
+        position: 0,
+        visible: true,
+      )
+    landscape =
+      VideoHub::ProfileSection.create!(
+        user: profile_user,
+        section_type: "landscape",
+        title: "Videos",
+        position: 1,
+        visible: true,
+      )
+    first_short =
+      VideoHub::ProfileItem.create!(
+        profile_section: shorts,
+        video: create_video.call("shorts"),
+        position: 0,
+        pinned: false,
+        visible: true,
+      )
+    second_short =
+      VideoHub::ProfileItem.create!(
+        profile_section: shorts,
+        video: create_video.call("shorts"),
+        position: 1,
+        pinned: false,
+        visible: true,
+      )
+    landscape_item =
+      VideoHub::ProfileItem.create!(
+        profile_section: landscape,
+        video: create_video.call("landscape"),
+        position: 0,
+        pinned: false,
+        visible: true,
+      )
+
+    first_snapshot = [
+      {
+        id: landscape.id,
+        position: 0,
+        title: "First landscape",
+        visible: false,
+        items: [{ id: landscape_item.id, position: 0, pinned: true, visible: false }],
+      },
+      {
+        id: shorts.id,
+        position: 1,
+        title: "First shorts",
+        visible: true,
+        items: [
+          { id: second_short.id, position: 0, pinned: true, visible: true },
+          { id: first_short.id, position: 1, pinned: false, visible: false },
+        ],
+      },
+    ]
+    second_snapshot = [
+      {
+        id: shorts.id,
+        position: 0,
+        title: "Second shorts",
+        visible: false,
+        items: [
+          { id: first_short.id, position: 0, pinned: true, visible: false },
+          { id: second_short.id, position: 1, pinned: false, visible: true },
+        ],
+      },
+      {
+        id: landscape.id,
+        position: 1,
+        title: "Second landscape",
+        visible: true,
+        items: [{ id: landscape_item.id, position: 0, pinned: false, visible: true }],
+      },
+    ]
+
+    ready = Queue.new
+    start = Queue.new
+    threads =
+      [first_snapshot, second_snapshot].map do |snapshot|
+        Thread.new do
+          ActiveRecord::Base.connection_pool.with_connection do
+            editor = User.find(profile_user.id)
+            ready << true
+            start.pop
+            described_class.update(
+              user: editor,
+              username: profile_user.username,
+              sections: snapshot,
+            )
+          end
+        end
+      end
+
+    2.times { ready.pop }
+    2.times { start << true }
+    threads.each(&:value)
+
+    payload_signature =
+      lambda do |snapshot|
+        snapshot.sort_by { |section| section[:position] }.map do |section|
+          [
+            section[:id],
+            section[:title],
+            section[:visible],
+            section[:items]
+              .sort_by { |item| item[:position] }
+              .map { |item| [item[:id], item[:pinned], item[:visible]] },
+          ]
+        end
+      end
+    persisted_signature =
+      VideoHub::ProfileSection.where(user_id: profile_user.id).order(:position).map do |section|
+        [
+          section.id,
+          section.title,
+          section.visible,
+          section.items.order(:position).map { |item| [item.id, item.pinned, item.visible] },
+        ]
+      end
+
+    expect(
+      [payload_signature.call(first_snapshot), payload_signature.call(second_snapshot)],
+    ).to include(persisted_signature)
+    expect(VideoHub::ProfileSection.where(user_id: profile_user.id).order(:position).pluck(:position)).to eq(
+      [0, 1],
+    )
+    expect(shorts.items.order(:position).pluck(:position)).to eq([0, 1])
+  end
+end
