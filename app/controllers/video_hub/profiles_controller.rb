@@ -46,6 +46,31 @@ module VideoHub
       render json: { error: { code: error.code.to_s } }, status: :unprocessable_entity
     end
 
+    def add_layout_video
+      result =
+        VideoHub::ProfileMembershipMutator.add(
+          user: current_user,
+          username: params[:username],
+          video_id: params[:video_id],
+        )
+
+      render json: { membership: membership_payload(result) }, status: result.created ? :created : :ok
+    rescue VideoHub::ProfileMembershipMutator::MembershipError => error
+      render json: { error: { code: error.code.to_s } }, status: :unprocessable_entity
+    end
+
+    def remove_layout_video
+      VideoHub::ProfileMembershipMutator.remove(
+        user: current_user,
+        username: params[:username],
+        video_id: params[:video_id],
+      )
+
+      head :no_content
+    rescue VideoHub::ProfileMembershipMutator::MembershipError => error
+      render json: { error: { code: error.code.to_s } }, status: :unprocessable_entity
+    end
+
     private
 
     def ensure_video_hub_enabled
@@ -123,6 +148,22 @@ module VideoHub
     def layout_item_payload(item)
       {
         id: item.id,
+        video_id: item.video_id,
+        position: item.position,
+        pinned: item.pinned,
+        visible: item.visible,
+      }
+    end
+
+    def membership_payload(result)
+      section = result.profile_section
+      item = result.profile_item
+
+      {
+        username: result.profile_user.username,
+        section_id: section.id,
+        section_type: section.section_type,
+        item_id: item.id,
         video_id: item.video_id,
         position: item.position,
         pinned: item.pinned,
