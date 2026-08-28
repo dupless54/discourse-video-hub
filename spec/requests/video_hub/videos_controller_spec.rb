@@ -72,7 +72,9 @@ describe VideoHub::VideosController do
     end
 
     it "maps malformed feed inputs to a safe bad request" do
-      VideoHub::FeedQuery.expects(:fetch).raises(VideoHub::FeedQuery::FeedError.new(:invalid_cursor))
+      VideoHub::FeedQuery.expects(:fetch).raises(
+        VideoHub::FeedQuery::FeedError.new(:invalid_cursor),
+      )
 
       get "/videos/feed.json", params: { cursor: "bad" }
 
