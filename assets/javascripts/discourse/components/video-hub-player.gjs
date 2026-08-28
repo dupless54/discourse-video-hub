@@ -73,7 +73,7 @@ export default class VideoHubPlayer extends Component {
         {{#if @video.thumbnail_url}}
           <img
             src={{@video.thumbnail_url}}
-            alt=""
+            alt={{@video.title}}
             loading="eager"
             decoding="async"
           />
