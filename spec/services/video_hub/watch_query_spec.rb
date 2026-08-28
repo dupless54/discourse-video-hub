@@ -37,6 +37,46 @@ describe VideoHub::WatchQuery do
     )
   end
 
+  it "classifies only a previously published public unavailable video as gone" do
+    unavailable = create_video(status: "unavailable", published_at: 1.hour.ago)
+    never_published = create_video(status: "unavailable", published_at: nil)
+    published = create_video
+
+    expect(described_class.gone?(user: nil, id: unavailable.id)).to eq(true)
+    expect(described_class.gone?(user: nil, id: never_published.id)).to eq(false)
+    expect(described_class.gone?(user: nil, id: published.id)).to eq(false)
+  end
+
+  it "does not classify unavailable content as gone when doing so would reveal hidden state" do
+    provider_disabled = create_video(
+      provider: "instagram",
+      status: "unavailable",
+      published_at: 1.hour.ago,
+    )
+    private_group = Fabricate(:group)
+    private_category = Fabricate(:private_category, group: private_group)
+    private_video = create_video(
+      status: "unavailable",
+      published_at: 1.hour.ago,
+      category: private_category,
+    )
+    deleted_video = create_video(status: "unavailable", published_at: 1.hour.ago)
+    deleted_video.topic.update_column(:deleted_at, Time.zone.now)
+
+    expect(described_class.gone?(user: nil, id: provider_disabled.id)).to eq(false)
+    expect(described_class.gone?(user: nil, id: private_video.id)).to eq(false)
+    expect(described_class.gone?(user: nil, id: deleted_video.id)).to eq(false)
+  end
+
+  it "keeps malformed terminal-state identifiers fail-closed" do
+    expect { described_class.gone?(user: nil, id: "not-an-id") }.to raise_error(
+      Discourse::NotFound,
+    )
+    expect {
+      described_class.gone?(user: nil, id: described_class::MAX_RECORD_ID + 1)
+    }.to raise_error(Discourse::NotFound)
+  end
+
   it "hides videos whose backing Topic or root Post was deleted" do
     deleted_topic_video = create_video
     deleted_topic_video.topic.update_column(:deleted_at, Time.zone.now)
@@ -63,12 +103,13 @@ describe VideoHub::WatchQuery do
     expect { described_class.fetch(user: user, id: video.id) }.to raise_error(Discourse::NotFound)
   end
 
-  def create_video(provider: "youtube", status: "published")
+  def create_video(provider: "youtube", status: "published", published_at: nil, category: nil)
     @video_sequence = @video_sequence.to_i + 1
     owner = Fabricate(:user)
-    topic = Fabricate(:topic, user: owner)
+    topic = Fabricate(:topic, user: owner, category: category)
     post = Fabricate(:post, topic: topic, user: owner)
     external_id = "watch-video-#{@video_sequence}"
+    published_at ||= Time.zone.now if status == "published"
 
     VideoHub::Video.create!(
       user: owner,
@@ -83,7 +124,7 @@ describe VideoHub::WatchQuery do
       duration_seconds: nil,
       author_name: "Watch author",
       status: status,
-      published_at: status == "published" ? Time.zone.now : nil,
+      published_at: published_at,
     )
   end
 end

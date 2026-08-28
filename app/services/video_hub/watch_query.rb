@@ -16,6 +16,10 @@ module VideoHub
       new(user:, id:).fetch
     end
 
+    def self.gone?(user:, id:)
+      new(user:, id:).gone?
+    end
+
     def self.visible_video?(video, guardian:)
       return false unless video
 
@@ -39,6 +43,12 @@ module VideoHub
       raise Discourse::NotFound unless visible_video?(video)
 
       Result.new(video:, slug: video.topic.slug).freeze
+    end
+
+    def gone?
+      video = VideoHub::Video.includes(:topic, :post).find_by(id: @id, status: "unavailable")
+
+      visible_video?(video)
     end
 
     private
