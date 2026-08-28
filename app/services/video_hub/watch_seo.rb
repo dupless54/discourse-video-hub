@@ -88,7 +88,7 @@ module VideoHub
       return if value.blank?
 
       uri = Addressable::URI.parse(value)
-      return unless %w[http https].include?(uri.scheme&.downcase)
+      return if %w[http https].exclude?(uri.scheme&.downcase)
       return if uri.host.blank?
 
       value
