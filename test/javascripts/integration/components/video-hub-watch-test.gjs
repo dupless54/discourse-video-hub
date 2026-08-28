@@ -78,7 +78,7 @@ module("Integration | Component | VideoHubWatch", function (hooks) {
     assert
       .dom(".video-hub-watch__media img")
       .hasAttribute("src", "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg")
-      .hasAttribute("alt", "");
+      .hasAttribute("alt", "YouTube video");
 
     await click(".video-hub-player__play");
 
