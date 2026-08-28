@@ -263,6 +263,12 @@ end
 describe VideoHub::ProfileLayoutUpdater, ".update" do
   self.use_transactional_tests = false
 
+  after do
+    VideoHub::ProfileItem.delete_all
+    VideoHub::ProfileSection.delete_all
+    VideoHub::Video.delete_all
+  end
+
   it "serializes competing reorder snapshots without leaving a partial layout" do
     profile_user = Fabricate(:user)
     category = Fabricate(:category)
