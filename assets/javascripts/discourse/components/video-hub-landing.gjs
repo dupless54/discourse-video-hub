@@ -31,6 +31,10 @@ export default class VideoHubLanding extends Component {
     );
   }
 
+  get showLoadMore() {
+    return this.canLoadMore || this.loadingMore;
+  }
+
   normalizePagination(pagination) {
     return {
       has_more: Boolean(pagination?.has_more),
@@ -104,7 +108,7 @@ export default class VideoHubLanding extends Component {
           {{/each}}
         </section>
 
-        {{#if (or this.canLoadMore this.loadingMore)}}
+        {{#if this.showLoadMore}}
           <div class="video-hub-page__pagination">
             <DButton
               @action={{this.loadMore}}
