@@ -14,9 +14,27 @@ register_asset "stylesheets/common/video-hub-mobile-feed.scss"
 
 module ::VideoHub
   PLUGIN_NAME = "discourse-video-hub"
+  WATCH_PATH_PATTERN = %r{\A/videos/\d+/[^/.]+/?\z}
+  PROFILE_PATH_PATTERN = %r{\A/u/[^/]+/videos(?:/|\z)}
 end
 
 require_relative "lib/video_hub/engine"
+
+register_html_builder("server:before-head-close") do |controller|
+  next unless SiteSetting.video_hub_enabled
+
+  path = controller.request.path
+  base_path = Discourse.base_path
+  path = path.delete_prefix(base_path) if base_path.present?
+
+  video_hub_path =
+    path == "/videos" || path.start_with?("/videos/") ||
+      path.match?(VideoHub::PROFILE_PATH_PATTERN)
+  next unless video_hub_path
+  next if path.match?(VideoHub::WATCH_PATH_PATTERN)
+
+  '<meta name="robots" content="noindex,follow">'
+end
 
 after_initialize do
   require_relative "lib/video_hub/sitemap_controller_extension"
