@@ -7,20 +7,43 @@ export default class UserVideoHubProfileLayoutRoute extends Route {
 
   async model() {
     const user = this.modelFor("user");
-    const response = await ajax(
-      `/videos/profile/${encodeURIComponent(user.username)}/layout.json`
-    );
+    const [layoutResponse, catalog] = await Promise.all([
+      ajax(`/videos/profile/${encodeURIComponent(user.username)}/layout.json`),
+      this.fetchCatalog(),
+    ]);
 
-    return this.withPresentationLabels(response);
+    return this.withPresentationLabels(layoutResponse, catalog);
   }
 
-  withPresentationLabels(response) {
+  async fetchCatalog() {
+    try {
+      return await ajax("/videos.json?limit=20");
+    } catch {
+      return {
+        videos: [],
+        pagination: { has_more: false, next_cursor: null },
+        failed: true,
+      };
+    }
+  }
+
+  withPresentationLabels(response, catalog) {
     const profile = response?.profile ?? {};
 
     return {
       ...response,
       profile: {
         ...profile,
+        catalog: {
+          videos: (catalog?.videos ?? []).map((video) =>
+            this.withProviderLabel(video)
+          ),
+          pagination: catalog?.pagination ?? {
+            has_more: false,
+            next_cursor: null,
+          },
+          failed: catalog?.failed === true,
+        },
         sections: (profile.sections ?? []).map((section) => ({
           ...section,
           display_title:
@@ -28,13 +51,21 @@ export default class UserVideoHubProfileLayoutRoute extends Route {
           section_type_label: this.sectionLabel(section.section_type),
           items: (section.items ?? []).map((item) => ({
             ...item,
-            video: {
-              ...item.video,
-              provider_label: this.providerLabel(item.video?.provider),
-            },
+            video: this.withProviderLabel(item.video),
           })),
         })),
       },
+    };
+  }
+
+  withProviderLabel(video) {
+    if (!video) {
+      return null;
+    }
+
+    return {
+      ...video,
+      provider_label: this.providerLabel(video.provider),
     };
   }
 
