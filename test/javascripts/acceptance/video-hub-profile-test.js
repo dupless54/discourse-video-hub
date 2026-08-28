@@ -91,7 +91,9 @@ acceptance("Video Hub profile", function (needs) {
       .dom('.video-hub-profile__section[data-section-type="landscape"] h2')
       .hasText("Videos");
     assert.dom(".video-hub-card").exists({ count: 2 });
-    assert.dom('.video-hub-card[data-kind="shorts"]').hasText("Pinned short");
+    assert
+      .dom('.video-hub-card[data-kind="shorts"] h2')
+      .hasText("Pinned short");
     assert.dom('.video-hub-card[href="/videos/102/wide-video"]').exists();
     assert
       .dom(".video-hub-profile__pin")
