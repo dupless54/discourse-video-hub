@@ -1,4 +1,3 @@
-import VideoHubCard from "discourse/plugins/discourse-video-hub/discourse/components/video-hub-card";
 import bodyClass from "discourse/helpers/body-class";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
@@ -55,7 +54,58 @@ export default <template>
                         {{i18n "video_hub.profile.pinned"}}
                       </span>
                     {{/if}}
-                    <VideoHubCard @video={{item.video}} />
+
+                    <a
+                      class="video-hub-card"
+                      data-kind={{item.video.kind}}
+                      data-provider={{item.video.provider}}
+                      href={{item.video.watch_path}}
+                    >
+                      <div class="video-hub-card__media">
+                        {{#if item.video.thumbnail_url}}
+                          <img
+                            src={{item.video.thumbnail_url}}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        {{else}}
+                          <div
+                            class="video-hub-card__placeholder"
+                            aria-hidden="true"
+                          >
+                            <span>
+                              {{#if (eq item.video.provider "youtube")}}
+                                {{i18n "video_hub.providers.youtube"}}
+                              {{else if (eq item.video.provider "tiktok")}}
+                                {{i18n "video_hub.providers.tiktok"}}
+                              {{else}}
+                                {{i18n "video_hub.providers.instagram"}}
+                              {{/if}}
+                            </span>
+                          </div>
+                        {{/if}}
+                      </div>
+
+                      <div class="video-hub-card__body">
+                        <p class="video-hub-card__provider">
+                          {{#if (eq item.video.provider "youtube")}}
+                            {{i18n "video_hub.providers.youtube"}}
+                          {{else if (eq item.video.provider "tiktok")}}
+                            {{i18n "video_hub.providers.tiktok"}}
+                          {{else}}
+                            {{i18n "video_hub.providers.instagram"}}
+                          {{/if}}
+                        </p>
+                        <h2>{{item.video.title}}</h2>
+
+                        {{#if item.video.author_name}}
+                          <p class="video-hub-card__author">
+                            {{item.video.author_name}}
+                          </p>
+                        {{/if}}
+                      </div>
+                    </a>
                   </div>
                 {{/each}}
               </div>
