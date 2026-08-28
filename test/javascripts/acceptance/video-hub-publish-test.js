@@ -61,6 +61,7 @@ acceptance("Video Hub publish", function () {
         },
       })
     );
+    pretender.get("/posts/101/replies.json", () => response([]));
 
     await visit("/videos/new");
 
