@@ -15,14 +15,23 @@ module VideoHub
     before_action :ensure_logged_in, only: :create
 
     def index
+      result =
+        VideoHub::FeedQuery.fetch(
+          user: current_user,
+          cursor: params[:cursor],
+          limit: params[:limit].presence || VideoHub::FeedQuery::DEFAULT_LIMIT,
+        )
+
       render_json_dump(
-        videos: [],
+        videos: result.videos.map { |video| video_payload(video) },
         providers: enabled_providers,
         pagination: {
-          has_more: false,
-          next_cursor: nil,
+          has_more: result.has_more,
+          next_cursor: result.next_cursor,
         },
       )
+    rescue VideoHub::FeedQuery::FeedError => error
+      render json: { error: { code: error.code.to_s } }, status: :bad_request
     end
 
     def create
@@ -35,7 +44,7 @@ module VideoHub
           caption: params[:caption],
         )
 
-      render json: { video: publish_payload(video) }, status: :created
+      render json: { video: video_payload(video) }, status: :created
     rescue VideoHub::PublishVideo::PublishError => error
       render json: { error: { code: error.code.to_s } }, status: publish_error_status(error.code)
     end
@@ -54,7 +63,7 @@ module VideoHub
       providers
     end
 
-    def publish_payload(video)
+    def video_payload(video)
       {
         id: video.id,
         provider: video.provider,
