@@ -392,6 +392,90 @@
   }
 }
 
+.video-hub-discussion {
+  max-width: 58rem;
+  margin-top: 2rem;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  color: var(--primary);
+  background: var(--secondary);
+  border: 1px solid var(--primary-low);
+  border-radius: var(--d-border-radius-large, 1rem);
+
+  &__header {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+
+    h2 {
+      margin: 0;
+      font-size: var(--font-up-3);
+    }
+  }
+
+  &__eyebrow {
+    margin: 0 0 0.35rem;
+    color: var(--tertiary);
+    font-size: var(--font-down-2);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  &__like-count,
+  &__login-hint,
+  &__empty {
+    color: var(--primary-high);
+  }
+
+  &__like {
+    flex: 0 0 auto;
+  }
+
+  &__form {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--primary-low);
+  }
+
+  &__comments {
+    display: grid;
+    gap: 1rem;
+  }
+
+  &__comment {
+    min-width: 0;
+    padding: 1rem;
+    background: var(--primary-very-low);
+    border-radius: var(--d-border-radius, 0.5rem);
+  }
+
+  &__comment-header {
+    margin-bottom: 0.5rem;
+    overflow-wrap: anywhere;
+  }
+
+  &__cooked {
+    overflow-wrap: anywhere;
+
+    > :first-child {
+      margin-top: 0;
+    }
+
+    > :last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__like:focus-visible,
+  button:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--tertiary);
+    outline-offset: 3px;
+  }
+}
+
 .video-hub-player {
   &__iframe {
     display: block;
@@ -459,6 +543,15 @@
       padding-block: 0.5rem;
     }
   }
+
+  .video-hub-discussion {
+    margin-top: 1rem;
+    padding: 1.25rem;
+
+    &__header {
+      align-items: flex-start;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -470,7 +563,10 @@
   .video-hub-publish *::after,
   .video-hub-watch *,
   .video-hub-watch *::before,
-  .video-hub-watch *::after {
+  .video-hub-watch *::after,
+  .video-hub-discussion *,
+  .video-hub-discussion *::before,
+  .video-hub-discussion *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
