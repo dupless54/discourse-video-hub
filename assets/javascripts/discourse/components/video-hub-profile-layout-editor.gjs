@@ -21,11 +21,6 @@ export default class VideoHubProfileLayoutEditor extends Component {
   }
 
   @action
-  registerApi(api) {
-    this.formApi = api;
-  }
-
-  @action
   onDirtyCheck() {
     return !this.isSaving;
   }
@@ -215,7 +210,6 @@ export default class VideoHubProfileLayoutEditor extends Component {
     <Form
       @data={{this.formData}}
       @onSubmit={{this.save}}
-      @onRegisterApi={{this.registerApi}}
       @onDirtyCheck={{this.onDirtyCheck}}
       class="video-hub-profile-editor"
       as |form data|
@@ -238,7 +232,13 @@ export default class VideoHubProfileLayoutEditor extends Component {
                 <p class="video-hub-profile-editor__eyebrow">
                   {{sectionData.section_type_label}}
                 </p>
-                <h2>{{sectionData.display_title}}</h2>
+                <h2>
+                  {{#if sectionData.title}}
+                    {{sectionData.title}}
+                  {{else}}
+                    {{sectionData.section_type_label}}
+                  {{/if}}
+                </h2>
               </div>
 
               <div class="video-hub-profile-editor__move-actions">
@@ -251,7 +251,7 @@ export default class VideoHubProfileLayoutEditor extends Component {
                     data
                     sectionIndex
                   }}
-                  class="btn-small video-hub-profile-editor__move-button"
+                  class="btn-small video-hub-profile-editor__section-move-up"
                 />
                 <form.Button
                   @icon="arrow-down"
@@ -262,7 +262,7 @@ export default class VideoHubProfileLayoutEditor extends Component {
                     data
                     sectionIndex
                   }}
-                  class="btn-small video-hub-profile-editor__move-button"
+                  class="btn-small video-hub-profile-editor__section-move-down"
                 />
               </div>
             </header>
@@ -411,8 +411,12 @@ export default class VideoHubProfileLayoutEditor extends Component {
         <form.Submit
           @label="video_hub.profile.editor.save"
           @disabled={{this.isSaving}}
+          class="video-hub-profile-editor__save"
         />
-        <form.Reset @label="video_hub.profile.editor.reset" />
+        <form.Reset
+          @label="video_hub.profile.editor.reset"
+          class="video-hub-profile-editor__reset"
+        />
       </form.Actions>
     </Form>
   </template>
