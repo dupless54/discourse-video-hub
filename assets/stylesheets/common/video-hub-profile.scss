@@ -108,6 +108,7 @@
   display: grid;
   gap: 1.5rem;
 
+  &__catalog,
   &__section,
   &__item {
     position: relative;
@@ -117,9 +118,75 @@
     background: var(--secondary);
   }
 
+  &__catalog,
   &__section {
     padding: 1.25rem;
     box-shadow: 0 0.35rem 1.25rem var(--primary-very-low);
+  }
+
+  &__catalog {
+    display: grid;
+    gap: 1rem;
+    background: var(--primary-very-low);
+  }
+
+  &__catalog-heading {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    h2 {
+      margin: 0.2rem 0 0.35rem;
+      color: var(--primary);
+      font-size: var(--font-up-1);
+    }
+
+    p:last-child {
+      margin: 0;
+      color: var(--primary-high);
+    }
+  }
+
+  &__catalog-grid {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  &__catalog-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.85rem;
+    align-items: center;
+    padding: 0.85rem;
+    background: var(--secondary);
+    border: 1px solid var(--primary-low);
+    border-radius: var(--d-border-radius, 0.5rem);
+  }
+
+  &__catalog-empty,
+  &__membership-lock-hint {
+    margin: 0;
+    color: var(--primary-high);
+    font-size: var(--font-down-1);
+  }
+
+  &__catalog-empty {
+    padding: 1rem;
+    text-align: center;
+    border: 1px dashed var(--primary-low-mid);
+    border-radius: var(--d-border-radius, 0.5rem);
+  }
+
+  &__catalog-more {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__membership-lock-hint {
+    padding: 0.75rem;
+    background: var(--highlight-low);
+    border-radius: var(--d-border-radius, 0.5rem);
   }
 
   &__section[data-drag-source].--dragging,
@@ -338,18 +405,37 @@
   }
 
   .video-hub-profile-editor {
+    &__catalog,
     &__section {
       padding: 1rem;
+    }
+
+    &__catalog-item,
+    &__section-settings,
+    &__item {
+      grid-template-columns: 1fr;
+    }
+
+    &__catalog-item .video-hub-profile-editor__thumbnail {
+      width: 100%;
+      max-height: 12rem;
+    }
+
+    &__catalog-item .video-hub-profile-editor__thumbnail[data-kind="shorts"] {
+      width: 7rem;
+      justify-self: center;
+    }
+
+    &__add-video,
+    &__remove-video,
+    &__catalog-load-more {
+      width: 100%;
+      justify-content: center;
     }
 
     &__section-heading {
       display: grid;
       margin-left: 2.25rem;
-    }
-
-    &__section-settings,
-    &__item {
-      grid-template-columns: 1fr;
     }
 
     &__item {
