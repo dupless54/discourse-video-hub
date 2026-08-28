@@ -76,7 +76,7 @@ export default class VideoHubLanding extends Component {
     this.activeMobileVideoId = video.id;
     document
       .querySelector(`[data-video-hub-feed-index="${index}"]`)
-      ?.scrollIntoView({ block: "start" });
+      ?.scrollIntoView?.({ block: "start" });
   }
 
   @action
