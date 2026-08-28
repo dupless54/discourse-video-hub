@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 describe VideoHub::ProfileQuery do
-  let(:profile_user) { Fabricate(:user) }
+  let(:profile_user) { Fabricate(:user, trust_level: TrustLevel[2]) }
   let(:category) { Fabricate(:category) }
 
   before do
