@@ -27,9 +27,6 @@ describe VideoHub::PublishVideo do
     }.freeze
   end
 
-  before { RateLimiter.disable }
-  after { RateLimiter.enable }
-
   it "creates one core Topic/root Post and one published Video atomically" do
     stub_authorization
     stub_provider_resolution
@@ -97,11 +94,16 @@ describe VideoHub::PublishVideo do
     stub_provider_resolution
     VideoHub::ProviderMetadataFetcher.expects(:fetch).never
     PostCreator.expects(:new).never
+    initial_video_count = VideoHub::Video.count
+    initial_topic_count = Topic.count
+    initial_post_count = Post.count
 
-    expect do
-      result = described_class.publish(user: user, url: input_url)
-      expect(result).to eq(existing)
-    end.to not_change { VideoHub::Video.count }.and not_change { Topic.count }.and not_change { Post.count }
+    result = described_class.publish(user: user, url: input_url)
+
+    expect(result).to eq(existing)
+    expect(VideoHub::Video.count).to eq(initial_video_count)
+    expect(Topic.count).to eq(initial_topic_count)
+    expect(Post.count).to eq(initial_post_count)
   end
 
   it "does not reveal an existing canonical video when its Topic is not visible" do
@@ -130,11 +132,14 @@ describe VideoHub::PublishVideo do
       .twice
       .returns(nil, existing)
     PostCreator.expects(:new).never
+    initial_topic_count = Topic.count
+    initial_post_count = Post.count
 
-    expect do
-      result = described_class.publish(user: user, url: input_url)
-      expect(result).to eq(existing)
-    end.to not_change { Topic.count }.and not_change { Post.count }
+    result = described_class.publish(user: user, url: input_url)
+
+    expect(result).to eq(existing)
+    expect(Topic.count).to eq(initial_topic_count)
+    expect(Post.count).to eq(initial_post_count)
   end
 
   it "rejects metadata whose canonical identity differs from the resolved URL" do
