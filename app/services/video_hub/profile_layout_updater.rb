@@ -61,13 +61,13 @@ module VideoHub
 
       sections.map do |section|
         attributes = normalize_hash(section)
-        raise_layout_error unless section_shape_valid?(attributes)
+        require_keys!(attributes, %i[id position title visible items])
 
         {
-          id: attributes[:id],
-          position: attributes[:position],
-          title: attributes[:title],
-          visible: attributes[:visible],
+          id: normalize_positive_integer(attributes[:id]),
+          position: normalize_non_negative_integer(attributes[:position]),
+          title: normalize_title(attributes[:title]),
+          visible: normalize_boolean(attributes[:visible]),
           items: normalize_items(attributes[:items]),
         }
       end
@@ -78,13 +78,13 @@ module VideoHub
 
       items.map do |item|
         attributes = normalize_hash(item)
-        raise_layout_error unless item_shape_valid?(attributes)
+        require_keys!(attributes, %i[id position pinned visible])
 
         {
-          id: attributes[:id],
-          position: attributes[:position],
-          pinned: attributes[:pinned],
-          visible: attributes[:visible],
+          id: normalize_positive_integer(attributes[:id]),
+          position: normalize_non_negative_integer(attributes[:position]),
+          pinned: normalize_boolean(attributes[:pinned]),
+          visible: normalize_boolean(attributes[:visible]),
         }
       end
     end
@@ -95,37 +95,41 @@ module VideoHub
       value.to_h.deep_symbolize_keys
     end
 
-    def section_shape_valid?(attributes)
-      required_keys = %i[id position title visible items]
-      required_keys.all? { |key| attributes.key?(key) } && valid_id?(attributes[:id]) &&
-        valid_position?(attributes[:position]) && valid_title?(attributes[:title]) &&
-        boolean?(attributes[:visible])
+    def require_keys!(attributes, required_keys)
+      raise_layout_error unless required_keys.all? { |key| attributes.key?(key) }
     end
 
-    def item_shape_valid?(attributes)
-      required_keys = %i[id position pinned visible]
-      required_keys.all? { |key| attributes.key?(key) } && valid_id?(attributes[:id]) &&
-        valid_position?(attributes[:position]) && boolean?(attributes[:pinned]) &&
-        boolean?(attributes[:visible])
+    def normalize_positive_integer(value)
+      return value if value.is_a?(Integer) && value.positive?
+      return value.to_i if value.is_a?(String) && value.match?(/\A[1-9]\d*\z/)
+
+      raise_layout_error
     end
 
-    def valid_id?(value)
-      value.is_a?(Integer) && value.positive?
+    def normalize_non_negative_integer(value)
+      return value if value.is_a?(Integer) && value >= 0
+      return value.to_i if value.is_a?(String) && value.match?(/\A(?:0|[1-9]\d*)\z/)
+
+      raise_layout_error
     end
 
-    def valid_position?(value)
-      value.is_a?(Integer) && value >= 0
+    def normalize_boolean(value)
+      return value if value == true || value == false
+      return true if value == "true"
+      return false if value == "false"
+
+      raise_layout_error
     end
 
-    def valid_title?(value)
-      return true if value.nil?
+    def normalize_title(value)
+      return value if value.nil?
 
-      value.is_a?(String) && !value.include?("\u0000") &&
-        value.length <= VideoHub::ProfileSection::TITLE_MAX_LENGTH
-    end
+      if value.is_a?(String) && !value.include?("\u0000") &&
+           value.length <= VideoHub::ProfileSection::TITLE_MAX_LENGTH
+        return value
+      end
 
-    def boolean?(value)
-      value == true || value == false
+      raise_layout_error
     end
 
     def validate_section_layout!(profile_sections, requested_sections)
@@ -168,8 +172,13 @@ module VideoHub
 
       profile_items.each do |profile_item|
         video = videos[profile_item.video_id]
-        raise Discourse::NotFound unless video&.topic && video.post
-        unless guardian.can_see?(video.topic) && guardian.can_see?(video.post)
+        topic = video&.topic
+        post = video&.post
+
+        raise Discourse::NotFound unless topic && post
+        raise Discourse::NotFound unless topic.deleted_at.nil? && topic.visible
+        raise Discourse::NotFound unless post.deleted_at.nil? && !post.hidden
+        unless guardian.can_see?(topic) && guardian.can_see?(post)
           raise Discourse::NotFound
         end
       end
