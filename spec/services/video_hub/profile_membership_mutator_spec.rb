@@ -69,7 +69,8 @@ describe VideoHub::ProfileMembershipMutator do
 
   it "treats an identical add retry as idempotent without resetting presentation state" do
     video = create_video(kind: "shorts")
-    first = described_class.add(user: profile_user, username: profile_user.username, video_id: video.id)
+    first =
+      described_class.add(user: profile_user, username: profile_user.username, video_id: video.id)
     first.profile_item.update!(pinned: true, visible: false)
 
     retry_result =
@@ -87,7 +88,11 @@ describe VideoHub::ProfileMembershipMutator do
     video = create_video(kind: "shorts")
 
     result =
-      described_class.add(user: Fabricate(:admin), username: profile_user.username, video_id: video.id)
+      described_class.add(
+        user: Fabricate(:admin),
+        username: profile_user.username,
+        video_id: video.id,
+      )
 
     expect(result.created).to eq(true)
     expect(result.profile_user).to eq(profile_user)
@@ -157,7 +162,9 @@ describe VideoHub::ProfileMembershipMutator do
     ).to eq(true)
 
     expect(section.reload).to be_persisted
-    expect(section.items.order(:position).pluck(:id, :position)).to eq([[first.id, 0], [last.id, 1]])
+    expect(section.items.order(:position).pluck(:id, :position)).to eq(
+      [[first.id, 0], [last.id, 1]],
+    )
 
     expect(
       described_class.remove(
@@ -289,11 +296,7 @@ describe VideoHub::ProfileMembershipMutator, ".add" do
             editor = User.find(profile_user.id)
             ready << true
             start.pop
-            described_class.add(
-              user: editor,
-              username: profile_user.username,
-              video_id: video_id,
-            )
+            described_class.add(user: editor, username: profile_user.username, video_id: video_id)
           end
         end
       end
