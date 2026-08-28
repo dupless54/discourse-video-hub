@@ -23,10 +23,7 @@ export default <template>
             <header class="video-hub-profile__section-header">
               <h2>{{section.display_title}}</h2>
               <span class="video-hub-profile__count">
-                {{i18n
-                  "video_hub.profile.video_count"
-                  count=section.items.length
-                }}
+                {{section.item_count_label}}
               </span>
             </header>
 
