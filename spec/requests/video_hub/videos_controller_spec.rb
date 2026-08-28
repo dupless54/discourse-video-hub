@@ -105,9 +105,9 @@ describe VideoHub::VideosController do
 
     it "maps safe validation failures to unprocessable entity" do
       sign_in(user)
-      VideoHub::PublishVideo
-        .expects(:publish)
-        .raises(VideoHub::PublishVideo::PublishError.new(:invalid_caption))
+      VideoHub::PublishVideo.expects(:publish).raises(
+        VideoHub::PublishVideo::PublishError.new(:invalid_caption),
+      )
 
       post "/videos.json", params: { url: input_url, caption: "bad" }
 
@@ -117,9 +117,9 @@ describe VideoHub::VideosController do
 
     it "maps publish authorization failures to forbidden" do
       sign_in(user)
-      VideoHub::PublishVideo
-        .expects(:publish)
-        .raises(VideoHub::PublishVideo::PublishError.new(:insufficient_trust))
+      VideoHub::PublishVideo.expects(:publish).raises(
+        VideoHub::PublishVideo::PublishError.new(:insufficient_trust),
+      )
 
       post "/videos.json", params: { url: input_url }
 
@@ -129,23 +129,21 @@ describe VideoHub::VideosController do
 
     it "maps missing server category configuration to service unavailable" do
       sign_in(user)
-      VideoHub::PublishVideo
-        .expects(:publish)
-        .raises(VideoHub::PublishVideo::PublishError.new(:category_not_configured))
+      VideoHub::PublishVideo.expects(:publish).raises(
+        VideoHub::PublishVideo::PublishError.new(:category_not_configured),
+      )
 
       post "/videos.json", params: { url: input_url }
 
       expect(response.status).to eq(503)
-      expect(response.parsed_body).to eq(
-        { "error" => { "code" => "category_not_configured" } },
-      )
+      expect(response.parsed_body).to eq({ "error" => { "code" => "category_not_configured" } })
     end
 
     it "maps internal persistence failure to a safe server error" do
       sign_in(user)
-      VideoHub::PublishVideo
-        .expects(:publish)
-        .raises(VideoHub::PublishVideo::PublishError.new(:publish_failed))
+      VideoHub::PublishVideo.expects(:publish).raises(
+        VideoHub::PublishVideo::PublishError.new(:publish_failed),
+      )
 
       post "/videos.json", params: { url: input_url }
 
