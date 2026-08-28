@@ -54,7 +54,12 @@ describe "Video Hub terminal watch SEO" do
     @video_sequence = @video_sequence.to_i + 1
     owner = Fabricate(:user)
     topic =
-      Fabricate(:topic, user: owner, category: category, title: "Terminal SEO #{@video_sequence}")
+      Fabricate(
+        :topic,
+        user: owner,
+        category: category,
+        title: "Video Hub terminal SEO #{@video_sequence}",
+      )
     post = Fabricate(:post, topic: topic, user: owner)
 
     VideoHub::Video.create!(
