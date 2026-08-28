@@ -19,6 +19,10 @@ end
 require_relative "lib/video_hub/engine"
 
 after_initialize do
+  require_relative "lib/video_hub/topic_view_canonical_extension"
+
+  reloadable_patch { TopicView.prepend(VideoHub::TopicViewCanonicalExtension) }
+
   Discourse::Application.routes.prepend do
     get "/videos/:id/:slug" => "video_hub/videos#watch",
         :constraints => {
