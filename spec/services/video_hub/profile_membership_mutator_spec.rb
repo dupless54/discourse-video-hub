@@ -244,6 +244,12 @@ end
 describe VideoHub::ProfileMembershipMutator, ".add" do
   self.use_transactional_tests = false
 
+  after do
+    VideoHub::ProfileItem.delete_all
+    VideoHub::ProfileSection.delete_all
+    VideoHub::Video.delete_all
+  end
+
   it "serializes competing first-section adds without duplicate memberships or positions" do
     profile_user = Fabricate(:user)
     category = Fabricate(:category)
