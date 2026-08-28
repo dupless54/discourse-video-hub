@@ -94,9 +94,7 @@ describe VideoHub::ProfilesController do
                 position: 0,
                 title: "Pinned shorts",
                 visible: false,
-                items: [
-                  { id: item.id, position: 0, pinned: false, visible: false },
-                ],
+                items: [{ id: item.id, position: 0, pinned: false, visible: false }],
               },
             ],
           },
@@ -145,9 +143,7 @@ describe VideoHub::ProfilesController do
                 position: 0,
                 title: "Unauthorized change",
                 visible: false,
-                items: [
-                  { id: item.id, position: 0, pinned: false, visible: false },
-                ],
+                items: [{ id: item.id, position: 0, pinned: false, visible: false }],
               },
             ],
           },
@@ -173,9 +169,7 @@ describe VideoHub::ProfilesController do
                 position: 1,
                 title: "Invalid gap",
                 visible: true,
-                items: [
-                  { id: item.id, position: 0, pinned: true, visible: true },
-                ],
+                items: [{ id: item.id, position: 0, pinned: true, visible: true }],
               },
             ],
           },
@@ -190,8 +184,7 @@ describe VideoHub::ProfilesController do
     SiteSetting.video_hub_enabled = false
     sign_in(profile_user)
 
-    put "/videos/profile/#{profile_user.username}/layout.json",
-        params: { layout: { sections: [] } }
+    put "/videos/profile/#{profile_user.username}/layout.json", params: { layout: { sections: [] } }
 
     expect(response.status).to eq(404)
   end

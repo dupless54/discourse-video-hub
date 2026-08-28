@@ -43,13 +43,7 @@ module VideoHub
 
     def layout_params
       params.require(:layout).permit(
-        sections: [
-          :id,
-          :position,
-          :title,
-          :visible,
-          { items: %i[id position pinned visible] },
-        ],
+        sections: [:id, :position, :title, :visible, { items: %i[id position pinned visible] }],
       )
     end
 

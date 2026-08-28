@@ -97,19 +97,15 @@ module VideoHub
 
     def section_shape_valid?(attributes)
       required_keys = %i[id position title visible items]
-      required_keys.all? { |key| attributes.key?(key) } &&
-        valid_id?(attributes[:id]) &&
-        valid_position?(attributes[:position]) &&
-        valid_title?(attributes[:title]) &&
+      required_keys.all? { |key| attributes.key?(key) } && valid_id?(attributes[:id]) &&
+        valid_position?(attributes[:position]) && valid_title?(attributes[:title]) &&
         boolean?(attributes[:visible])
     end
 
     def item_shape_valid?(attributes)
       required_keys = %i[id position pinned visible]
-      required_keys.all? { |key| attributes.key?(key) } &&
-        valid_id?(attributes[:id]) &&
-        valid_position?(attributes[:position]) &&
-        boolean?(attributes[:pinned]) &&
+      required_keys.all? { |key| attributes.key?(key) } && valid_id?(attributes[:id]) &&
+        valid_position?(attributes[:position]) && boolean?(attributes[:pinned]) &&
         boolean?(attributes[:visible])
     end
 
@@ -124,8 +120,7 @@ module VideoHub
     def valid_title?(value)
       return true if value.nil?
 
-      value.is_a?(String) &&
-        !value.include?("\u0000") &&
+      value.is_a?(String) && !value.include?("\u0000") &&
         value.length <= VideoHub::ProfileSection::TITLE_MAX_LENGTH
     end
 
@@ -134,7 +129,10 @@ module VideoHub
     end
 
     def validate_section_layout!(profile_sections, requested_sections)
-      validate_exact_ids!(profile_sections.map(&:id), requested_sections.map { |section| section[:id] })
+      validate_exact_ids!(
+        profile_sections.map(&:id),
+        requested_sections.map { |section| section[:id] },
+      )
       validate_contiguous_positions!(requested_sections)
     end
 
@@ -171,15 +169,17 @@ module VideoHub
       profile_items.each do |profile_item|
         video = videos[profile_item.video_id]
         raise Discourse::NotFound unless video&.topic && video.post
-        raise Discourse::NotFound unless guardian.can_see?(video.topic) && guardian.can_see?(video.post)
+        unless guardian.can_see?(video.topic) && guardian.can_see?(video.post)
+          raise Discourse::NotFound
+        end
       end
     end
 
     def apply_layout!(profile_sections, profile_items, requested_sections)
       temporarily_move_positions!(profile_sections)
-      profile_items.group_by(&:profile_section_id).each_value do |items|
-        temporarily_move_positions!(items)
-      end
+      profile_items
+        .group_by(&:profile_section_id)
+        .each_value { |items| temporarily_move_positions!(items) }
 
       sections_by_id = profile_sections.index_by(&:id)
       items_by_id = profile_items.index_by(&:id)
@@ -205,9 +205,7 @@ module VideoHub
       return if records.empty?
 
       base = records.map(&:position).max.to_i + records.length + 1
-      records.each_with_index do |record, index|
-        record.update_columns(position: base + index)
-      end
+      records.each_with_index { |record, index| record.update_columns(position: base + index) }
     end
 
     def build_result(profile_user, profile_sections, profile_items, requested_sections)

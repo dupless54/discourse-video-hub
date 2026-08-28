@@ -81,7 +81,11 @@ describe VideoHub::ProfileLayoutUpdater do
     ]
 
     expect do
-      described_class.update(user: Fabricate(:user), username: profile_user.username, sections: payload)
+      described_class.update(
+        user: Fabricate(:user),
+        username: profile_user.username,
+        sections: payload,
+      )
     end.to raise_error(Discourse::NotFound)
 
     expect do
@@ -107,13 +111,7 @@ describe VideoHub::ProfileLayoutUpdater do
       )
 
     invalid_membership = [
-      section_input(
-        foreign_section,
-        position: 0,
-        title: "Foreign",
-        visible: true,
-        items: [],
-      ),
+      section_input(foreign_section, position: 0, title: "Foreign", visible: true, items: []),
       section_input(
         landscape,
         position: 1,
@@ -254,13 +252,7 @@ describe VideoHub::ProfileLayoutUpdater do
   end
 
   def section_input(section, position:, title:, visible:, items:)
-    {
-      id: section.id,
-      position: position,
-      title: title,
-      visible: visible,
-      items: items,
-    }
+    { id: section.id, position: position, title: title, visible: visible, items: items }
   end
 
   def item_input(item, position:, pinned:, visible:)
