@@ -19,6 +19,23 @@ describe VideoHub::PublishPolicy do
     expect(described_class.authorize!(user: user, provider: "youtube")).to eq(category)
   end
 
+  it "supports a provider-independent authorization stage before any provider network work" do
+    SiteSetting.video_hub_youtube_enabled = false
+    SiteSetting.video_hub_tiktok_enabled = false
+    expect_guardian(user, category, allowed: true)
+
+    expect(described_class.authorize_base!(user: user)).to eq(category)
+  end
+
+  it "supports a provider-only authorization stage without repeating Guardian work" do
+    Guardian.expects(:new).never
+
+    expect(described_class.authorize_provider!(provider: "youtube")).to eq("youtube")
+    expect do
+      described_class.authorize_provider!(provider: "instagram")
+    end.to raise_error(described_class::AuthorizationError) { |error| expect(error.code).to eq(:provider_disabled) }
+  end
+
   it "fails closed when Video Hub is disabled" do
     SiteSetting.video_hub_enabled = false
 
