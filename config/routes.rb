@@ -20,5 +20,6 @@ VideoHub::Engine.routes.draw do
            format: :json,
          }
   get "/:id/:slug" => "videos#show", :constraints => { id: /\d+/, format: :json }
+  get "/:id/:slug" => "videos#watch", :constraints => { id: /\d+/ }
   post "/" => "videos#create", :defaults => { format: :json }
 end
