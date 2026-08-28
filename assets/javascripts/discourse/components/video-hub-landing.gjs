@@ -1,5 +1,6 @@
 import Component from "@glimmer/component";
 import { i18n } from "discourse-i18n";
+import VideoHubCard from "./video-hub-card";
 
 export default class VideoHubLanding extends Component {
   get providerItems() {
@@ -36,7 +37,11 @@ export default class VideoHubLanding extends Component {
       </header>
 
       {{#if @model.videos.length}}
-        <section class="video-hub-page__feed" aria-live="polite"></section>
+        <section class="video-hub-page__feed" aria-live="polite">
+          {{#each @model.videos as |video|}}
+            <VideoHubCard @video={{video}} />
+          {{/each}}
+        </section>
       {{else}}
         <section class="video-hub-page__empty" aria-live="polite">
           <div class="video-hub-page__empty-preview" aria-hidden="true">
