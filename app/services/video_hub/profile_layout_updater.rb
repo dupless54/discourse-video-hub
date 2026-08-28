@@ -178,9 +178,7 @@ module VideoHub
         raise Discourse::NotFound unless topic && post
         raise Discourse::NotFound unless topic.deleted_at.nil? && topic.visible
         raise Discourse::NotFound unless post.deleted_at.nil? && !post.hidden
-        unless guardian.can_see?(topic) && guardian.can_see?(post)
-          raise Discourse::NotFound
-        end
+        raise Discourse::NotFound unless guardian.can_see?(topic) && guardian.can_see?(post)
       end
     end
 
