@@ -31,7 +31,11 @@ acceptance("Video Hub publish", function () {
 
       assert.strictEqual(params.get("url"), canonicalUrl);
       assert.strictEqual(params.get("caption"), "A short caption");
-      assert.strictEqual(params.get("provider"), null, "does not submit provider truth");
+      assert.strictEqual(
+        params.get("provider"),
+        null,
+        "does not submit provider truth"
+      );
       assert.strictEqual(
         params.get("external_id"),
         null,
@@ -78,6 +82,8 @@ acceptance("Video Hub publish", function () {
     assert.strictEqual(currentURL(), "/videos/new");
     assert
       .dom(".video-hub-publish .alert-error")
-      .hasText("The video was published, but the watch page response was invalid.");
+      .hasText(
+        "The video was published, but the watch page response was invalid."
+      );
   });
 });
