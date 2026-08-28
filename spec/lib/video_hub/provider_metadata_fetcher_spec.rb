@@ -67,22 +67,19 @@ describe VideoHub::ProviderMetadataFetcher do
         input,
         resolved_result("youtube", "dQw4w9WgXcQ", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
       )
-      VideoHub::Providers::Youtube
-        .expects(:fetch)
-        .raises(VideoHub::Providers::Youtube::MetadataError.new(:invalid_metadata))
+      VideoHub::Providers::Youtube.expects(:fetch).raises(
+        VideoHub::Providers::Youtube::MetadataError.new(:invalid_metadata),
+      )
 
       expect_metadata_error(input, :invalid_metadata)
     end
 
     it "maps TikTok adapter failures to the stable metadata error contract" do
       input = "https://www.tiktok.com/@creator/video/6718335390845095173"
-      expect_resolver(
-        input,
-        resolved_result("tiktok", "6718335390845095173", input),
+      expect_resolver(input, resolved_result("tiktok", "6718335390845095173", input))
+      VideoHub::Providers::Tiktok.expects(:fetch).raises(
+        VideoHub::Providers::Tiktok::MetadataError.new(:network_error),
       )
-      VideoHub::Providers::Tiktok
-        .expects(:fetch)
-        .raises(VideoHub::Providers::Tiktok::MetadataError.new(:network_error))
 
       expect_metadata_error(input, :network_error)
     end
@@ -90,9 +87,9 @@ describe VideoHub::ProviderMetadataFetcher do
     it "maps Instagram adapter failures to the stable metadata error contract" do
       input = "https://www.instagram.com/reel/AbCdEf123/"
       expect_resolver(input, resolved_result("instagram", "AbCdEf123", input))
-      VideoHub::Providers::Instagram
-        .expects(:fetch)
-        .raises(VideoHub::Providers::Instagram::MetadataError.new(:unsupported_source))
+      VideoHub::Providers::Instagram.expects(:fetch).raises(
+        VideoHub::Providers::Instagram::MetadataError.new(:unsupported_source),
+      )
 
       expect_metadata_error(input, :unsupported_source)
     end
