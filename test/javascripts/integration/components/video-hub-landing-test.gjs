@@ -74,7 +74,9 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
       .hasAttribute("data-kind", "shorts")
       .hasAttribute("href", "/videos/11/short-video");
     assert
-      .dom('.video-hub-card[data-provider="tiktok"] .video-hub-card__placeholder')
+      .dom(
+        '.video-hub-card[data-provider="tiktok"] .video-hub-card__placeholder'
+      )
       .hasText("TikTok");
     assert
       .dom('.video-hub-card[data-provider="tiktok"] .video-hub-card__author')
