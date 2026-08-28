@@ -394,33 +394,38 @@ describe VideoHub::ProfileLayoutUpdater, ".update" do
 
     payload_signature =
       lambda do |snapshot|
-        snapshot.sort_by { |section| section[:position] }.map do |section|
-          [
-            section[:id],
-            section[:title],
-            section[:visible],
-            section[:items]
-              .sort_by { |item| item[:position] }
-              .map { |item| [item[:id], item[:pinned], item[:visible]] },
-          ]
-        end
+        snapshot
+          .sort_by { |section| section[:position] }
+          .map do |section|
+            [
+              section[:id],
+              section[:title],
+              section[:visible],
+              section[:items]
+                .sort_by { |item| item[:position] }
+                .map { |item| [item[:id], item[:pinned], item[:visible]] },
+            ]
+          end
       end
     persisted_signature =
-      VideoHub::ProfileSection.where(user_id: profile_user.id).order(:position).map do |section|
-        [
-          section.id,
-          section.title,
-          section.visible,
-          section.items.order(:position).map { |item| [item.id, item.pinned, item.visible] },
-        ]
-      end
+      VideoHub::ProfileSection
+        .where(user_id: profile_user.id)
+        .order(:position)
+        .map do |section|
+          [
+            section.id,
+            section.title,
+            section.visible,
+            section.items.order(:position).map { |item| [item.id, item.pinned, item.visible] },
+          ]
+        end
 
     expect(
       [payload_signature.call(first_snapshot), payload_signature.call(second_snapshot)],
     ).to include(persisted_signature)
-    expect(VideoHub::ProfileSection.where(user_id: profile_user.id).order(:position).pluck(:position)).to eq(
-      [0, 1],
-    )
+    expect(
+      VideoHub::ProfileSection.where(user_id: profile_user.id).order(:position).pluck(:position),
+    ).to eq([0, 1])
     expect(shorts.items.order(:position).pluck(:position)).to eq([0, 1])
   end
 end
