@@ -1,4 +1,4 @@
-import VideoHubCard from "../../components/video-hub-card";
+import VideoHubCard from "discourse/plugins/discourse-video-hub/discourse/components/video-hub-card";
 import bodyClass from "discourse/helpers/body-class";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
