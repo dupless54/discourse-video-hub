@@ -35,7 +35,9 @@ describe VideoHub::PublishVideo do
     video = nil
     expect do
       video = described_class.publish(user: user, url: input_url, caption: "My caption")
-    end.to change { VideoHub::Video.count }.by(1).and change { Topic.count }.by(1).and change { Post.count }.by(1)
+    end.to change { VideoHub::Video.count }.by(1).and change { Topic.count }.by(1).and change {
+                  Post.count
+                }.by(1)
 
     expect(video).to be_persisted
     expect(video.status).to eq("published")
@@ -83,9 +85,7 @@ describe VideoHub::PublishVideo do
       .raises(VideoHub::PublishPolicy::AuthorizationError.new(:provider_disabled))
     VideoHub::ProviderMetadataFetcher.expects(:fetch).never
 
-    expect_publish_error(:provider_disabled) do
-      described_class.publish(user: user, url: input_url)
-    end
+    expect_publish_error(:provider_disabled) { described_class.publish(user: user, url: input_url) }
   end
 
   it "reuses a visible canonical duplicate without metadata or Topic creation" do
@@ -116,9 +116,9 @@ describe VideoHub::PublishVideo do
     Guardian.expects(:new).with(user).returns(guardian)
     guardian.expects(:can_see?).with(existing.topic).returns(false)
 
-    expect do
-      described_class.publish(user: user, url: input_url)
-    end.to raise_error(Discourse::NotFound)
+    expect do described_class.publish(user: user, url: input_url) end.to raise_error(
+      Discourse::NotFound,
+    )
   end
 
   it "rechecks canonical identity after metadata retrieval so a racing publisher wins cleanly" do
@@ -160,9 +160,10 @@ describe VideoHub::PublishVideo do
     stub_authorization
     stub_provider_resolution
     VideoHub::ProviderMetadataFetcher.expects(:fetch).with(canonical_url).returns(metadata)
-    VideoHub::Video.any_instance.stubs(:save!).raises(
-      ActiveRecord::RecordInvalid.new(VideoHub::Video.new),
-    )
+    VideoHub::Video
+      .any_instance
+      .stubs(:save!)
+      .raises(ActiveRecord::RecordInvalid.new(VideoHub::Video.new))
 
     initial_video_count = VideoHub::Video.count
     initial_topic_count = Topic.count
@@ -180,9 +181,10 @@ describe VideoHub::PublishVideo do
   it "uses a safe fallback Topic title when provider metadata has no title" do
     stub_authorization
     stub_provider_resolution
-    VideoHub::ProviderMetadataFetcher.expects(:fetch).with(canonical_url).returns(
-      metadata.merge(title: nil),
-    )
+    VideoHub::ProviderMetadataFetcher
+      .expects(:fetch)
+      .with(canonical_url)
+      .returns(metadata.merge(title: nil))
 
     video = described_class.publish(user: user, url: input_url)
 
@@ -192,7 +194,10 @@ describe VideoHub::PublishVideo do
 
   def stub_authorization
     VideoHub::PublishPolicy.expects(:authorize_base!).with(user: user).returns(category)
-    VideoHub::PublishPolicy.expects(:authorize_provider!).with(provider: "youtube").returns("youtube")
+    VideoHub::PublishPolicy
+      .expects(:authorize_provider!)
+      .with(provider: "youtube")
+      .returns("youtube")
   end
 
   def stub_provider_resolution
