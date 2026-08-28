@@ -16,6 +16,7 @@ module VideoHub
     skip_before_action :check_xhr, only: %i[shell watch]
 
     def shell
+      response.headers["X-Robots-Tag"] = "noindex,follow"
       render html: "", layout: true
     end
 

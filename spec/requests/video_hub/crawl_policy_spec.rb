@@ -20,9 +20,9 @@ describe "Video Hub crawl policy" do
       get path, headers: crawler_headers
 
       expect(response.status).to eq(200), "expected #{path} to render the Discourse SPA shell"
-      document = Nokogiri.HTML(response.body)
-      robots = document.css('meta[name="robots"]').map { |tag| tag["content"] }
-      expect(robots).to include("noindex,follow"), "expected #{path} to be noindex,follow"
+      expect(response.headers["X-Robots-Tag"]).to eq(
+        "noindex,follow",
+      ), "expected #{path} to be noindex,follow"
     end
   end
 
@@ -47,8 +47,8 @@ describe "Video Hub crawl policy" do
     get "/videos/#{video.id}/#{topic.slug}", headers: crawler_headers
 
     expect(response.status).to eq(200)
+    expect(response.headers["X-Robots-Tag"]).to be_nil
     document = Nokogiri.HTML(response.body)
-    expect(document.css('meta[name="robots"][content="noindex,follow"]')).to be_empty
     expect(document.at_css('link[rel="canonical"]')["href"]).to eq(
       "#{Discourse.base_url}/videos/#{video.id}/#{topic.slug}",
     )
@@ -59,14 +59,15 @@ describe "Video Hub crawl policy" do
 
     expect(response.status).to eq(200)
     expect(response.media_type).to eq("application/json")
+    expect(response.headers["X-Robots-Tag"]).to be_nil
   end
 
-  it "does not emit Video Hub crawl metadata when the plugin is disabled" do
+  it "does not expose crawl metadata when Video Hub is disabled" do
     SiteSetting.video_hub_enabled = false
 
     get "/videos", headers: crawler_headers
 
-    document = Nokogiri.HTML(response.body)
-    expect(document.css('meta[name="robots"][content="noindex,follow"]')).to be_empty
+    expect(response.status).to eq(404)
+    expect(response.headers["X-Robots-Tag"]).to be_nil
   end
 end

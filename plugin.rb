@@ -14,27 +14,12 @@ register_asset "stylesheets/common/video-hub-mobile-feed.scss"
 
 module ::VideoHub
   PLUGIN_NAME = "discourse-video-hub"
-  NOINDEX_PATHS = %w[/videos /videos/new].freeze
-  PROFILE_PATH_PATTERN = %r{\A/u/[^/]+/videos(?:/|\z)}
 end
 
 require_relative "lib/video_hub/engine"
 
-register_html_builder("server:before-head-close") do |controller|
-  next unless SiteSetting.video_hub_enabled
-
-  path = controller.request.path
-  base_path = Discourse.base_path
-  path = path.delete_prefix(base_path) if base_path.present?
-  path = path.delete_suffix("/") unless path == "/"
-
-  next unless VideoHub::NOINDEX_PATHS.include?(path) || path.match?(VideoHub::PROFILE_PATH_PATTERN)
-
-  '<meta name="robots" content="noindex,follow">'
-end
-
 Discourse::Application.routes.append do
-  get "/u/:username/videos" => "users#show",
+  get "/u/:username/videos" => "video_hub/videos#shell",
       :constraints => {
         username: RouteFormat.username,
         format: /html/,
@@ -42,7 +27,7 @@ Discourse::Application.routes.append do
       :defaults => {
         format: :html,
       }
-  get "/u/:username/videos/edit" => "users#show",
+  get "/u/:username/videos/edit" => "video_hub/videos#shell",
       :constraints => {
         username: RouteFormat.username,
         format: /html/,
