@@ -60,6 +60,7 @@ acceptance("Video Hub profile", function (needs) {
     let layoutRequests = 0;
     let savedBody = "";
 
+    stubEmptyCatalog();
     pretender.get("/videos/profile/eviltrout/layout.json", () => {
       layoutRequests += 1;
       return response(layoutResponse());
@@ -123,9 +124,107 @@ acceptance("Video Hub profile", function (needs) {
     );
   });
 
+  test("adds and removes canonical videos while protecting dirty layout edits", async function (assert) {
+    let added = false;
+    let addRequests = 0;
+    let removeRequests = 0;
+    const candidate = videoPayload({
+      id: 104,
+      kind: "shorts",
+      title: "Catalog short",
+      thumbnailUrl: "https://example.com/catalog-short.jpg",
+      watchPath: "/videos/104/catalog-short",
+    });
+
+    pretender.get("/videos/profile/eviltrout/layout.json", () =>
+      response(added ? layoutResponseWithCandidate(candidate) : layoutResponse())
+    );
+    pretender.get("/videos.json", () =>
+      response({
+        videos: [candidate],
+        providers: ["youtube"],
+        pagination: { has_more: false, next_cursor: null },
+      })
+    );
+    pretender.put(
+      "/videos/profile/eviltrout/layout/videos/104.json",
+      () => {
+        addRequests += 1;
+        added = true;
+        return response(201, {
+          membership: {
+            username: "eviltrout",
+            section_id: 1,
+            section_type: "shorts",
+            item_id: 14,
+            video_id: 104,
+            position: 2,
+            pinned: false,
+            visible: true,
+          },
+        });
+      }
+    );
+    pretender.delete(
+      "/videos/profile/eviltrout/layout/videos/104.json",
+      () => {
+        removeRequests += 1;
+        added = false;
+        return response(204);
+      }
+    );
+
+    await visit("/u/eviltrout/videos/edit");
+
+    assert
+      .dom('.video-hub-profile-editor__catalog-item[data-video-id="104"]')
+      .exists();
+    assert.dom(".video-hub-profile-editor__add-video").isNotDisabled();
+    assert
+      .dom('[data-item-id="11"] .video-hub-profile-editor__remove-video')
+      .isNotDisabled();
+
+    await fillIn(
+      '[data-section-id="1"] input[name$=".title"]',
+      "Unsaved title"
+    );
+
+    assert.dom(".video-hub-profile-editor__membership-lock-hint").exists();
+    assert.dom(".video-hub-profile-editor__add-video").isDisabled();
+    assert
+      .dom('[data-item-id="11"] .video-hub-profile-editor__remove-video')
+      .isDisabled();
+
+    await click(".video-hub-profile-editor__reset");
+    assert.dom(".video-hub-profile-editor__membership-lock-hint").doesNotExist();
+    assert.dom(".video-hub-profile-editor__add-video").isNotDisabled();
+
+    await click(".video-hub-profile-editor__add-video");
+
+    assert.strictEqual(addRequests, 1);
+    assert
+      .dom('.video-hub-profile-editor__catalog-item[data-video-id="104"]')
+      .doesNotExist();
+    assert
+      .dom('[data-section-id="1"] [data-video-id="104"]')
+      .exists()
+      .hasAttribute("data-item-id", "14");
+
+    await click(
+      '[data-section-id="1"] [data-video-id="104"] .video-hub-profile-editor__remove-video'
+    );
+
+    assert.strictEqual(removeRequests, 1);
+    assert.dom('[data-section-id="1"] [data-video-id="104"]').doesNotExist();
+    assert
+      .dom('.video-hub-profile-editor__catalog-item[data-video-id="104"]')
+      .exists();
+  });
+
   test("reloads the authoritative layout after a failed save", async function (assert) {
     let layoutRequests = 0;
 
+    stubEmptyCatalog();
     pretender.get("/videos/profile/eviltrout/layout.json", () => {
       layoutRequests += 1;
       return response(layoutResponse());
@@ -148,6 +247,16 @@ acceptance("Video Hub profile", function (needs) {
     assert.dom('[data-section-id="1"] h2').hasText("Quick clips");
   });
 });
+
+function stubEmptyCatalog() {
+  pretender.get("/videos.json", () =>
+    response({
+      videos: [],
+      providers: ["youtube"],
+      pagination: { has_more: false, next_cursor: null },
+    })
+  );
+}
 
 function publicProfileResponse() {
   return {
@@ -267,6 +376,21 @@ function layoutResponse() {
       ],
     },
   };
+}
+
+function layoutResponseWithCandidate(candidate) {
+  const layout = layoutResponse();
+
+  layout.profile.sections[0].items.push({
+    id: 14,
+    video_id: candidate.id,
+    position: 2,
+    pinned: false,
+    visible: true,
+    video: candidate,
+  });
+
+  return layout;
 }
 
 function videoPayload({ id, kind, title, thumbnailUrl, watchPath }) {
