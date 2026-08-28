@@ -31,9 +31,9 @@ describe VideoHub::PublishPolicy do
     Guardian.expects(:new).never
 
     expect(described_class.authorize_provider!(provider: "youtube")).to eq("youtube")
-    expect do
-      described_class.authorize_provider!(provider: "instagram")
-    end.to raise_error(described_class::AuthorizationError) { |error| expect(error.code).to eq(:provider_disabled) }
+    expect do described_class.authorize_provider!(provider: "instagram") end.to raise_error(
+      described_class::AuthorizationError,
+    ) { |error| expect(error.code).to eq(:provider_disabled) }
   end
 
   it "fails closed when Video Hub is disabled" do
