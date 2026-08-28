@@ -29,8 +29,12 @@ describe VideoHub::WatchQuery do
     unavailable = create_video(status: "unavailable")
     instagram = create_video(provider: "instagram")
 
-    expect { described_class.fetch(user: nil, id: unavailable.id) }.to raise_error(Discourse::NotFound)
-    expect { described_class.fetch(user: nil, id: instagram.id) }.to raise_error(Discourse::NotFound)
+    expect { described_class.fetch(user: nil, id: unavailable.id) }.to raise_error(
+      Discourse::NotFound,
+    )
+    expect { described_class.fetch(user: nil, id: instagram.id) }.to raise_error(
+      Discourse::NotFound,
+    )
   end
 
   it "hides videos whose backing Topic or root Post was deleted" do
@@ -40,8 +44,12 @@ describe VideoHub::WatchQuery do
     deleted_post_video = create_video
     deleted_post_video.post.update_column(:deleted_at, Time.zone.now)
 
-    expect { described_class.fetch(user: nil, id: deleted_topic_video.id) }.to raise_error(Discourse::NotFound)
-    expect { described_class.fetch(user: nil, id: deleted_post_video.id) }.to raise_error(Discourse::NotFound)
+    expect { described_class.fetch(user: nil, id: deleted_topic_video.id) }.to raise_error(
+      Discourse::NotFound,
+    )
+    expect { described_class.fetch(user: nil, id: deleted_post_video.id) }.to raise_error(
+      Discourse::NotFound,
+    )
   end
 
   it "requires final Guardian visibility for both the Topic and root Post" do
