@@ -33,16 +33,17 @@ describe VideoHub::Video do
   end
 
   it "restricts provider, kind, status, duration and bounded metadata values" do
-    video = described_class.new(
-      base_attributes.merge(
-        provider: "vimeo",
-        kind: "square",
-        status: "hidden",
-        duration_seconds: -1,
-        title: "T" * (described_class::TITLE_MAX_LENGTH + 1),
-        author_name: "A" * (described_class::AUTHOR_MAX_LENGTH + 1),
-      ),
-    )
+    video =
+      described_class.new(
+        base_attributes.merge(
+          provider: "vimeo",
+          kind: "square",
+          status: "hidden",
+          duration_seconds: -1,
+          title: "T" * (described_class::TITLE_MAX_LENGTH + 1),
+          author_name: "A" * (described_class::AUTHOR_MAX_LENGTH + 1),
+        ),
+      )
 
     expect(video).not_to be_valid
     expect(video.errors[:provider]).to be_present
@@ -102,9 +103,10 @@ describe VideoHub::Video do
     expect(duplicate.errors[:external_id]).to be_present
 
     index =
-      described_class.connection.indexes(:video_hub_videos).find do |candidate|
-        candidate.columns == %w[provider external_id]
-      end
+      described_class
+        .connection
+        .indexes(:video_hub_videos)
+        .find { |candidate| candidate.columns == %w[provider external_id] }
 
     expect(index).to be_present
     expect(index.unique).to eq(true)
@@ -123,11 +125,15 @@ describe VideoHub::Video do
 
   it "allows core user deletion to nullify the author reference without orphaning the video" do
     user_column =
-      described_class.connection.columns(:video_hub_videos).find { |column| column.name == "user_id" }
+      described_class
+        .connection
+        .columns(:video_hub_videos)
+        .find { |column| column.name == "user_id" }
     user_fk =
-      described_class.connection.foreign_keys(:video_hub_videos).find do |foreign_key|
-        foreign_key.to_table == "users"
-      end
+      described_class
+        .connection
+        .foreign_keys(:video_hub_videos)
+        .find { |foreign_key| foreign_key.to_table == "users" }
 
     expect(user_column).to be_present
     expect(user_column.null).to eq(true)
@@ -136,8 +142,7 @@ describe VideoHub::Video do
   end
 
   it "installs database check constraints for the domain and publish mapping invariants" do
-    constraint_names =
-      described_class.connection.check_constraints(:video_hub_videos).map(&:name)
+    constraint_names = described_class.connection.check_constraints(:video_hub_videos).map(&:name)
 
     expect(constraint_names).to include(
       "video_hub_videos_provider",
