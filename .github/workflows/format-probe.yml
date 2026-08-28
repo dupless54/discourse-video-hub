@@ -3,7 +3,7 @@ name: Format Probe
 on:
   push:
     branches:
-      - feature/profile-layout-editor
+      - main
 
 permissions:
   contents: read
@@ -23,4 +23,4 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           pnpm prettier "assets/**/*.{scss,js,gjs}" "test/**/*.{js,gjs}" --write
           bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
-          git diff -- assets/javascripts/discourse/components/video-hub-layout-draggable.gjs assets/javascripts/discourse/components/video-hub-profile-layout-editor.gjs assets/javascripts/discourse/routes/user/video-hub-profile-layout.js assets/javascripts/discourse/routes/user/video-hub-profile.js assets/javascripts/discourse/templates/user/video-hub-profile-layout.gjs assets/javascripts/discourse/templates/user/video-hub-profile.gjs assets/javascripts/discourse/video-hub-user-route-map.js assets/stylesheets/common/video-hub-profile.scss test/javascripts/acceptance/video-hub-profile-test.js
+          git diff -- app/controllers/video_hub/videos_controller.rb config/routes.rb test/javascripts/integration/components/video-hub-landing-test.gjs
