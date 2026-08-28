@@ -47,29 +47,29 @@ module VideoHub
         existing_item = profile_items.find { |item| item.video_id == video.id }
 
         if existing_item
-          return AddResult.new(
+          AddResult.new(
             profile_user: profile_user,
             profile_section: profile_section,
             profile_item: existing_item,
             created: false,
           ).freeze
-        end
+        else
+          profile_item =
+            VideoHub::ProfileItem.create!(
+              profile_section: profile_section,
+              video: video,
+              position: next_position(profile_items),
+              pinned: false,
+              visible: true,
+            )
 
-        profile_item =
-          VideoHub::ProfileItem.create!(
+          AddResult.new(
+            profile_user: profile_user,
             profile_section: profile_section,
-            video: video,
-            position: next_position(profile_items),
-            pinned: false,
-            visible: true,
-          )
-
-        AddResult.new(
-          profile_user: profile_user,
-          profile_section: profile_section,
-          profile_item: profile_item,
-          created: true,
-        ).freeze
+            profile_item: profile_item,
+            created: true,
+          ).freeze
+        end
       end
     rescue ActiveRecord::RecordInvalid,
            ActiveRecord::RecordNotSaved,
@@ -85,16 +85,19 @@ module VideoHub
         profile_sections = locked_sections(profile_user)
         profile_items = locked_profile_items(profile_sections)
         profile_item = profile_items.find { |item| item.video_id == normalized_video_id }
-        return false unless profile_item
 
-        section_items =
-          profile_items
-            .select { |item| item.profile_section_id == profile_item.profile_section_id }
-            .sort_by { |item| [item.position, item.id] }
+        if profile_item
+          section_items =
+            profile_items
+              .select { |item| item.profile_section_id == profile_item.profile_section_id }
+              .sort_by { |item| [item.position, item.id] }
 
-        profile_item.destroy!
-        compact_positions!(section_items.reject { |item| item.id == profile_item.id })
-        true
+          profile_item.destroy!
+          compact_positions!(section_items.reject { |item| item.id == profile_item.id })
+          true
+        else
+          false
+        end
       end
     rescue ActiveRecord::RecordInvalid,
            ActiveRecord::RecordNotSaved,
