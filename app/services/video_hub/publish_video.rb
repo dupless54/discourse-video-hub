@@ -63,7 +63,8 @@ module VideoHub
             video.assign_attributes(video_attributes(metadata))
             video.user ||= user
 
-            post_creator = PostCreator.new(user, post_options(category, metadata, normalized_caption))
+            post_creator =
+              PostCreator.new(user, post_options(category, metadata, normalized_caption))
             post = post_creator.create!
 
             video.assign_attributes(
@@ -104,12 +105,7 @@ module VideoHub
     end
 
     def enforce_rate_limit!
-      RateLimiter.new(
-        user,
-        "video_hub_publish",
-        RATE_LIMIT_MAX,
-        RATE_LIMIT_WINDOW,
-      ).performed!
+      RateLimiter.new(user, "video_hub_publish", RATE_LIMIT_MAX, RATE_LIMIT_WINDOW).performed!
     end
 
     def find_existing(resolved)
