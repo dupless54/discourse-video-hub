@@ -7,9 +7,7 @@ export default <template>
   {{bodyClass "video-hub-profile-page video-hub-profile-editor-page"}}
 
   <div class="user-content video-hub-profile" id="user-content">
-    <header
-      class="video-hub-profile__header video-hub-profile__header--editor"
-    >
+    <header class="video-hub-profile__header video-hub-profile__header--editor">
       <div>
         <h1>{{i18n "video_hub.profile.editor.title"}}</h1>
         <p>{{i18n
