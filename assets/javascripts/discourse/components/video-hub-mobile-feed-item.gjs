@@ -27,10 +27,7 @@ export default class VideoHubMobileFeedItem extends Component {
 
   @action
   onIntersection(entry) {
-    if (
-      entry.isIntersecting &&
-      entry.intersectionRatio >= ACTIVE_THRESHOLD
-    ) {
+    if (entry.isIntersecting && entry.intersectionRatio >= ACTIVE_THRESHOLD) {
       this.args.onActivate?.(this.args.video.id);
     }
   }
