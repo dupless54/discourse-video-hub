@@ -22,11 +22,7 @@ module VideoHub
     end
 
     def fetch
-      video =
-        VideoHub::Video.includes(:topic, :post, :user).find_by(
-          id: @id,
-          status: "published",
-        )
+      video = VideoHub::Video.includes(:topic, :post, :user).find_by(id: @id, status: "published")
 
       raise Discourse::NotFound unless visible_video?(video)
 
