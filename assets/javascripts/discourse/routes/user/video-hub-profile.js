@@ -25,6 +25,9 @@ export default class UserVideoHubProfileRoute extends Route {
           ...section,
           display_title:
             section.title || this.sectionLabel(section.section_type),
+          item_count_label: i18n("video_hub.profile.video_count", {
+            count: section.items?.length ?? 0,
+          }),
           items: (section.items ?? []).map((item) => ({
             ...item,
             video: {
