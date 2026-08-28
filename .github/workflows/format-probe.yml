@@ -3,7 +3,7 @@ name: Format Probe
 on:
   push:
     branches:
-      - main
+      - probe/video-persistence-format
 
 permissions:
   contents: read
@@ -21,6 +21,6 @@ jobs:
       - name: Print canonical formatting diff
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pnpm prettier "assets/**/*.{scss,js,gjs}" "test/**/*.{js,gjs}" --write
+          bundle exec rubocop -A app/models/video_hub/video.rb db/migrate/20260828003000_create_video_hub_videos.rb spec/models/video_hub/video_spec.rb
           bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
-          git diff -- app/controllers/video_hub/videos_controller.rb config/routes.rb test/javascripts/integration/components/video-hub-landing-test.gjs
+          git diff -- app/models/video_hub/video.rb db/migrate/20260828003000_create_video_hub_videos.rb spec/models/video_hub/video_spec.rb
