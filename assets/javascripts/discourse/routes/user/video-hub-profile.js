@@ -3,6 +3,8 @@ import { ajax } from "discourse/lib/ajax";
 import { i18n } from "discourse-i18n";
 
 export default class UserVideoHubProfileRoute extends Route {
+  templateName = "user/video-hub-profile";
+
   async model() {
     const user = this.modelFor("user");
     const response = await ajax(
