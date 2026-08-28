@@ -54,6 +54,13 @@ describe "Video Hub crawl policy" do
     )
   end
 
+  it "keeps Video Hub JSON endpoints on their existing API routes" do
+    get "/videos/feed.json"
+
+    expect(response.status).to eq(200)
+    expect(response.media_type).to eq("application/json")
+  end
+
   it "does not emit Video Hub crawl metadata when the plugin is disabled" do
     SiteSetting.video_hub_enabled = false
 

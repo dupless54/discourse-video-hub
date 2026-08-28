@@ -14,7 +14,7 @@ register_asset "stylesheets/common/video-hub-mobile-feed.scss"
 
 module ::VideoHub
   PLUGIN_NAME = "discourse-video-hub"
-  WATCH_PATH_PATTERN = %r{\A/videos/\d+/[^/.]+/?\z}
+  NOINDEX_PATHS = %w[/videos /videos/new].freeze
   PROFILE_PATH_PATTERN = %r{\A/u/[^/]+/videos(?:/|\z)}
 end
 
@@ -26,14 +26,30 @@ register_html_builder("server:before-head-close") do |controller|
   path = controller.request.path
   base_path = Discourse.base_path
   path = path.delete_prefix(base_path) if base_path.present?
+  path = path.delete_suffix("/") unless path == "/"
 
-  video_hub_path =
-    path == "/videos" || path.start_with?("/videos/") ||
-      path.match?(VideoHub::PROFILE_PATH_PATTERN)
-  next unless video_hub_path
-  next if path.match?(VideoHub::WATCH_PATH_PATTERN)
+  next unless VideoHub::NOINDEX_PATHS.include?(path) || path.match?(VideoHub::PROFILE_PATH_PATTERN)
 
   '<meta name="robots" content="noindex,follow">'
+end
+
+Discourse::Application.routes.append do
+  get "/u/:username/videos" => "users#show",
+      :constraints => {
+        username: RouteFormat.username,
+        format: /html/,
+      },
+      :defaults => {
+        format: :html,
+      }
+  get "/u/:username/videos/edit" => "users#show",
+      :constraints => {
+        username: RouteFormat.username,
+        format: /html/,
+      },
+      :defaults => {
+        format: :html,
+      }
 end
 
 after_initialize do

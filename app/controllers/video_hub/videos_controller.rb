@@ -13,7 +13,11 @@ module VideoHub
 
     before_action :ensure_video_hub_enabled
     before_action :ensure_logged_in, only: :create
-    skip_before_action :check_xhr, only: :watch
+    skip_before_action :check_xhr, only: %i[shell watch]
+
+    def shell
+      render html: "", layout: true
+    end
 
     def index
       result =
