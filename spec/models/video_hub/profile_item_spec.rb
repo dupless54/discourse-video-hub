@@ -129,14 +129,9 @@ describe VideoHub::ProfileItem do
 
   it "enforces placement uniqueness at the database layer" do
     indexes = described_class.connection.indexes(:video_hub_profile_items)
-    video_index =
-      indexes.find do |candidate|
-        candidate.columns == %w[profile_section_id video_id]
-      end
+    video_index = indexes.find { |candidate| candidate.columns == %w[profile_section_id video_id] }
     position_index =
-      indexes.find do |candidate|
-        candidate.columns == %w[profile_section_id position]
-      end
+      indexes.find { |candidate| candidate.columns == %w[profile_section_id position] }
 
     expect(video_index).to be_present
     expect(video_index.unique).to eq(true)
@@ -147,11 +142,8 @@ describe VideoHub::ProfileItem do
   it "cascades placements when their section or canonical video is deleted" do
     foreign_keys = described_class.connection.foreign_keys(:video_hub_profile_items)
     section_fk =
-      foreign_keys.find do |candidate|
-        candidate.to_table == "video_hub_profile_sections"
-      end
-    video_fk =
-      foreign_keys.find { |candidate| candidate.to_table == "video_hub_videos" }
+      foreign_keys.find { |candidate| candidate.to_table == "video_hub_profile_sections" }
+    video_fk = foreign_keys.find { |candidate| candidate.to_table == "video_hub_videos" }
 
     expect(section_fk).to be_present
     expect(section_fk.options[:on_delete]).to eq(:cascade)

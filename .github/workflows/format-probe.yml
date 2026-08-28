@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/profile-layout-model
 
 permissions:
   contents: read
@@ -24,4 +23,4 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           pnpm prettier "assets/**/*.{scss,js,gjs}" "test/**/*.{js,gjs}" --write
           bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
-          git diff -- app/models/video_hub/profile_item.rb app/models/video_hub/profile_section.rb spec/models/video_hub/profile_item_spec.rb spec/models/video_hub/profile_section_spec.rb
+          git diff -- app/controllers/video_hub/videos_controller.rb config/routes.rb test/javascripts/integration/components/video-hub-landing-test.gjs

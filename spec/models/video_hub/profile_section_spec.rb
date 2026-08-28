@@ -5,13 +5,9 @@ describe VideoHub::ProfileSection do
 
   def build_section(overrides = {})
     described_class.new(
-      {
-        user: user,
-        section_type: "shorts",
-        title: "Shorts",
-        position: 0,
-        visible: true,
-      }.merge(overrides),
+      { user: user, section_type: "shorts", title: "Shorts", position: 0, visible: true }.merge(
+        overrides,
+      ),
     )
   end
 
@@ -38,12 +34,7 @@ describe VideoHub::ProfileSection do
   end
 
   it "allows at most one section type and one position per owner" do
-    described_class.create!(
-      user: user,
-      section_type: "shorts",
-      position: 0,
-      visible: true,
-    )
+    described_class.create!(user: user, section_type: "shorts", position: 0, visible: true)
 
     duplicate_type = build_section(position: 1)
     duplicate_position = build_section(section_type: "landscape")
@@ -55,19 +46,9 @@ describe VideoHub::ProfileSection do
   end
 
   it "keeps section type and position uniqueness scoped to the owner" do
-    described_class.create!(
-      user: user,
-      section_type: "shorts",
-      position: 0,
-      visible: true,
-    )
+    described_class.create!(user: user, section_type: "shorts", position: 0, visible: true)
     other_user = Fabricate(:user)
-    other_section =
-      build_section(
-        user: other_user,
-        section_type: "shorts",
-        position: 0,
-      )
+    other_section = build_section(user: other_user, section_type: "shorts", position: 0)
 
     expect(other_section).to be_valid
   end
@@ -75,10 +56,8 @@ describe VideoHub::ProfileSection do
   it "enforces owner-scoped section uniqueness at the database layer" do
     indexes = described_class.connection.indexes(:video_hub_profile_sections)
 
-    type_index =
-      indexes.find { |candidate| candidate.columns == %w[user_id section_type] }
-    position_index =
-      indexes.find { |candidate| candidate.columns == %w[user_id position] }
+    type_index = indexes.find { |candidate| candidate.columns == %w[user_id section_type] }
+    position_index = indexes.find { |candidate| candidate.columns == %w[user_id position] }
 
     expect(type_index).to be_present
     expect(type_index.unique).to eq(true)
