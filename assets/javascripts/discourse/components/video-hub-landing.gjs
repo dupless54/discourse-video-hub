@@ -27,7 +27,9 @@ export default class VideoHubLanding extends Component {
 
   get canLoadMore() {
     return Boolean(
-      this.pagination.has_more && this.pagination.next_cursor && !this.loadingMore
+      this.pagination.has_more &&
+      this.pagination.next_cursor &&
+      !this.loadingMore
     );
   }
 
