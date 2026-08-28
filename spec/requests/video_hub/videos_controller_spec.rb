@@ -134,6 +134,105 @@ describe VideoHub::VideosController do
     end
   end
 
+  describe "GET /videos/:id/:slug" do
+    let(:crawler_headers) { { "HTTP_USER_AGENT" => "Googlebot" } }
+
+    it "renders one canonical URL with escaped Open Graph and VideoObject metadata" do
+      video = create_seo_video
+      canonical_url = "#{Discourse.base_url}/videos/#{video.id}/#{video.topic.slug}"
+
+      get "/videos/#{video.id}/#{video.topic.slug}", headers: crawler_headers
+
+      expect(response.status).to eq(200)
+      document = Nokogiri::HTML(response.body)
+      canonical_links = document.css('link[rel="canonical"]')
+      expect(canonical_links.length).to eq(1)
+      expect(canonical_links.first["href"]).to eq(canonical_url)
+      expect(document.at_css("title").text).to include(video.title)
+      expect(document.at_css('meta[name="description"]')["content"]).to eq(video.description)
+      expect(document.at_css('meta[property="og:url"]')["content"]).to eq(canonical_url)
+      expect(document.at_css('meta[property="og:title"]')["content"]).to eq(video.title)
+      expect(document.at_css('meta[property="og:description"]')["content"]).to eq(video.description)
+      expect(document.at_css('meta[property="og:image"]')["content"]).to eq(video.thumbnail_url)
+      expect(document.at_css(".video-hub-crawler h1").text).to eq(video.title)
+      expect(document.at_css(".video-hub-crawler p").text).to eq(video.description)
+
+      schema = JSON.parse(document.at_css('script[type="application/ld+json"]').text)
+      expect(schema).to include(
+        "@context" => "https://schema.org",
+        "@type" => "VideoObject",
+        "name" => video.title,
+        "description" => video.description,
+        "url" => canonical_url,
+        "contentUrl" => video.canonical_url,
+        "duration" => "PT90S",
+      )
+      expect(schema["thumbnailUrl"]).to eq([video.thumbnail_url])
+      expect(schema["uploadDate"]).to eq(video.published_at.iso8601)
+    end
+
+    it "permanently redirects a wrong slug to the canonical watch URL" do
+      video = create_seo_video
+      canonical_url = "#{Discourse.base_url}/videos/#{video.id}/#{video.topic.slug}"
+
+      get "/videos/#{video.id}/wrong-slug", headers: crawler_headers
+
+      expect(response.status).to eq(301)
+      expect(response.headers["Location"]).to eq(canonical_url)
+    end
+
+    it "keeps hostile provider metadata inside escaped text and JSON" do
+      hostile_title = "Bad </script><script data-evil>boom</script>"
+      hostile_description = "Description </script><script data-evil>boom</script>"
+      video = create_seo_video(title: hostile_title, description: hostile_description)
+
+      get "/videos/#{video.id}/#{video.topic.slug}", headers: crawler_headers
+
+      expect(response.status).to eq(200)
+      document = Nokogiri::HTML(response.body)
+      expect(document.css("script[data-evil]")).to be_empty
+      expect(document.at_css('meta[property="og:title"]')["content"]).to eq(hostile_title)
+      expect(document.at_css('meta[property="og:description"]')["content"]).to eq(
+        hostile_description,
+      )
+      schema = JSON.parse(document.at_css('script[type="application/ld+json"]').text)
+      expect(schema["name"]).to eq(hostile_title)
+      expect(schema["description"]).to eq(hostile_description)
+      expect(document.at_css(".video-hub-crawler h1").text).to eq(hostile_title)
+    end
+
+    it "returns not found without leaking metadata from a private backing topic" do
+      marker = "PRIVATE-VIDEO-SEO-MARKER"
+      group = Fabricate(:group)
+      category = Fabricate(:private_category, group: group)
+      owner = Fabricate(:user)
+      topic = Fabricate(:topic, user: owner, category: category)
+      post = Fabricate(:post, topic: topic, user: owner)
+      video =
+        VideoHub::Video.create!(
+          user: owner,
+          topic: topic,
+          post: post,
+          provider: "youtube",
+          external_id: "private-seo-video",
+          canonical_url: "https://www.youtube.com/watch?v=private-seo-video",
+          kind: "landscape",
+          title: marker,
+          description: "#{marker}-DESCRIPTION",
+          thumbnail_url: "https://cdn.example.com/private.jpg",
+          duration_seconds: 90,
+          author_name: "Private creator",
+          status: "published",
+          published_at: Time.zone.now,
+        )
+
+      get "/videos/#{video.id}/#{video.topic.slug}", headers: crawler_headers
+
+      expect(response.status).to eq(404)
+      expect(response.body).not_to include(marker)
+    end
+  end
+
   describe "POST /videos" do
     let(:user) { Fabricate(:user) }
     let(:input_url) { "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
@@ -284,6 +383,32 @@ describe VideoHub::VideosController do
       author_name: "Example creator",
       status: "published",
       published_at: Time.zone.now,
+    )
+  end
+
+  def create_seo_video(**overrides)
+    @seo_video_sequence = @seo_video_sequence.to_i + 1
+    owner = Fabricate(:user)
+    topic = Fabricate(:topic, user: owner, title: "SEO topic #{@seo_video_sequence}")
+    post = Fabricate(:post, topic: topic, user: owner)
+
+    VideoHub::Video.create!(
+      {
+        user: owner,
+        topic: topic,
+        post: post,
+        provider: "youtube",
+        external_id: "request-seo-video-#{@seo_video_sequence}",
+        canonical_url: "https://www.youtube.com/watch?v=request-seo-video-#{@seo_video_sequence}",
+        kind: "landscape",
+        title: "SEO video #{@seo_video_sequence}",
+        description: "SEO description #{@seo_video_sequence}",
+        thumbnail_url: "https://cdn.example.com/seo-#{@seo_video_sequence}.jpg",
+        duration_seconds: 90,
+        author_name: "SEO creator",
+        status: "published",
+        published_at: Time.zone.now,
+      }.merge(overrides),
     )
   end
 end
