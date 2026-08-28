@@ -54,7 +54,9 @@ acceptance("Video Hub canonical watch", function (needs) {
     const topic = topicPayload();
 
     pretender.get("/videos/42/wrong-slug.json", () => response(videoPayload));
-    pretender.get("/videos/42/canonical-video.json", () => response(videoPayload));
+    pretender.get("/videos/42/canonical-video.json", () =>
+      response(videoPayload)
+    );
     pretender.get("/t/100.json", () => response(topic));
 
     await visit("/videos/42/wrong-slug");
@@ -93,7 +95,9 @@ acceptance("Video Hub canonical watch", function (needs) {
     let likeRequests = 0;
     let commentRequests = 0;
 
-    pretender.get("/videos/42/canonical-video.json", () => response(videoPayload));
+    pretender.get("/videos/42/canonical-video.json", () =>
+      response(videoPayload)
+    );
     pretender.get("/t/100.json", () => {
       topicRequests += 1;
       return response(topic);
@@ -109,7 +113,11 @@ acceptance("Video Hub canonical watch", function (needs) {
         "uses the core like action type"
       );
 
-      topic = topicPayload({ liked: true, likeCount: 4, comments: [firstComment] });
+      topic = topicPayload({
+        liked: true,
+        likeCount: 4,
+        comments: [firstComment],
+      });
       return response({ result: [] });
     });
     pretender.post("/posts.json", (request) => {
@@ -147,6 +155,10 @@ acceptance("Video Hub canonical watch", function (needs) {
 
     assert.strictEqual(commentRequests, 1);
     assert.dom('[data-post-id="103"]').hasText("bob New core comment");
-    assert.strictEqual(topicRequests, 3, "reloads core topic after each mutation");
+    assert.strictEqual(
+      topicRequests,
+      3,
+      "reloads core topic after each mutation"
+    );
   });
 });
