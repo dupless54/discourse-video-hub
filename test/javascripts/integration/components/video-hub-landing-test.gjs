@@ -1,5 +1,5 @@
 import Service from "@ember/service";
-import { click, keyDown, render } from "@ember/test-helpers";
+import { click, render, triggerKeyEvent } from "@ember/test-helpers";
 import { module, test } from "qunit";
 import { setupRenderingTest } from "discourse/tests/helpers/component-test";
 import pretender, { response } from "discourse/tests/helpers/create-pretender";
@@ -171,7 +171,11 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
         "https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1"
       );
 
-    await keyDown('[data-video-hub-feed-index="1"]', "ArrowUp");
+    await triggerKeyEvent(
+      '[data-video-hub-feed-index="1"]',
+      "keydown",
+      "ArrowUp"
+    );
 
     assert
       .dom('[data-video-hub-feed-index="0"]')
