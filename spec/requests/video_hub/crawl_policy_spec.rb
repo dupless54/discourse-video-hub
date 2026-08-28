@@ -20,9 +20,8 @@ describe "Video Hub crawl policy" do
       get path, headers: crawler_headers
 
       expect(response.status).to eq(200), "expected #{path} to render the Discourse SPA shell"
-      expect(response.headers["X-Robots-Tag"]).to eq(
-        "noindex,follow",
-      ), "expected #{path} to be noindex,follow"
+      expect(response.headers["X-Robots-Tag"]).to eq("noindex,follow"),
+      "expected #{path} to be noindex,follow"
     end
   end
 
