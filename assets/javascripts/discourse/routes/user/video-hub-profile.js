@@ -11,7 +11,7 @@ export default class UserVideoHubProfileRoute extends Route {
       `/videos/profile/${encodeURIComponent(user.username)}.json`
     );
 
-    return this.withPresentationLabels(response);
+    return this.withPresentationLabels({ ...response, can_edit: user.can_edit });
   }
 
   withPresentationLabels(response) {
