@@ -11,10 +11,7 @@ describe VideoHub::Providers::Tiktok do
 
           uri.scheme == "https" && uri.host == "www.tiktok.com" && uri.port == 443 &&
             uri.path == "/oembed" && allowed_hosts == ["www.tiktok.com"] &&
-            query ==
-              {
-                "url" => "https://www.tiktok.com/@scout2015/video/6718335390845095173",
-              }
+            query == { "url" => "https://www.tiktok.com/@scout2015/video/6718335390845095173" }
         end
         .returns(oembed_payload)
 
@@ -47,8 +44,7 @@ describe VideoHub::Providers::Tiktok do
         )
       VideoHub::ProviderJsonFetcher.expects(:fetch).returns(payload)
 
-      result =
-        described_class.fetch("https://www.tiktok.com/@scout2015/video/6718335390845095173")
+      result = described_class.fetch("https://www.tiktok.com/@scout2015/video/6718335390845095173")
 
       expect(result[:title]).to eq("Video & demo")
       expect(result[:author_name]).to eq("Creator Name")
@@ -65,8 +61,7 @@ describe VideoHub::Providers::Tiktok do
         )
       VideoHub::ProviderJsonFetcher.expects(:fetch).returns(payload)
 
-      result =
-        described_class.fetch("https://www.tiktok.com/@scout2015/video/6718335390845095173")
+      result = described_class.fetch("https://www.tiktok.com/@scout2015/video/6718335390845095173")
 
       expect(result[:title].length).to eq(described_class::TITLE_MAX_LENGTH)
       expect(result[:author_name].length).to eq(described_class::AUTHOR_MAX_LENGTH)
@@ -77,8 +72,7 @@ describe VideoHub::Providers::Tiktok do
         oembed_payload.merge("title" => "  \n\t", "author_name" => nil),
       )
 
-      result =
-        described_class.fetch("https://www.tiktok.com/@scout2015/video/6718335390845095173")
+      result = described_class.fetch("https://www.tiktok.com/@scout2015/video/6718335390845095173")
 
       expect(result[:title]).to be_nil
       expect(result[:author_name]).to be_nil
@@ -87,8 +81,7 @@ describe VideoHub::Providers::Tiktok do
     it "accepts the rich oEmbed type for video URLs while still discarding render HTML" do
       VideoHub::ProviderJsonFetcher.expects(:fetch).returns(oembed_payload.merge("type" => "rich"))
 
-      result =
-        described_class.fetch("https://www.tiktok.com/@scout2015/video/6718335390845095173")
+      result = described_class.fetch("https://www.tiktok.com/@scout2015/video/6718335390845095173")
 
       expect(result[:external_id]).to eq("6718335390845095173")
       expect(result).not_to have_key(:html)
@@ -97,10 +90,7 @@ describe VideoHub::Providers::Tiktok do
     it "rejects non-TikTok sources before metadata network access" do
       VideoHub::ProviderJsonFetcher.expects(:fetch).never
 
-      expect_metadata_error(
-        "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        :unsupported_source,
-      )
+      expect_metadata_error("https://www.youtube.com/watch?v=dQw4w9WgXcQ", :unsupported_source)
     end
 
     it "rejects unsafe or malformed TikTok URLs before metadata network access" do
@@ -170,7 +160,9 @@ describe VideoHub::Providers::Tiktok do
   end
 
   def expect_metadata_error(input, code)
-    expect { described_class.fetch(input) }.to raise_error(described_class::MetadataError) do |error|
+    expect { described_class.fetch(input) }.to raise_error(
+      described_class::MetadataError,
+    ) do |error|
       expect(error.code).to eq(code)
       expect(error.message).to eq(code.to_s)
     end
