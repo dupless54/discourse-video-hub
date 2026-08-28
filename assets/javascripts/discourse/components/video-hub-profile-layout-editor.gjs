@@ -72,9 +72,7 @@ export default class VideoHubProfileLayoutEditor extends Component {
 
   get membershipLocked() {
     return (
-      this.isSaving ||
-      this.isMembershipUpdating ||
-      this.hasUnsavedLayoutChanges
+      this.isSaving || this.isMembershipUpdating || this.hasUnsavedLayoutChanges
     );
   }
 
