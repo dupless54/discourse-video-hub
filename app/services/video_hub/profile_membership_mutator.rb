@@ -11,13 +11,8 @@ module VideoHub
       end
     end
 
-    AddResult = Struct.new(
-      :profile_user,
-      :profile_section,
-      :profile_item,
-      :created,
-      keyword_init: true,
-    )
+    AddResult =
+      Struct.new(:profile_user, :profile_section, :profile_item, :created, keyword_init: true)
 
     def self.add(user:, username:, video_id:)
       new(user: user, username: username).add(video_id: video_id)
@@ -71,9 +66,7 @@ module VideoHub
           ).freeze
         end
       end
-    rescue ActiveRecord::RecordInvalid,
-           ActiveRecord::RecordNotSaved,
-           ActiveRecord::RecordNotUnique
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved, ActiveRecord::RecordNotUnique
       raise MembershipError.new(:invalid_membership)
     end
 
