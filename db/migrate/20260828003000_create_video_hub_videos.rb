@@ -3,7 +3,7 @@
 class CreateVideoHubVideos < ActiveRecord::Migration[7.0]
   def change
     create_table :video_hub_videos do |t|
-      t.integer :user_id, null: false
+      t.integer :user_id
       t.integer :topic_id
       t.integer :post_id
       t.string :provider, limit: 20, null: false
@@ -26,7 +26,7 @@ class CreateVideoHubVideos < ActiveRecord::Migration[7.0]
     add_index :video_hub_videos, %i[status published_at id]
     add_index :video_hub_videos, %i[user_id status published_at id], name: "idx_video_hub_author_feed"
 
-    add_foreign_key :video_hub_videos, :users
+    add_foreign_key :video_hub_videos, :users, on_delete: :nullify
     add_foreign_key :video_hub_videos, :topics, on_delete: :cascade
     add_foreign_key :video_hub_videos, :posts, on_delete: :cascade
 
