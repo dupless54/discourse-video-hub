@@ -389,7 +389,7 @@ describe VideoHub::VideosController do
   def create_seo_video(**overrides)
     @seo_video_sequence = @seo_video_sequence.to_i + 1
     owner = Fabricate(:user)
-    topic = Fabricate(:topic, user: owner, title: "SEO topic #{@seo_video_sequence}")
+    topic = Fabricate(:topic, user: owner, title: "Video Hub SEO topic #{@seo_video_sequence}")
     post = Fabricate(:post, topic: topic, user: owner)
 
     VideoHub::Video.create!(
