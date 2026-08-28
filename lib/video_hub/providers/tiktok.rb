@@ -73,7 +73,8 @@ module VideoHub
       end
 
       def validate_payload!(payload)
-        unless payload["provider_name"] == "TikTok" && ALLOWED_OEMBED_TYPES.include?(payload["type"])
+        unless payload["provider_name"] == "TikTok" &&
+                 ALLOWED_OEMBED_TYPES.include?(payload["type"])
           raise MetadataError.new(:invalid_metadata)
         end
       end
