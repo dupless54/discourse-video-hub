@@ -44,14 +44,14 @@ describe VideoHub::VideosController do
     end
   end
 
-  describe "POST /videos.json" do
+  describe "POST /videos" do
     let(:user) { Fabricate(:user) }
     let(:input_url) { "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
 
     it "requires login before invoking the publisher" do
       VideoHub::PublishVideo.expects(:publish).never
 
-      post "/videos.json", params: { url: input_url }
+      post "/videos", params: { url: input_url }
 
       expect(response.status).to eq(403)
     end
@@ -60,7 +60,7 @@ describe VideoHub::VideosController do
       sign_in(user)
       VideoHub::PublishVideo.expects(:publish).never
 
-      post "/videos.json", params: { caption: "Missing URL" }
+      post "/videos", params: { caption: "Missing URL" }
 
       expect(response.status).to eq(400)
     end
@@ -73,7 +73,7 @@ describe VideoHub::VideosController do
         .with(user: user, url: input_url, caption: "My caption")
         .returns(video)
 
-      post "/videos.json",
+      post "/videos",
            params: {
              url: input_url,
              caption: "My caption",
@@ -109,7 +109,7 @@ describe VideoHub::VideosController do
         VideoHub::PublishVideo::PublishError.new(:invalid_caption),
       )
 
-      post "/videos.json", params: { url: input_url, caption: "bad" }
+      post "/videos", params: { url: input_url, caption: "bad" }
 
       expect(response.status).to eq(422)
       expect(response.parsed_body).to eq({ "error" => { "code" => "invalid_caption" } })
@@ -121,7 +121,7 @@ describe VideoHub::VideosController do
         VideoHub::PublishVideo::PublishError.new(:insufficient_trust),
       )
 
-      post "/videos.json", params: { url: input_url }
+      post "/videos", params: { url: input_url }
 
       expect(response.status).to eq(403)
       expect(response.parsed_body).to eq({ "error" => { "code" => "insufficient_trust" } })
@@ -133,7 +133,7 @@ describe VideoHub::VideosController do
         VideoHub::PublishVideo::PublishError.new(:category_not_configured),
       )
 
-      post "/videos.json", params: { url: input_url }
+      post "/videos", params: { url: input_url }
 
       expect(response.status).to eq(503)
       expect(response.parsed_body).to eq({ "error" => { "code" => "category_not_configured" } })
@@ -145,7 +145,7 @@ describe VideoHub::VideosController do
         VideoHub::PublishVideo::PublishError.new(:publish_failed),
       )
 
-      post "/videos.json", params: { url: input_url }
+      post "/videos", params: { url: input_url }
 
       expect(response.status).to eq(500)
       expect(response.parsed_body).to eq({ "error" => { "code" => "publish_failed" } })
@@ -155,7 +155,7 @@ describe VideoHub::VideosController do
       sign_in(user)
       VideoHub::PublishVideo.expects(:publish).raises(Discourse::NotFound)
 
-      post "/videos.json", params: { url: input_url }
+      post "/videos", params: { url: input_url }
 
       expect(response.status).to eq(404)
     end
@@ -165,7 +165,7 @@ describe VideoHub::VideosController do
       SiteSetting.video_hub_enabled = false
       VideoHub::PublishVideo.expects(:publish).never
 
-      post "/videos.json", params: { url: input_url }
+      post "/videos", params: { url: input_url }
 
       expect(response.status).to eq(404)
     end
