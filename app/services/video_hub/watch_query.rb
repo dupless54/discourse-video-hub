@@ -1,0 +1,60 @@
+# frozen_string_literal: true
+
+module VideoHub
+  class WatchQuery
+    PROVIDER_SETTINGS = {
+      "youtube" => :video_hub_youtube_enabled,
+      "tiktok" => :video_hub_tiktok_enabled,
+      "instagram" => :video_hub_instagram_enabled,
+    }.freeze
+
+    Result = Struct.new(:video, :slug, keyword_init: true)
+
+    def self.fetch(user:, id:)
+      new(user:, id:).fetch
+    end
+
+    def initialize(user:, id:)
+      @guardian = Guardian.new(user)
+      @id = parse_id(id)
+    end
+
+    def fetch
+      video =
+        VideoHub::Video.includes(:topic, :post, :user).find_by(
+          id: @id,
+          status: "published",
+        )
+
+      raise Discourse::NotFound unless visible_video?(video)
+
+      Result.new(video:, slug: video.topic.slug).freeze
+    end
+
+    private
+
+    def parse_id(value)
+      id = Integer(value, 10)
+      raise Discourse::NotFound unless id.positive?
+
+      id
+    rescue ArgumentError, TypeError
+      raise Discourse::NotFound
+    end
+
+    def visible_video?(video)
+      return false unless video
+      return false unless provider_enabled?(video.provider)
+      return false unless video.published_at
+      return false unless video.topic && video.post
+      return false if video.topic.deleted_at || video.post.deleted_at
+
+      @guardian.can_see?(video.topic) && @guardian.can_see?(video.post)
+    end
+
+    def provider_enabled?(provider)
+      setting = PROVIDER_SETTINGS[provider]
+      setting && SiteSetting.public_send(setting)
+    end
+  end
+end
