@@ -70,9 +70,7 @@ describe "Video Hub sitemap canonical URLs" do
 
     locations = sitemap_locations
     expect(locations).not_to include("#{Discourse.base_url}#{video.topic.relative_url}")
-    expect(locations).not_to include(
-      "#{Discourse.base_url}/videos/#{video.id}/#{video.topic.slug}",
-    )
+    expect(locations).not_to include("#{Discourse.base_url}/videos/#{video.id}/#{video.topic.slug}")
   end
 
   def sitemap_locations
