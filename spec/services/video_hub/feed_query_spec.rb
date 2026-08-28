@@ -96,9 +96,11 @@ describe VideoHub::FeedQuery do
   end
 
   it "rejects page sizes above the bounded public maximum" do
-    expect { described_class.fetch(user: nil, limit: described_class::DEFAULT_LIMIT + 1) }.to raise_error(
-      described_class::FeedError,
-    ) { |error| expect(error.code).to eq(:invalid_limit) }
+    expect {
+      described_class.fetch(user: nil, limit: described_class::DEFAULT_LIMIT + 1)
+    }.to raise_error(described_class::FeedError) { |error|
+      expect(error.code).to eq(:invalid_limit)
+    }
   end
 
   def create_video(published_at: Time.zone.now, provider: "youtube", status: "published")
