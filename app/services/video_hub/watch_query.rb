@@ -2,6 +2,8 @@
 
 module VideoHub
   class WatchQuery
+    MAX_RECORD_ID = 9_223_372_036_854_775_807
+
     PROVIDER_SETTINGS = {
       "youtube" => :video_hub_youtube_enabled,
       "tiktok" => :video_hub_tiktok_enabled,
@@ -34,12 +36,13 @@ module VideoHub
     private
 
     def parse_id(value)
-      id = Integer(value, 10)
-      raise Discourse::NotFound unless id.positive?
+      raw_id = value.to_s
+      raise Discourse::NotFound unless raw_id.match?(/\A[1-9][0-9]*\z/)
+
+      id = raw_id.to_i
+      raise Discourse::NotFound if id > MAX_RECORD_ID
 
       id
-    rescue ArgumentError, TypeError
-      raise Discourse::NotFound
     end
 
     def visible_video?(video)
