@@ -52,9 +52,7 @@ describe VideoHub::ProfilesController do
     VideoHub::ProfileQuery
       .expects(:fetch)
       .with(user: viewer, username: profile_user.username)
-      .returns(
-        VideoHub::ProfileQuery::Result.new(profile_user: profile_user, sections: [].freeze),
-      )
+      .returns(VideoHub::ProfileQuery::Result.new(profile_user: profile_user, sections: [].freeze))
 
     get "/videos/profile/#{profile_user.username}.json"
 
