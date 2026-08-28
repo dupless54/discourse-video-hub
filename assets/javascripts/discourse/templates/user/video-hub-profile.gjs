@@ -1,4 +1,4 @@
-import VideoHubCard from "discourse/components/video-hub-card";
+import VideoHubCard from "../../components/video-hub-card";
 import bodyClass from "discourse/helpers/body-class";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
@@ -33,7 +33,10 @@ export default <template>
                 {{/if}}
               </h2>
               <span class="video-hub-profile__count">
-                {{i18n "video_hub.profile.video_count" count=section.items.length}}
+                {{i18n
+                  "video_hub.profile.video_count"
+                  count=section.items.length
+                }}
               </span>
             </header>
 
@@ -43,7 +46,10 @@ export default <template>
                 data-section-type={{section.section_type}}
               >
                 {{#each section.items as |item|}}
-                  <div class="video-hub-profile__item" data-pinned={{item.pinned}}>
+                  <div
+                    class="video-hub-profile__item"
+                    data-pinned={{item.pinned}}
+                  >
                     {{#if item.pinned}}
                       <span class="video-hub-profile__pin">
                         {{i18n "video_hub.profile.pinned"}}
@@ -67,4 +73,4 @@ export default <template>
       </p>
     {{/if}}
   </div>
-</template>;
+</template>

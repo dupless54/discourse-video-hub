@@ -93,7 +93,10 @@ acceptance("Video Hub profile", function (needs) {
     assert.dom(".video-hub-card").exists({ count: 2 });
     assert.dom('.video-hub-card[data-kind="shorts"]').hasText("Pinned short");
     assert.dom('.video-hub-card[href="/videos/102/wide-video"]').exists();
-    assert.dom(".video-hub-profile__pin").exists({ count: 1 }).hasText("Pinned");
+    assert
+      .dom(".video-hub-profile__pin")
+      .exists({ count: 1 })
+      .hasText("Pinned");
   });
 
   test("renders a bounded empty state when the profile has no visible sections", async function (assert) {
