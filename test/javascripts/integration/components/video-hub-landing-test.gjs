@@ -17,6 +17,10 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
     await render(<template><VideoHubLanding @model={{model}} /></template>);
 
     assert.dom(".video-hub-page").exists();
+    assert
+      .dom(".video-hub-page__publish-link")
+      .hasAttribute("href", "/videos/new")
+      .hasText("Share video");
     assert.dom(".video-hub-page__empty").exists();
     assert.dom('[data-provider="youtube"]').hasText("YouTube");
     assert.dom('[data-provider="tiktok"]').hasText("TikTok");
