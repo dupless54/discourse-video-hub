@@ -13,6 +13,10 @@ export default class VideoHubMobileFeedItem extends Component {
     return this.args.video.id === this.args.activeVideoId;
   }
 
+  get providerLabel() {
+    return i18n(`video_hub.providers.${this.args.video.provider}`);
+  }
+
   get previousDisabled() {
     return this.args.index <= 0;
   }
@@ -89,9 +93,7 @@ export default class VideoHubMobileFeedItem extends Component {
       <VideoHubPlayer @video={{@video}} @active={{this.isActive}} />
 
       <div class="video-hub-mobile-feed__details">
-        <p class="video-hub-mobile-feed__provider">
-          {{i18n (concat "video_hub.providers." @video.provider)}}
-        </p>
+        <p class="video-hub-mobile-feed__provider">{{this.providerLabel}}</p>
         <h2>
           <a href={{@video.watch_path}}>{{@video.title}}</a>
         </h2>
