@@ -13,6 +13,7 @@ module VideoHub
 
     before_action :ensure_video_hub_enabled
     before_action :ensure_logged_in, only: :create
+    skip_before_action :check_xhr, only: :watch
 
     def index
       result =
@@ -38,6 +39,19 @@ module VideoHub
       result = VideoHub::WatchQuery.fetch(user: current_user, id: params[:id])
 
       render json: { video: video_payload(result.video, slug: result.slug) }
+    end
+
+    def watch
+      result = VideoHub::WatchQuery.fetch(user: current_user, id: params[:id])
+      seo = VideoHub::WatchSeo.build(video: result.video, slug: result.slug)
+
+      return redirect_to(seo.canonical_url, status: :moved_permanently) if params[:slug] != result.slug
+
+      @video_hub_watch_seo = seo
+      @description_meta = seo.description
+      canonical_url(seo.canonical_url)
+
+      render :watch
     end
 
     def create
