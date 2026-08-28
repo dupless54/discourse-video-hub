@@ -104,9 +104,10 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
 
     pretender.get("/videos/feed.json", (request) => {
       requestCount += 1;
-      const cursor = new URL(request.url, window.location.origin).searchParams.get(
-        "cursor"
-      );
+      const cursor = new URL(
+        request.url,
+        window.location.origin
+      ).searchParams.get("cursor");
       assert.strictEqual(cursor, "cursor-1", "uses only the server cursor");
 
       return response({
@@ -141,7 +142,9 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
       .exists({ count: 1 }, "does not duplicate an existing video id");
     assert
       .dom(".video-hub-page__pagination")
-      .doesNotExist("hides pagination when the server says the feed is exhausted");
+      .doesNotExist(
+        "hides pagination when the server says the feed is exhausted"
+      );
   });
 
   test("keeps the current cursor and cards when loading the next page fails", async function (assert) {
@@ -164,9 +167,10 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
 
     pretender.get("/videos/feed.json", (request) => {
       requestCount += 1;
-      const cursor = new URL(request.url, window.location.origin).searchParams.get(
-        "cursor"
-      );
+      const cursor = new URL(
+        request.url,
+        window.location.origin
+      ).searchParams.get("cursor");
       assert.strictEqual(cursor, "retry-cursor");
       return response(500, { errors: ["Temporary failure"] });
     });
