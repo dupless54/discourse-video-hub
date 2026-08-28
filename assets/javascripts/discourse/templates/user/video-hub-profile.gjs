@@ -1,5 +1,4 @@
 import bodyClass from "discourse/helpers/body-class";
-import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 
 export default <template>
@@ -22,15 +21,7 @@ export default <template>
             data-section-type={{section.section_type}}
           >
             <header class="video-hub-profile__section-header">
-              <h2>
-                {{#if section.title}}
-                  {{section.title}}
-                {{else if (eq section.section_type "shorts")}}
-                  {{i18n "video_hub.profile.shorts"}}
-                {{else}}
-                  {{i18n "video_hub.profile.landscape"}}
-                {{/if}}
-              </h2>
+              <h2>{{section.display_title}}</h2>
               <span class="video-hub-profile__count">
                 {{i18n
                   "video_hub.profile.video_count"
@@ -74,28 +65,14 @@ export default <template>
                             class="video-hub-card__placeholder"
                             aria-hidden="true"
                           >
-                            <span>
-                              {{#if (eq item.video.provider "youtube")}}
-                                {{i18n "video_hub.providers.youtube"}}
-                              {{else if (eq item.video.provider "tiktok")}}
-                                {{i18n "video_hub.providers.tiktok"}}
-                              {{else}}
-                                {{i18n "video_hub.providers.instagram"}}
-                              {{/if}}
-                            </span>
+                            <span>{{item.video.provider_label}}</span>
                           </div>
                         {{/if}}
                       </div>
 
                       <div class="video-hub-card__body">
                         <p class="video-hub-card__provider">
-                          {{#if (eq item.video.provider "youtube")}}
-                            {{i18n "video_hub.providers.youtube"}}
-                          {{else if (eq item.video.provider "tiktok")}}
-                            {{i18n "video_hub.providers.tiktok"}}
-                          {{else}}
-                            {{i18n "video_hub.providers.instagram"}}
-                          {{/if}}
+                          {{item.video.provider_label}}
                         </p>
                         <h2>{{item.video.title}}</h2>
 
