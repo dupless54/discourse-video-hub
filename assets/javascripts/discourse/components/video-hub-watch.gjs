@@ -1,5 +1,6 @@
 import Component from "@glimmer/component";
 import { i18n } from "discourse-i18n";
+import VideoHubPlayer from "./video-hub-player";
 
 export default class VideoHubWatch extends Component {
   get video() {
@@ -23,24 +24,7 @@ export default class VideoHubWatch extends Component {
       </a>
 
       <article class="video-hub-watch__layout">
-        <section
-          class="video-hub-watch__media"
-          data-kind={{this.video.kind}}
-          aria-label={{i18n "video_hub.watch.preview_label"}}
-        >
-          {{#if this.video.thumbnail_url}}
-            <img
-              src={{this.video.thumbnail_url}}
-              alt={{this.video.title}}
-              loading="eager"
-              decoding="async"
-            />
-          {{else}}
-            <div class="video-hub-watch__placeholder" aria-hidden="true">
-              <span>{{this.providerLabel}}</span>
-            </div>
-          {{/if}}
-        </section>
+        <VideoHubPlayer @video={{this.video}} />
 
         <section class="video-hub-watch__details">
           <p class="video-hub-watch__provider">{{this.providerLabel}}</p>
