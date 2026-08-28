@@ -24,12 +24,15 @@ export default class VideoHubDiscussion extends Component {
   }
 
   get rootPost() {
-    return this.topic?.post_stream?.posts?.find((post) => post.post_number === 1);
+    return this.topic?.post_stream?.posts?.find(
+      (post) => post.post_number === 1
+    );
   }
 
   get comments() {
     return (
-      this.topic?.post_stream?.posts?.filter((post) => post.post_number > 1) || []
+      this.topic?.post_stream?.posts?.filter((post) => post.post_number > 1) ||
+      []
     );
   }
 
@@ -50,8 +53,8 @@ export default class VideoHubDiscussion extends Component {
   get canToggleLike() {
     return Boolean(
       this.currentUser &&
-        this.likeSummary &&
-        (this.likeSummary.acted || this.likeSummary.can_act)
+      this.likeSummary &&
+      (this.likeSummary.acted || this.likeSummary.can_act)
     );
   }
 
@@ -128,7 +131,10 @@ export default class VideoHubDiscussion extends Component {
       (post) => post.post_number === 1
     );
 
-    if (topic?.id !== this.args.video.topic_id || rootPost?.id !== this.args.video.post_id) {
+    if (
+      topic?.id !== this.args.video.topic_id ||
+      rootPost?.id !== this.args.video.post_id
+    ) {
       throw new Error("Video Hub topic mapping changed unexpectedly");
     }
 
@@ -136,7 +142,10 @@ export default class VideoHubDiscussion extends Component {
   }
 
   <template>
-    <section class="video-hub-discussion" aria-labelledby="video-hub-discussion-title">
+    <section
+      class="video-hub-discussion"
+      aria-labelledby="video-hub-discussion-title"
+    >
       <header class="video-hub-discussion__header">
         <div>
           <p class="video-hub-discussion__eyebrow">
