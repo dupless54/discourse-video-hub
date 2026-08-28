@@ -39,12 +39,15 @@ module VideoHub
     attr_reader :guardian, :username
 
     def section_items(profile_section)
-      profile_section.items.sort_by { |item| [item.position, item.id] }.map do |profile_item|
-        video = profile_item.video
-        ensure_backing_content_visible!(video)
+      profile_section
+        .items
+        .sort_by { |item| [item.position, item.id] }
+        .map do |profile_item|
+          video = profile_item.video
+          ensure_backing_content_visible!(video)
 
-        ItemResult.new(profile_item: profile_item, video: video).freeze
-      end
+          ItemResult.new(profile_item: profile_item, video: video).freeze
+        end
     end
 
     def ensure_backing_content_visible!(video)
