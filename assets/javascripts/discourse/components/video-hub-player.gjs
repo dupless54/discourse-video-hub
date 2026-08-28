@@ -8,7 +8,7 @@ const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 const TIKTOK_ID = /^[0-9]{6,30}$/;
 
 export default class VideoHubPlayer extends Component {
-  @tracked active = false;
+  @tracked activated = false;
 
   get providerLabel() {
     return i18n(`video_hub.providers.${this.args.video.provider}`);
@@ -36,8 +36,17 @@ export default class VideoHubPlayer extends Component {
     return null;
   }
 
+  get controlled() {
+    return typeof this.args.active === "boolean";
+  }
+
   get showPlayer() {
-    return this.active && Boolean(this.embedUrl);
+    const active = this.controlled ? this.args.active : this.activated;
+    return active && Boolean(this.embedUrl);
+  }
+
+  get showPlayButton() {
+    return !this.controlled && Boolean(this.embedUrl);
   }
 
   get playerTitle() {
@@ -49,13 +58,13 @@ export default class VideoHubPlayer extends Component {
   @action
   activate() {
     if (this.embedUrl) {
-      this.active = true;
+      this.activated = true;
     }
   }
 
   <template>
     <section
-      class="video-hub-watch__media"
+      class="video-hub-player video-hub-watch__media"
       data-kind={{@video.kind}}
       data-provider={{@video.provider}}
       aria-label={{i18n "video_hub.watch.preview_label"}}
@@ -83,7 +92,7 @@ export default class VideoHubPlayer extends Component {
           </div>
         {{/if}}
 
-        {{#if this.embedUrl}}
+        {{#if this.showPlayButton}}
           <DButton
             @action={{this.activate}}
             @icon="play"
