@@ -32,7 +32,9 @@ module VideoHub
 
       provider_setting = PROVIDER_SETTINGS[provider]
       raise AuthorizationError.new(:unsupported_provider) unless provider_setting
-      raise AuthorizationError.new(:provider_disabled) unless SiteSetting.public_send(provider_setting)
+      unless SiteSetting.public_send(provider_setting)
+        raise AuthorizationError.new(:provider_disabled)
+      end
 
       unless user.staff? || user.trust_level >= SiteSetting.video_hub_min_trust_level
         raise AuthorizationError.new(:insufficient_trust)
