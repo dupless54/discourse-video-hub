@@ -17,6 +17,17 @@ module VideoHub
              }
     end
 
+    def layout
+      result = VideoHub::ProfileLayoutQuery.fetch(user: current_user, username: params[:username])
+
+      render json: {
+               profile: {
+                 username: result.profile_user.username,
+                 sections: result.sections.map { |section| manage_layout_section_payload(section) },
+               },
+             }
+    end
+
     def update_layout
       result =
         VideoHub::ProfileLayoutUpdater.update(
@@ -66,6 +77,32 @@ module VideoHub
         id: item.id,
         position: item.position,
         pinned: item.pinned,
+        video: video_payload(result.video),
+      }
+    end
+
+    def manage_layout_section_payload(result)
+      section = result.profile_section
+
+      {
+        id: section.id,
+        section_type: section.section_type,
+        title: section.title,
+        position: section.position,
+        visible: section.visible,
+        items: result.items.map { |item| manage_layout_item_payload(item) },
+      }
+    end
+
+    def manage_layout_item_payload(result)
+      item = result.profile_item
+
+      {
+        id: item.id,
+        video_id: item.video_id,
+        position: item.position,
+        pinned: item.pinned,
+        visible: item.visible,
         video: video_payload(result.video),
       }
     end
