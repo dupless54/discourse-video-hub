@@ -153,7 +153,11 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
         "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
       );
 
-    assert.strictEqual(observations.length, 2, "observes each mobile feed item");
+    assert.strictEqual(
+      observations.length,
+      2,
+      "observes each mobile feed item"
+    );
     assert.strictEqual(observations[1].options.threshold, 0.66);
     await observations[1].trigger({ intersectionRatio: 0.8 });
 
