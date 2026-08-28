@@ -21,11 +21,13 @@ module VideoHub
     validates :provider, inclusion: { in: PROVIDERS }
     validates :external_id,
               presence: true,
-              length: { maximum: EXTERNAL_ID_MAX_LENGTH },
-              uniqueness: { scope: :provider }
-    validates :canonical_url,
-              presence: true,
-              length: { maximum: CANONICAL_URL_MAX_LENGTH }
+              length: {
+                maximum: EXTERNAL_ID_MAX_LENGTH,
+              },
+              uniqueness: {
+                scope: :provider,
+              }
+    validates :canonical_url, presence: true, length: { maximum: CANONICAL_URL_MAX_LENGTH }
     validates :kind, inclusion: { in: KINDS }
     validates :status, inclusion: { in: STATUSES }
     validates :title, length: { maximum: TITLE_MAX_LENGTH }, allow_nil: true
@@ -33,7 +35,10 @@ module VideoHub
     validates :thumbnail_url, length: { maximum: THUMBNAIL_URL_MAX_LENGTH }, allow_nil: true
     validates :author_name, length: { maximum: AUTHOR_MAX_LENGTH }, allow_nil: true
     validates :duration_seconds,
-              numericality: { only_integer: true, greater_than_or_equal_to: 0 },
+              numericality: {
+                only_integer: true,
+                greater_than_or_equal_to: 0,
+              },
               allow_nil: true
     validates :topic_id, uniqueness: true, allow_nil: true
     validates :post_id, uniqueness: true, allow_nil: true
