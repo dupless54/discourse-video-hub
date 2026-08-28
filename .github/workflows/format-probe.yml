@@ -3,7 +3,7 @@ name: Format Probe
 on:
   push:
     branches:
-      - main
+      - probe/video-publish-form-format
 
 permissions:
   contents: read
@@ -14,13 +14,23 @@ jobs:
     container: discourse/discourse_test:slim
     steps:
       - uses: actions/checkout@v6
-      - name: Install formatters
+      - name: Enable pnpm
         run: |
-          pnpm install --frozen-lockfile
-          bundle install
-      - name: Print canonical formatting diff
+          corepack enable
+          corepack prepare pnpm@10.28.0 --activate
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Print canonical frontend diff
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pnpm prettier "assets/**/*.{scss,js,gjs}" "test/**/*.{js,gjs}" --write
-          bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
-          git diff -- app/controllers/video_hub/videos_controller.rb config/routes.rb test/javascripts/integration/components/video-hub-landing-test.gjs
+          pnpm lint:js:fix
+          pnpm lint:css:fix
+          pnpm lint:prettier:fix
+          git diff -- \
+            assets/javascripts/discourse/components/video-hub-landing.gjs \
+            assets/javascripts/discourse/components/video-hub-publish-form.gjs \
+            assets/javascripts/discourse/templates/video-hub-new.gjs \
+            assets/javascripts/discourse/video-hub-route-map.js \
+            assets/stylesheets/common/video-hub.scss \
+            test/javascripts/acceptance/video-hub-publish-test.js \
+            test/javascripts/integration/components/video-hub-landing-test.gjs
