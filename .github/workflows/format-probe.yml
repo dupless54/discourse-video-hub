@@ -3,7 +3,7 @@ name: Format Probe
 on:
   push:
     branches:
-      - main
+      - probe/publish-policy-format
 
 permissions:
   contents: read
@@ -15,12 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install formatters
-        run: |
-          pnpm install --frozen-lockfile
-          bundle install
+        run: bundle install
       - name: Print canonical formatting diff
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pnpm prettier "assets/**/*.{scss,js,gjs}" "test/**/*.{js,gjs}" --write
+          bundle exec rubocop -A app/services/video_hub/publish_policy.rb spec/services/video_hub/publish_policy_spec.rb
           bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
-          git diff -- app/controllers/video_hub/videos_controller.rb config/routes.rb test/javascripts/integration/components/video-hub-landing-test.gjs
+          git diff -- app/services/video_hub/publish_policy.rb spec/services/video_hub/publish_policy_spec.rb
