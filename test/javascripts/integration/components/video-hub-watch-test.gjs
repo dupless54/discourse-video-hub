@@ -27,8 +27,12 @@ module("Integration | Component | VideoHubWatch", function (hooks) {
       .dom('.video-hub-watch__media[data-kind="shorts"]')
       .exists("preserves the server-supplied video kind");
     assert.dom(".video-hub-watch__placeholder").hasText("TikTok");
-    assert.dom(".video-hub-watch__details h1").hasText("Literal <strong>title</strong>");
-    assert.dom(".video-hub-watch__details h1 strong").doesNotExist("does not render provider text as HTML");
+    assert
+      .dom(".video-hub-watch__details h1")
+      .hasText("Literal <strong>title</strong>");
+    assert
+      .dom(".video-hub-watch__details h1 strong")
+      .doesNotExist("does not render provider text as HTML");
     assert.dom(".video-hub-watch__author").doesNotExist();
     assert
       .dom(".video-hub-watch__provider-link")
