@@ -50,3 +50,15 @@ en:
         reply_placeholder: "Write a reply"
         reply_submit: "Post reply"
         reply_cancel: "Cancel"
+      profile:
+        nav: "Videos"
+        title: "Videos"
+        description: "Public videos shown on @%{username}'s profile."
+        shorts: "Shorts"
+        landscape: "Videos"
+        video_count:
+          one: "%{count} video"
+          other: "%{count} videos"
+        pinned: "Pinned"
+        section_empty: "There are no visible videos in this section."
+        empty: "There are no public videos on this profile yet."
