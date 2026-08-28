@@ -71,7 +71,7 @@ describe VideoHub::WatchSeo do
   def create_video(**overrides)
     @video_sequence = @video_sequence.to_i + 1
     owner = Fabricate(:user)
-    topic = Fabricate(:topic, user: owner, title: "SEO topic #{@video_sequence}")
+    topic = Fabricate(:topic, user: owner, title: "Video Hub SEO topic #{@video_sequence}")
     post = Fabricate(:post, topic: topic, user: owner)
 
     VideoHub::Video.create!(
