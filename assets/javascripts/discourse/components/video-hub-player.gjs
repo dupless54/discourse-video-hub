@@ -17,15 +17,27 @@ export default class VideoHubPlayer extends Component {
   get embedUrl() {
     const { provider, external_id: externalId } = this.args.video;
 
-    if (provider === "youtube" && YOUTUBE_ID.test(externalId ?? "")) {
+    if (
+      provider === "youtube" &&
+      typeof externalId === "string" &&
+      YOUTUBE_ID.test(externalId)
+    ) {
       return `https://www.youtube.com/embed/${externalId}?autoplay=1`;
     }
 
-    if (provider === "tiktok" && TIKTOK_ID.test(externalId ?? "")) {
+    if (
+      provider === "tiktok" &&
+      typeof externalId === "string" &&
+      TIKTOK_ID.test(externalId)
+    ) {
       return `https://www.tiktok.com/player/v1/${externalId}?autoplay=1`;
     }
 
     return null;
+  }
+
+  get showPlayer() {
+    return this.active && Boolean(this.embedUrl);
   }
 
   get playerTitle() {
@@ -48,7 +60,7 @@ export default class VideoHubPlayer extends Component {
       data-provider={{@video.provider}}
       aria-label={{i18n "video_hub.watch.preview_label"}}
     >
-      {{#if (and this.active this.embedUrl)}}
+      {{#if this.showPlayer}}
         <iframe
           class="video-hub-player__iframe"
           src={{this.embedUrl}}
