@@ -260,7 +260,7 @@ describe VideoHub::ProfileLayoutUpdater do
   end
 end
 
-describe VideoHub::ProfileLayoutUpdater, "concurrent reorders" do
+describe VideoHub::ProfileLayoutUpdater, ".update" do
   self.use_transactional_tests = false
 
   it "serializes competing reorder snapshots without leaving a partial layout" do
@@ -371,6 +371,7 @@ describe VideoHub::ProfileLayoutUpdater, "concurrent reorders" do
 
     ready = Queue.new
     start = Queue.new
+    ActiveRecord::Base.connection_handler.clear_active_connections!
     threads =
       [first_snapshot, second_snapshot].map do |snapshot|
         Thread.new do
