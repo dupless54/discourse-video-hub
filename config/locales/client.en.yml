@@ -11,3 +11,7 @@ en:
         youtube: "YouTube"
         tiktok: "TikTok"
         instagram: "Instagram"
+      watch:
+        back_to_videos: "Back to videos"
+        preview_label: "Video preview"
+        open_provider: "Watch on %{provider}"
