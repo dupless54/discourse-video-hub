@@ -48,18 +48,12 @@ describe VideoHub::WatchQuery do
   end
 
   it "does not classify unavailable content as gone when doing so would reveal hidden state" do
-    provider_disabled = create_video(
-      provider: "instagram",
-      status: "unavailable",
-      published_at: 1.hour.ago,
-    )
+    provider_disabled =
+      create_video(provider: "instagram", status: "unavailable", published_at: 1.hour.ago)
     private_group = Fabricate(:group)
     private_category = Fabricate(:private_category, group: private_group)
-    private_video = create_video(
-      status: "unavailable",
-      published_at: 1.hour.ago,
-      category: private_category,
-    )
+    private_video =
+      create_video(status: "unavailable", published_at: 1.hour.ago, category: private_category)
     deleted_video = create_video(status: "unavailable", published_at: 1.hour.ago)
     deleted_video.topic.update_column(:deleted_at, Time.zone.now)
 
@@ -69,9 +63,7 @@ describe VideoHub::WatchQuery do
   end
 
   it "keeps malformed terminal-state identifiers fail-closed" do
-    expect { described_class.gone?(user: nil, id: "not-an-id") }.to raise_error(
-      Discourse::NotFound,
-    )
+    expect { described_class.gone?(user: nil, id: "not-an-id") }.to raise_error(Discourse::NotFound)
     expect {
       described_class.gone?(user: nil, id: described_class::MAX_RECORD_ID + 1)
     }.to raise_error(Discourse::NotFound)

@@ -53,7 +53,8 @@ describe "Video Hub terminal watch SEO" do
   def create_unavailable_video(title: "Unavailable video", provider: "youtube", category: nil)
     @video_sequence = @video_sequence.to_i + 1
     owner = Fabricate(:user)
-    topic = Fabricate(:topic, user: owner, category: category, title: "Terminal SEO #{@video_sequence}")
+    topic =
+      Fabricate(:topic, user: owner, category: category, title: "Terminal SEO #{@video_sequence}")
     post = Fabricate(:post, topic: topic, user: owner)
 
     VideoHub::Video.create!(
