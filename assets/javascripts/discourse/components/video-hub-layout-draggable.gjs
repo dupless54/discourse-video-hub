@@ -17,11 +17,7 @@ export default class VideoHubLayoutDraggable extends Component {
   <template>
     <div
       ...attributes
-      {{dDragAndDropSource
-        type=@type
-        data=@data
-        dragHandle=this.gripElement
-      }}
+      {{dDragAndDropSource type=@type data=@data dragHandle=this.gripElement}}
       {{dDragAndDropTarget
         accepts=@type
         acceptsSelf=false
