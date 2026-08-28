@@ -137,7 +137,9 @@ acceptance("Video Hub profile", function (needs) {
     });
 
     pretender.get("/videos/profile/eviltrout/layout.json", () =>
-      response(added ? layoutResponseWithCandidate(candidate) : layoutResponse())
+      response(
+        added ? layoutResponseWithCandidate(candidate) : layoutResponse()
+      )
     );
     pretender.get("/videos.json", () =>
       response({
@@ -146,33 +148,27 @@ acceptance("Video Hub profile", function (needs) {
         pagination: { has_more: false, next_cursor: null },
       })
     );
-    pretender.put(
-      "/videos/profile/eviltrout/layout/videos/104.json",
-      () => {
-        addRequests += 1;
-        added = true;
-        return response(201, {
-          membership: {
-            username: "eviltrout",
-            section_id: 1,
-            section_type: "shorts",
-            item_id: 14,
-            video_id: 104,
-            position: 2,
-            pinned: false,
-            visible: true,
-          },
-        });
-      }
-    );
-    pretender.delete(
-      "/videos/profile/eviltrout/layout/videos/104.json",
-      () => {
-        removeRequests += 1;
-        added = false;
-        return response(204);
-      }
-    );
+    pretender.put("/videos/profile/eviltrout/layout/videos/104.json", () => {
+      addRequests += 1;
+      added = true;
+      return response(201, {
+        membership: {
+          username: "eviltrout",
+          section_id: 1,
+          section_type: "shorts",
+          item_id: 14,
+          video_id: 104,
+          position: 2,
+          pinned: false,
+          visible: true,
+        },
+      });
+    });
+    pretender.delete("/videos/profile/eviltrout/layout/videos/104.json", () => {
+      removeRequests += 1;
+      added = false;
+      return response(204);
+    });
 
     await visit("/u/eviltrout/videos/edit");
 
@@ -196,7 +192,9 @@ acceptance("Video Hub profile", function (needs) {
       .isDisabled();
 
     await click(".video-hub-profile-editor__reset");
-    assert.dom(".video-hub-profile-editor__membership-lock-hint").doesNotExist();
+    assert
+      .dom(".video-hub-profile-editor__membership-lock-hint")
+      .doesNotExist();
     assert.dom(".video-hub-profile-editor__add-video").isNotDisabled();
 
     await click(".video-hub-profile-editor__add-video");
