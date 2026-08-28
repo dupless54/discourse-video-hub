@@ -54,7 +54,10 @@ module VideoHub
           video_id: params[:video_id],
         )
 
-      render json: { membership: membership_payload(result) }, status: result.created ? :created : :ok
+      render json: {
+               membership: membership_payload(result),
+             },
+             status: result.created ? :created : :ok
     rescue VideoHub::ProfileMembershipMutator::MembershipError => error
       render json: { error: { code: error.code.to_s } }, status: :unprocessable_entity
     end
