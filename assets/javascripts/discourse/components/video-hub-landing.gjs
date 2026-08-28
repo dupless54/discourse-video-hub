@@ -2,21 +2,27 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
 import { LinkTo } from "@ember/routing";
+import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import VideoHubCard from "./video-hub-card";
+import VideoHubMobileFeedItem from "./video-hub-mobile-feed-item";
 
 export default class VideoHubLanding extends Component {
+  @service capabilities;
+
   @tracked videos = [];
   @tracked pagination = { has_more: false, next_cursor: null };
   @tracked loadingMore = false;
+  @tracked activeMobileVideoId = null;
 
   constructor() {
     super(...arguments);
     this.videos = [...(this.args.model.videos ?? [])];
     this.pagination = this.normalizePagination(this.args.model.pagination);
+    this.activeMobileVideoId = this.videos[0]?.id ?? null;
   }
 
   get providerItems() {
@@ -24,6 +30,10 @@ export default class VideoHubLanding extends Component {
       id,
       label: i18n(`video_hub.providers.${id}`),
     }));
+  }
+
+  get useMobileFeed() {
+    return !this.capabilities.viewport.sm;
   }
 
   get canLoadMore() {
@@ -49,6 +59,27 @@ export default class VideoHubLanding extends Component {
   }
 
   @action
+  activateMobileVideo(videoId) {
+    if (this.videos.some((video) => video.id === videoId)) {
+      this.activeMobileVideoId = videoId;
+    }
+  }
+
+  @action
+  navigateMobileFeed(index) {
+    const video = this.videos[index];
+
+    if (!video) {
+      return;
+    }
+
+    this.activeMobileVideoId = video.id;
+    document
+      .querySelector(`[data-video-hub-feed-index="${index}"]`)
+      ?.scrollIntoView({ block: "start" });
+  }
+
+  @action
   async loadMore() {
     if (!this.canLoadMore) {
       return;
@@ -71,6 +102,10 @@ export default class VideoHubLanding extends Component {
         ...incomingVideos.filter((video) => !existingIds.has(video.id)),
       ];
       this.pagination = this.normalizePagination(response?.pagination);
+
+      if (this.activeMobileVideoId === null) {
+        this.activeMobileVideoId = this.videos[0]?.id ?? null;
+      }
     } catch (error) {
       popupAjaxError(error);
     } finally {
@@ -113,11 +148,33 @@ export default class VideoHubLanding extends Component {
       </header>
 
       {{#if this.videos.length}}
-        <section class="video-hub-page__feed" aria-live="polite">
-          {{#each this.videos as |video|}}
-            <VideoHubCard @video={{video}} />
-          {{/each}}
-        </section>
+        {{#if this.useMobileFeed}}
+          <section
+            class="video-hub-mobile-feed"
+            aria-label={{i18n "video_hub.feed.label"}}
+            aria-describedby="video-hub-mobile-feed-instructions"
+          >
+            <p id="video-hub-mobile-feed-instructions" class="sr-only">
+              {{i18n "video_hub.feed.instructions"}}
+            </p>
+            {{#each this.videos as |video index|}}
+              <VideoHubMobileFeedItem
+                @video={{video}}
+                @index={{index}}
+                @total={{this.videos.length}}
+                @activeVideoId={{this.activeMobileVideoId}}
+                @onActivate={{this.activateMobileVideo}}
+                @onNavigate={{this.navigateMobileFeed}}
+              />
+            {{/each}}
+          </section>
+        {{else}}
+          <section class="video-hub-page__feed" aria-live="polite">
+            {{#each this.videos as |video|}}
+              <VideoHubCard @video={{video}} />
+            {{/each}}
+          </section>
+        {{/if}}
 
         {{#if this.showLoadMore}}
           <div class="video-hub-page__pagination">
