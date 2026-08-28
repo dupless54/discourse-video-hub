@@ -111,10 +111,16 @@ acceptance("Video Hub profile", function (needs) {
     assert.true(savedBody.includes("layout[sections][1][title]=Updated clips"));
     assert.true(savedBody.includes("layout[sections][1][visible]=false"));
     assert.true(savedBody.includes("layout[sections][1][items][0][id]=13"));
-    assert.true(savedBody.includes("layout[sections][1][items][0][position]=0"));
+    assert.true(
+      savedBody.includes("layout[sections][1][items][0][position]=0")
+    );
     assert.true(savedBody.includes("layout[sections][1][items][1][id]=11"));
-    assert.true(savedBody.includes("layout[sections][1][items][1][position]=1"));
-    assert.true(savedBody.includes("layout[sections][1][items][1][pinned]=false"));
+    assert.true(
+      savedBody.includes("layout[sections][1][items][1][position]=1")
+    );
+    assert.true(
+      savedBody.includes("layout[sections][1][items][1][pinned]=false")
+    );
   });
 
   test("reloads the authoritative layout after a failed save", async function (assert) {
@@ -133,9 +139,7 @@ acceptance("Video Hub profile", function (needs) {
       '[data-section-id="1"] input[name$=".title"]',
       "Unsaved client title"
     );
-    assert
-      .dom('[data-section-id="1"] h2')
-      .hasText("Unsaved client title");
+    assert.dom('[data-section-id="1"] h2').hasText("Unsaved client title");
 
     await click(".video-hub-profile-editor__save");
 
