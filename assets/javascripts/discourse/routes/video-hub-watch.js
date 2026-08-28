@@ -14,7 +14,12 @@ export default class VideoHubWatchRoute extends DiscourseRoute {
     const topicId = model?.video?.topic_id;
     const postId = model?.video?.post_id;
 
-    if (!Number.isSafeInteger(topicId) || topicId <= 0 || !Number.isSafeInteger(postId) || postId <= 0) {
+    if (
+      !Number.isSafeInteger(topicId) ||
+      topicId <= 0 ||
+      !Number.isSafeInteger(postId) ||
+      postId <= 0
+    ) {
       throw new Error("Video Hub watch payload has an invalid topic mapping");
     }
 
@@ -24,7 +29,9 @@ export default class VideoHubWatchRoute extends DiscourseRoute {
     );
 
     if (topic?.id !== topicId || rootPost?.id !== postId) {
-      throw new Error("Video Hub watch payload topic mapping does not match Discourse");
+      throw new Error(
+        "Video Hub watch payload topic mapping does not match Discourse"
+      );
     }
 
     return { ...model, topic };
