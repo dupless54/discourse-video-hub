@@ -94,7 +94,13 @@ export default class VideoHubProfileLayoutEditor extends Component {
   }
 
   @action
-  dropItem(form, data, targetSectionIndex, targetItemIndex, { source, position }) {
+  dropItem(
+    form,
+    data,
+    targetSectionIndex,
+    targetItemIndex,
+    { source, position }
+  ) {
     const sourceSectionIndex = source.data.sectionIndex;
     const sourceItemIndex = source.data.itemIndex;
 
@@ -215,10 +221,7 @@ export default class VideoHubProfileLayoutEditor extends Component {
       as |form data|
     >
       {{#if data.sections.length}}
-        <form.Collection
-          @name="sections"
-          as |section sectionIndex sectionData|
-        >
+        <form.Collection @name="sections" as |section sectionIndex sectionData|>
           <VideoHubLayoutDraggable
             @type="video-hub-profile-section"
             @data={{hash index=sectionIndex}}
@@ -245,23 +248,13 @@ export default class VideoHubProfileLayoutEditor extends Component {
                 <form.Button
                   @icon="arrow-up"
                   @label="video_hub.profile.editor.move_up"
-                  @action={{fn
-                    this.moveSectionUp
-                    form
-                    data
-                    sectionIndex
-                  }}
+                  @action={{fn this.moveSectionUp form data sectionIndex}}
                   class="btn-small video-hub-profile-editor__section-move-up"
                 />
                 <form.Button
                   @icon="arrow-down"
                   @label="video_hub.profile.editor.move_down"
-                  @action={{fn
-                    this.moveSectionDown
-                    form
-                    data
-                    sectionIndex
-                  }}
+                  @action={{fn this.moveSectionDown form data sectionIndex}}
                   class="btn-small video-hub-profile-editor__section-move-down"
                 />
               </div>
@@ -296,23 +289,11 @@ export default class VideoHubProfileLayoutEditor extends Component {
             </div>
 
             {{#if sectionData.items.length}}
-              <section.Collection
-                @name="items"
-                as |item itemIndex itemData|
-              >
+              <section.Collection @name="items" as |item itemIndex itemData|>
                 <VideoHubLayoutDraggable
                   @type="video-hub-profile-item"
-                  @data={{hash
-                    sectionIndex=sectionIndex
-                    itemIndex=itemIndex
-                  }}
-                  @onDrop={{fn
-                    this.dropItem
-                    form
-                    data
-                    sectionIndex
-                    itemIndex
-                  }}
+                  @data={{hash sectionIndex=sectionIndex itemIndex=itemIndex}}
+                  @onDrop={{fn this.dropItem form data sectionIndex itemIndex}}
                   class="video-hub-profile-editor__item"
                   data-item-id={{itemData.id}}
                 >
