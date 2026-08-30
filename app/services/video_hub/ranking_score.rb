@@ -41,12 +41,11 @@ module VideoHub
     def score
       validate_signal!
 
-      components =
-        {
-          qualified_rate: qualified_rate_basis_points,
-          qualified_volume: qualified_volume_basis_points,
-          freshness: freshness_basis_points,
-        }.freeze
+      components = {
+        qualified_rate: qualified_rate_basis_points,
+        qualified_volume: qualified_volume_basis_points,
+        freshness: freshness_basis_points,
+      }.freeze
       weights = configured_weights.freeze
       total_weight = weights.values.sum
       score_basis_points =
@@ -66,10 +65,16 @@ module VideoHub
 
     private
 
-    attr_reader :signal_version, :qualified_views, :qualified_rate_basis_points, :published_at, :as_of
+    attr_reader :signal_version,
+                :qualified_views,
+                :qualified_rate_basis_points,
+                :published_at,
+                :as_of
 
     def validate_signal!
-      raise RankingError.new(:unsupported_signal_version) unless signal_version == RankingSignals::VERSION
+      unless signal_version == RankingSignals::VERSION
+        raise RankingError.new(:unsupported_signal_version)
+      end
       unless qualified_views.between?(0, RankingSignals::MAX_SIGNAL_COUNT) &&
                qualified_rate_basis_points.between?(0, MAX_BASIS_POINTS)
         raise RankingError.new(:invalid_signal)
