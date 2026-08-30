@@ -84,7 +84,7 @@ module VideoHub
     end
 
     def increment_daily_metric(video:, day:, event:)
-      impressions = event == "impression" ? 1 : 0
+      impression_increment = event == "impression" ? 1 : 0
       qualified_views = event == "qualified_view" ? 1 : 0
 
       DB.exec(
@@ -92,15 +92,15 @@ module VideoHub
           INSERT INTO video_hub_daily_metrics
             (video_id, day, impressions, qualified_views, created_at, updated_at)
           VALUES
-            (:video_id, :day, :impressions, :qualified_views, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            (:video_id, :day, 1, :qualified_views, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
           ON CONFLICT (video_id, day) DO UPDATE
-          SET impressions = video_hub_daily_metrics.impressions + EXCLUDED.impressions,
+          SET impressions = video_hub_daily_metrics.impressions + :impression_increment,
               qualified_views = video_hub_daily_metrics.qualified_views + EXCLUDED.qualified_views,
               updated_at = CURRENT_TIMESTAMP
         SQL
         video_id: video.id,
         day: day,
-        impressions: impressions,
+        impression_increment: impression_increment,
         qualified_views: qualified_views,
       )
     end
