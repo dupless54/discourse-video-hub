@@ -34,6 +34,10 @@ module VideoHub
       new(input).fetch
     end
 
+    def self.refresh(input)
+      new(input).refresh
+    end
+
     def initialize(input)
       @input = input
     end
@@ -49,10 +53,24 @@ module VideoHub
         raise MetadataError.new(error_code)
       end
 
-      metadata = adapter_for(resolved.provider).fetch(resolved.canonical_url)
-      write_success_cache(resolved, metadata)
-      Discourse.cache.delete(cache_key(resolved, "failure"))
-      metadata
+      fetch_from_provider(resolved)
+    rescue VideoHub::ProviderUrlResolver::ResolveError => error
+      raise MetadataError.new(error.code)
+    rescue VideoHub::Providers::Youtube::MetadataError,
+           VideoHub::Providers::Tiktok::MetadataError,
+           VideoHub::Providers::Instagram::MetadataError => error
+      write_failure_cache(resolved, error.code) if resolved
+      raise MetadataError.new(error.code)
+    end
+
+    def refresh
+      resolved = VideoHub::ProviderUrlResolver.resolve(input)
+
+      if (error_code = read_failure_cache(resolved))
+        raise MetadataError.new(error_code)
+      end
+
+      fetch_from_provider(resolved)
     rescue VideoHub::ProviderUrlResolver::ResolveError => error
       raise MetadataError.new(error.code)
     rescue VideoHub::Providers::Youtube::MetadataError,
@@ -65,6 +83,13 @@ module VideoHub
     private
 
     attr_reader :input
+
+    def fetch_from_provider(resolved)
+      metadata = adapter_for(resolved.provider).fetch(resolved.canonical_url)
+      write_success_cache(resolved, metadata)
+      Discourse.cache.delete(cache_key(resolved, "failure"))
+      metadata
+    end
 
     def adapter_for(provider)
       case provider

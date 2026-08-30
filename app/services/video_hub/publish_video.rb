@@ -53,6 +53,7 @@ module VideoHub
       validate_metadata_identity!(metadata, resolved)
 
       post_creator = nil
+      newly_published = false
       video =
         DistributedMutex.synchronize(lock_key(resolved)) do
           locked_existing = find_existing(resolved)
@@ -66,19 +67,23 @@ module VideoHub
             post_creator =
               PostCreator.new(user, post_options(category, metadata, normalized_caption))
             post = post_creator.create!
+            published_at = Time.zone.now
 
             video.assign_attributes(
               topic: post.topic,
               post: post,
               status: "published",
-              published_at: Time.zone.now,
+              published_at: published_at,
+              metadata_refreshed_at: published_at,
             )
             video.save!
+            newly_published = true
             video
           end
         end
 
       finalize_post_creation(post_creator)
+      enqueue_metadata_refresh(video) if newly_published
       video
     rescue PublishPolicy::AuthorizationError,
            ProviderUrlResolver::ResolveError,
@@ -172,6 +177,18 @@ module VideoHub
 
       post_creator.trigger_after_events
       post_creator.enqueue_jobs
+    end
+
+    def enqueue_metadata_refresh(video)
+      Jobs.enqueue_in(
+        VideoHub::RefreshVideoMetadata::STALE_AFTER,
+        Jobs::VideoHub::RefreshVideoMetadata,
+        video_id: video.id,
+      )
+    rescue StandardError => error
+      Rails.logger.warn(
+        "[VideoHub] metadata refresh enqueue failed video_id=#{video.id} error=#{error.class.name}",
+      )
     end
   end
 end
