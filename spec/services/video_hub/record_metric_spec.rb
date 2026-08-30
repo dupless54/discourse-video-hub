@@ -53,7 +53,9 @@ describe VideoHub::RecordMetric do
   end
 
   it "rejects unknown metric names without writing aggregate state" do
-    expect { record(viewer, video, "completion") }.to raise_error(described_class::MetricError) do |error|
+    expect { record(viewer, video, "completion") }.to raise_error(
+      described_class::MetricError,
+    ) do |error|
       expect(error.code).to eq(:invalid_event)
     end
     expect(VideoHub::DailyMetric.where(video: video)).to be_empty
