@@ -326,68 +326,72 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
   });
 });
 
-module("Integration | Component | VideoHubLanding | authenticated metrics", function (hooks) {
-  setupRenderingTest(hooks);
+module(
+  "Integration | Component | VideoHubLanding | authenticated metrics",
+  function (hooks) {
+    setupRenderingTest(hooks);
 
-  hooks.beforeEach(function () {
-    this.owner.register("service:capabilities", MobileCapabilities);
-  });
-
-  test("records metrics only for a continuously visible active video", async function (assert) {
-    const observations = stubIntersectionObserver();
-    const requestBodies = [];
-    const model = {
-      videos: [
-        {
-          id: 30,
-          provider: "youtube",
-          external_id: "dQw4w9WgXcQ",
-          kind: "shorts",
-          title: "First short",
-          thumbnail_url: null,
-          author_name: "First creator",
-          watch_path: "/videos/30/first-short",
-        },
-      ],
-      providers: ["youtube"],
-      pagination: { has_more: false, next_cursor: null },
-    };
-
-    pretender.post("/videos/30/metrics", (request) => {
-      requestBodies.push(request.requestBody ?? "");
-      return response({ recorded: true });
+    hooks.beforeEach(function () {
+      this.owner.unregister("service:capabilities");
+      this.owner.register("service:capabilities", MobileCapabilities);
     });
 
-    await render(<template><VideoHubLanding @model={{model}} /></template>);
-    assert.deepEqual(
-      requestBodies,
-      [],
-      "does not count the constructor-selected item"
-    );
+    test("records metrics only for a continuously visible active video", async function (assert) {
+      const observations = stubIntersectionObserver();
+      const requestBodies = [];
+      const model = {
+        videos: [
+          {
+            id: 30,
+            provider: "youtube",
+            external_id: "dQw4w9WgXcQ",
+            kind: "shorts",
+            title: "First short",
+            thumbnail_url: null,
+            author_name: "First creator",
+            watch_path: "/videos/30/first-short",
+          },
+        ],
+        providers: ["youtube"],
+        pagination: { has_more: false, next_cursor: null },
+      };
 
-    const visible = observations[0].trigger({ intersectionRatio: 0.8 });
-    const hidden = observations[0].trigger({
-      isIntersecting: false,
-      intersectionRatio: 0,
+      pretender.post("/videos/30/metrics", (request) => {
+        requestBodies.push(request.requestBody ?? "");
+        return response({ recorded: true });
+      });
+
+      await render(<template><VideoHubLanding @model={{model}} /></template>);
+      assert.deepEqual(
+        requestBodies,
+        [],
+        "does not count the constructor-selected item"
+      );
+
+      const visible = observations[0].trigger({ intersectionRatio: 0.8 });
+      const hidden = observations[0].trigger({
+        isIntersecting: false,
+        intersectionRatio: 0,
+      });
+      await Promise.all([visible, hidden]);
+
+      assert.strictEqual(requestBodies.length, 1, "records the first impression");
+      assert.true(
+        requestBodies[0].includes("impression"),
+        "leaving early records only the impression"
+      );
+
+      await observations[0].trigger({ intersectionRatio: 0.8 });
+
+      assert.strictEqual(
+        requestBodies.length,
+        2,
+        "qualification does not send a second impression"
+      );
+      assert.true(
+        requestBodies[1].includes("qualified_view"),
+        "a continuous visible dwell records qualification"
+      );
     });
-    await Promise.all([visible, hidden]);
-
-    assert.strictEqual(requestBodies.length, 1, "records the first impression");
-    assert.true(
-      requestBodies[0].includes("impression"),
-      "leaving early records only the impression"
-    );
-
-    await observations[0].trigger({ intersectionRatio: 0.8 });
-
-    assert.strictEqual(
-      requestBodies.length,
-      2,
-      "qualification does not send a second impression"
-    );
-    assert.true(
-      requestBodies[1].includes("qualified_view"),
-      "a continuous visible dwell records qualification"
-    );
-  });
-});
+  }
+);
