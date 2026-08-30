@@ -43,28 +43,28 @@ module VideoHub
       raise RankingError.new(:too_many_videos) if video_ids.length > MAX_BATCH_SIZE
       return {}.freeze if video_ids.empty?
 
-      scope =
-        DailyMetric.where(
-          video_id: video_ids,
-          day: window_start_day..as_of,
-        )
+      scope = DailyMetric.where(video_id: video_ids, day: window_start_day..as_of)
 
       impressions_by_video = scope.group(:video_id).sum(:impressions)
       qualified_views_by_video = scope.group(:video_id).sum(:qualified_views)
 
-      video_ids.index_with do |video_id|
-        impressions = capped_count(impressions_by_video.fetch(video_id, 0))
-        qualified_views =
-          [capped_count(qualified_views_by_video.fetch(video_id, 0)), impressions].min
+      video_ids
+        .index_with do |video_id|
+          impressions = capped_count(impressions_by_video.fetch(video_id, 0))
+          qualified_views = [
+            capped_count(qualified_views_by_video.fetch(video_id, 0)),
+            impressions,
+          ].min
 
-        Result.new(
-          version: VERSION,
-          video_id: video_id,
-          impressions: impressions,
-          qualified_views: qualified_views,
-          qualified_rate_basis_points: rate_basis_points(qualified_views, impressions),
-        ).freeze
-      end.freeze
+          Result.new(
+            version: VERSION,
+            video_id: video_id,
+            impressions: impressions,
+            qualified_views: qualified_views,
+            qualified_rate_basis_points: rate_basis_points(qualified_views, impressions),
+          ).freeze
+        end
+        .freeze
     end
 
     private
