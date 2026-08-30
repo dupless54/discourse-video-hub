@@ -10,7 +10,10 @@ module VideoHub
       render_json_dump(
         videos: [],
         providers: enabled_providers,
-        pagination: { has_more: false, next_cursor: nil },
+        pagination: {
+          has_more: false,
+          next_cursor: nil,
+        },
       )
     end
 
