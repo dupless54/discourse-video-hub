@@ -27,7 +27,7 @@
       line-height: 1;
     }
 
-    > p:last-child {
+    > p:last-of-type {
       margin: 0;
       color: var(--primary-high);
       font-size: var(--font-up-1);
@@ -40,6 +40,18 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  &__publish-link:focus-visible {
+    outline: 2px solid var(--tertiary);
+    outline-offset: 3px;
   }
 
   &__providers {
@@ -210,6 +222,73 @@
   }
 }
 
+.video-hub-publish {
+  box-sizing: border-box;
+  max-width: 52rem;
+  padding-block: 1.5rem 3rem;
+
+  &__back {
+    display: inline-flex;
+    margin-bottom: 1rem;
+    color: var(--tertiary);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tertiary);
+      outline-offset: 3px;
+    }
+  }
+
+  &__panel {
+    padding: clamp(1.25rem, 4vw, 2rem);
+    color: var(--primary);
+    background: var(--secondary);
+    border: 1px solid var(--primary-low);
+    border-radius: var(--d-border-radius-large, 1rem);
+  }
+
+  &__header {
+    max-width: 42rem;
+    margin-bottom: 1.5rem;
+
+    h1 {
+      margin: 0 0 0.75rem;
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.05;
+    }
+
+    > p:last-child {
+      margin: 0;
+      color: var(--primary-high);
+      font-size: var(--font-up-1);
+    }
+  }
+
+  &__eyebrow {
+    margin: 0 0 0.75rem;
+    color: var(--tertiary);
+    font-size: var(--font-down-1);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  &__hint {
+    margin: 0.75rem 0 1rem;
+    color: var(--primary-high);
+    font-size: var(--font-down-1);
+  }
+
+  .alert-error {
+    margin-bottom: 1rem;
+  }
+}
+
 .video-hub-watch {
   box-sizing: border-box;
   padding-block: 1.5rem 3rem;
@@ -356,6 +435,14 @@
     }
   }
 
+  .video-hub-publish {
+    padding-block: 1rem calc(2rem + env(safe-area-inset-bottom));
+
+    &__panel {
+      padding: 1.25rem;
+    }
+  }
+
   .video-hub-watch {
     padding-block: 1rem calc(2rem + env(safe-area-inset-bottom));
 
@@ -378,6 +465,9 @@
   .video-hub-page *,
   .video-hub-page *::before,
   .video-hub-page *::after,
+  .video-hub-publish *,
+  .video-hub-publish *::before,
+  .video-hub-publish *::after,
   .video-hub-watch *,
   .video-hub-watch *::before,
   .video-hub-watch *::after {

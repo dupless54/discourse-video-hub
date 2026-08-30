@@ -1,6 +1,7 @@
 import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
+import { LinkTo } from "@ember/routing";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import DButton from "discourse/ui-kit/d-button";
@@ -86,6 +87,14 @@ export default class VideoHubLanding extends Component {
           </p>
           <h1>{{i18n "video_hub.title"}}</h1>
           <p>{{i18n "video_hub.description"}}</p>
+          <div class="video-hub-page__actions">
+            <LinkTo
+              @route="video-hub-new"
+              class="btn btn-primary video-hub-page__publish-link"
+            >
+              {{i18n "video_hub.publish.cta"}}
+            </LinkTo>
+          </div>
         </div>
 
         {{#if this.providerItems.length}}
