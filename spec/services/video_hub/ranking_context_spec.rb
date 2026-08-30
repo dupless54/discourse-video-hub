@@ -35,7 +35,11 @@ describe VideoHub::RankingContext do
       described_class.restore(
         snapshot_at: now.utc,
         metric_as_of: Date.new(2026, 8, 28),
-        weights: { qualified_rate: 60, qualified_volume: 25, freshness: 15 },
+        weights: {
+          qualified_rate: 60,
+          qualified_volume: 25,
+          freshness: 15,
+        },
       )
 
     expect(restored.snapshot_at).to eq_time(now.utc)
@@ -80,7 +84,11 @@ describe VideoHub::RankingContext do
       described_class.restore(
         snapshot_at: now,
         metric_as_of: "not-a-date",
-        weights: { qualified_rate: 60, qualified_volume: 25, freshness: 15 },
+        weights: {
+          qualified_rate: 60,
+          qualified_volume: 25,
+          freshness: 15,
+        },
       )
     }.to raise_error(described_class::ContextError) { |error|
       expect(error.code).to eq(:invalid_metric_day)
@@ -90,7 +98,9 @@ describe VideoHub::RankingContext do
       described_class.restore(
         snapshot_at: now,
         metric_as_of: Date.new(2026, 8, 29),
-        weights: { qualified_rate: 100 },
+        weights: {
+          qualified_rate: 100,
+        },
       )
     }.to raise_error(described_class::ContextError) { |error|
       expect(error.code).to eq(:invalid_weights)
