@@ -6,5 +6,5 @@ model_reasoning_effort = "medium"
 developer_instructions = """
 Follow AGENTS.md and docs/ai/EFFORT_ROUTER.md.
 Keep scope bounded and preserve safety/validation rules.
-When used as builder, return READY with exact paths/evidence and do not self-approve.
+No READY/self-approval state is required; merge eligibility follows the CI-only gate in AGENTS.md.
 """
