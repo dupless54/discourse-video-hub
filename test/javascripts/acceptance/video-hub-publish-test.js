@@ -45,6 +45,22 @@ acceptance("Video Hub publish", function () {
       return response(201, payload);
     });
     pretender.get("/videos/42/published-video.json", () => response(payload));
+    pretender.get("/t/100.json", () =>
+      response({
+        id: 100,
+        post_stream: {
+          posts: [
+            {
+              id: 101,
+              post_number: 1,
+              username: "video-owner",
+              cooked: "<p>Video root post</p>",
+              actions_summary: [],
+            },
+          ],
+        },
+      })
+    );
 
     await visit("/videos/new");
 

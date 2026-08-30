@@ -1,5 +1,6 @@
 import Component from "@glimmer/component";
 import { i18n } from "discourse-i18n";
+import VideoHubDiscussion from "./video-hub-discussion";
 import VideoHubPlayer from "./video-hub-player";
 
 export default class VideoHubWatch extends Component {
@@ -45,6 +46,8 @@ export default class VideoHubWatch extends Component {
           </a>
         </section>
       </article>
+
+      <VideoHubDiscussion @topic={{@model.topic}} @video={{this.video}} />
     </main>
   </template>
 }
