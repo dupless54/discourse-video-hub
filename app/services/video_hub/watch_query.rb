@@ -16,6 +16,18 @@ module VideoHub
       new(user:, id:).fetch
     end
 
+    def self.visible_video?(video, guardian:)
+      return false unless video
+
+      provider_setting = PROVIDER_SETTINGS[video.provider]
+      return false unless provider_setting && SiteSetting.public_send(provider_setting)
+      return false unless video.published_at
+      return false unless video.topic && video.post
+      return false if video.topic.deleted_at || video.post.deleted_at
+
+      guardian.can_see?(video.topic) && guardian.can_see?(video.post)
+    end
+
     def initialize(user:, id:)
       @guardian = Guardian.new(user)
       @id = parse_id(id)
@@ -42,18 +54,7 @@ module VideoHub
     end
 
     def visible_video?(video)
-      return false unless video
-      return false unless provider_enabled?(video.provider)
-      return false unless video.published_at
-      return false unless video.topic && video.post
-      return false if video.topic.deleted_at || video.post.deleted_at
-
-      @guardian.can_see?(video.topic) && @guardian.can_see?(video.post)
-    end
-
-    def provider_enabled?(provider)
-      setting = PROVIDER_SETTINGS[provider]
-      setting && SiteSetting.public_send(setting)
+      self.class.visible_video?(video, guardian: @guardian)
     end
   end
 end

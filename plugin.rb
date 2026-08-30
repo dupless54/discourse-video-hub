@@ -19,9 +19,13 @@ end
 require_relative "lib/video_hub/engine"
 
 after_initialize do
+  require_relative "lib/video_hub/sitemap_controller_extension"
   require_relative "lib/video_hub/topic_view_canonical_extension"
 
-  reloadable_patch { TopicView.prepend(VideoHub::TopicViewCanonicalExtension) }
+  reloadable_patch do
+    SitemapController.prepend(VideoHub::SitemapControllerExtension)
+    TopicView.prepend(VideoHub::TopicViewCanonicalExtension)
+  end
 
   Discourse::Application.routes.prepend do
     get "/videos/:id/:slug" => "video_hub/videos#watch",
