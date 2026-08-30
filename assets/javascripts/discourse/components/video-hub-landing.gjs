@@ -2,9 +2,11 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
 import { LinkTo } from "@ember/routing";
+import { cancel } from "@ember/runloop";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import discourseLater from "discourse/lib/later";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import VideoHubCard from "./video-hub-card";
@@ -151,7 +153,7 @@ export default class VideoHubLanding extends Component {
       return;
     }
 
-    const timer = setTimeout(() => {
+    const timer = discourseLater(() => {
       this.qualifiedTimers.delete(videoId);
 
       if (
@@ -193,14 +195,14 @@ export default class VideoHubLanding extends Component {
 
     const timer = this.qualifiedTimers.get(videoId);
     if (timer !== undefined) {
-      clearTimeout(timer);
+      cancel(timer);
       this.qualifiedTimers.delete(videoId);
     }
   }
 
   clearQualifiedTimers() {
     for (const timer of this.qualifiedTimers.values()) {
-      clearTimeout(timer);
+      cancel(timer);
     }
     this.qualifiedTimers.clear();
   }
