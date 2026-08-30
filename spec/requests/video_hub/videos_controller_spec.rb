@@ -9,7 +9,12 @@ describe VideoHub::VideosController do
   end
 
   describe "GET /videos/feed.json" do
-    it "returns an empty, cursor-ready feed with enabled providers" do
+    it "passes the anonymous viewer and bounded defaults to the feed query" do
+      VideoHub::FeedQuery
+        .expects(:fetch)
+        .with(user: nil, cursor: nil, limit: VideoHub::FeedQuery::DEFAULT_LIMIT)
+        .returns(empty_feed_result)
+
       get "/videos/feed.json"
 
       expect(response.status).to eq(200)
@@ -25,9 +30,40 @@ describe VideoHub::VideosController do
       )
     end
 
+    it "passes the authenticated viewer, cursor, and limit and serializes the stable feed payload" do
+      user = Fabricate(:user)
+      video = create_published_video(user)
+      sign_in(user)
+      VideoHub::FeedQuery
+        .expects(:fetch)
+        .with(user: user, cursor: "cursor-token", limit: "2")
+        .returns(
+          VideoHub::FeedQuery::Result.new(
+            videos: [video],
+            has_more: true,
+            next_cursor: "next-token",
+          ),
+        )
+
+      get "/videos/feed.json", params: { cursor: "cursor-token", limit: 2 }
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body).to eq(
+        {
+          "videos" => [video_payload(video)],
+          "providers" => %w[youtube tiktok],
+          "pagination" => {
+            "has_more" => true,
+            "next_cursor" => "next-token",
+          },
+        },
+      )
+    end
+
     it "reflects provider feature settings without exposing disabled providers" do
       SiteSetting.video_hub_tiktok_enabled = false
       SiteSetting.video_hub_instagram_enabled = true
+      VideoHub::FeedQuery.stubs(:fetch).returns(empty_feed_result)
 
       get "/videos/feed.json"
 
@@ -35,8 +71,20 @@ describe VideoHub::VideosController do
       expect(response.parsed_body["providers"]).to eq(%w[youtube instagram])
     end
 
-    it "returns not found when the plugin is disabled" do
+    it "maps malformed feed inputs to a safe bad request" do
+      VideoHub::FeedQuery.expects(:fetch).raises(
+        VideoHub::FeedQuery::FeedError.new(:invalid_cursor),
+      )
+
+      get "/videos/feed.json", params: { cursor: "bad" }
+
+      expect(response.status).to eq(400)
+      expect(response.parsed_body).to eq({ "error" => { "code" => "invalid_cursor" } })
+    end
+
+    it "returns not found before querying when the plugin is disabled" do
       SiteSetting.video_hub_enabled = false
+      VideoHub::FeedQuery.expects(:fetch).never
 
       get "/videos/feed.json"
 
@@ -83,24 +131,7 @@ describe VideoHub::VideosController do
            }
 
       expect(response.status).to eq(201)
-      expect(response.parsed_body).to eq(
-        {
-          "video" => {
-            "id" => video.id,
-            "provider" => video.provider,
-            "external_id" => video.external_id,
-            "canonical_url" => video.canonical_url,
-            "kind" => video.kind,
-            "title" => video.title,
-            "thumbnail_url" => video.thumbnail_url,
-            "duration_seconds" => video.duration_seconds,
-            "author_name" => video.author_name,
-            "topic_id" => video.topic_id,
-            "post_id" => video.post_id,
-            "published_at" => video.published_at.iso8601,
-          },
-        },
-      )
+      expect(response.parsed_body).to eq({ "video" => video_payload(video) })
     end
 
     it "maps safe validation failures to unprocessable entity" do
@@ -169,6 +200,27 @@ describe VideoHub::VideosController do
 
       expect(response.status).to eq(404)
     end
+  end
+
+  def empty_feed_result
+    VideoHub::FeedQuery::Result.new(videos: [], has_more: false, next_cursor: nil)
+  end
+
+  def video_payload(video)
+    {
+      "id" => video.id,
+      "provider" => video.provider,
+      "external_id" => video.external_id,
+      "canonical_url" => video.canonical_url,
+      "kind" => video.kind,
+      "title" => video.title,
+      "thumbnail_url" => video.thumbnail_url,
+      "duration_seconds" => video.duration_seconds,
+      "author_name" => video.author_name,
+      "topic_id" => video.topic_id,
+      "post_id" => video.post_id,
+      "published_at" => video.published_at.iso8601,
+    }
   end
 
   def create_published_video(user)
