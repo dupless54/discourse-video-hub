@@ -111,10 +111,7 @@ export default class VideoHubWatch extends Component {
   }
 
   <template>
-    <main
-      class="wrap video-hub-watch"
-      {{didInsert this.startMetricTracking}}
-    >
+    <main class="wrap video-hub-watch" {{didInsert this.startMetricTracking}}>
       <a class="video-hub-watch__back" href="/videos">
         {{i18n "video_hub.watch.back_to_videos"}}
       </a>
