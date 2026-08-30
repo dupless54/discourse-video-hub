@@ -11,8 +11,9 @@ jobs:
       - uses: actions/checkout@v6
       - name: Install Ruby dependencies
         run: bundle install
-      - name: Show canonical Syntax Tree diff
+      - name: Show canonical Syntax Tree output
         run: |
-          bundle exec stree write app/services/video_hub/ranking_signals.rb
-          bundle exec stree write spec/services/video_hub/ranking_signals_spec.rb
-          git diff --no-renames -- app/services/video_hub/ranking_signals.rb spec/services/video_hub/ranking_signals_spec.rb
+          echo '--- ranking_signals.rb ---'
+          bundle exec stree format app/services/video_hub/ranking_signals.rb
+          echo '--- ranking_signals_spec.rb ---'
+          bundle exec stree format spec/services/video_hub/ranking_signals_spec.rb
