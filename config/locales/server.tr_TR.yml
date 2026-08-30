@@ -6,3 +6,6 @@ tr_TR:
     video_hub_youtube_enabled: "Herkese açık YouTube ve YouTube Shorts bağlantılarına izin ver"
     video_hub_tiktok_enabled: "Herkese açık TikTok bağlantılarına izin ver"
     video_hub_instagram_enabled: "Herkese açık Instagram ve Reels bağlantılarına izin ver"
+    video_hub_ranking_qualified_rate_weight: "Nitelikli görüntüleme oranı için sıralama ağırlığı"
+    video_hub_ranking_qualified_volume_weight: "Nitelikli görüntüleme hacmi için sıralama ağırlığı"
+    video_hub_ranking_freshness_weight: "Yayın güncelliği için sıralama ağırlığı"
