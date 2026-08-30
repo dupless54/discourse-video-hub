@@ -1,5 +1,11 @@
 import Service from "@ember/service";
-import { click, render, settled, triggerKeyEvent } from "@ember/test-helpers";
+import {
+  click,
+  render,
+  settled,
+  triggerKeyEvent,
+  waitUntil,
+} from "@ember/test-helpers";
 import { module, test } from "qunit";
 import { setupRenderingTest } from "discourse/tests/helpers/component-test";
 import pretender, { response } from "discourse/tests/helpers/create-pretender";
@@ -228,11 +234,16 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
       intersectionRatio: 0,
     });
     await Promise.all([visible, hidden]);
+    await waitUntil(() => events.length === 1);
 
-    assert.deepEqual(events, ["impression"], "leaving early cancels qualification");
+    assert.deepEqual(
+      events,
+      ["impression"],
+      "leaving early cancels qualification"
+    );
 
     await observations[0].trigger({ intersectionRatio: 0.8 });
-    await settled();
+    await waitUntil(() => events.includes("qualified_view"));
 
     assert.deepEqual(
       events,
