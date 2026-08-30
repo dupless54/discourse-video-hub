@@ -13,7 +13,7 @@ describe VideoHub::RankingContext do
     context = described_class.capture(now: now)
 
     expect(context.version).to eq(1)
-    expect(context.snapshot_at).to eq(now.utc)
+    expect(context.snapshot_at).to eq_time(now.utc)
     expect(context.metric_as_of).to eq(Date.new(2026, 8, 29))
     expect(context.weights).to eq(qualified_rate: 100, qualified_volume: 0, freshness: 0)
     expect(context.weights).to be_frozen
