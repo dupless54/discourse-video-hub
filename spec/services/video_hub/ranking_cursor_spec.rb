@@ -46,9 +46,9 @@ describe VideoHub::RankingCursor do
     tampered[-1] = tampered[-1] == "a" ? "b" : "a"
 
     [tampered, "not-a-cursor", "x" * (described_class::MAX_LENGTH + 1)].each do |value|
-      expect { described_class.decode(value) }.to raise_error(described_class::CursorError) { |error|
-        expect(error.code).to eq(:invalid_cursor)
-      }
+      expect { described_class.decode(value) }.to raise_error(
+        described_class::CursorError,
+      ) { |error| expect(error.code).to eq(:invalid_cursor) }
     end
   end
 
@@ -67,9 +67,9 @@ describe VideoHub::RankingCursor do
     end
 
     freeze_time(now + described_class::TTL + 1.second) do
-      expect { described_class.decode(token) }.to raise_error(described_class::CursorError) { |error|
-        expect(error.code).to eq(:invalid_cursor)
-      }
+      expect { described_class.decode(token) }.to raise_error(
+        described_class::CursorError,
+      ) { |error| expect(error.code).to eq(:invalid_cursor) }
     end
   end
 
