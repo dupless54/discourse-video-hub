@@ -33,8 +33,15 @@ module VideoHub
       @version = VERSION
       @snapshot_at = normalized_time.utc
       @metric_as_of =
-        metric_as_of.nil? ? normalized_time.in_time_zone(Time.zone).to_date - 1.day : normalize_date(metric_as_of)
-      @weights = weights.nil? ? RankingScore.current_weights : RankingScore.normalize_weights(weights)
+        (
+          if metric_as_of.nil?
+            normalized_time.in_time_zone(Time.zone).to_date - 1.day
+          else
+            normalize_date(metric_as_of)
+          end
+        )
+      @weights =
+        weights.nil? ? RankingScore.current_weights : RankingScore.normalize_weights(weights)
     rescue RankingScore::RankingError => error
       raise ContextError.new(error.code)
     end
