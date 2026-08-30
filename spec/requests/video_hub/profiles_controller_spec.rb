@@ -247,6 +247,97 @@ describe VideoHub::ProfilesController do
     expect(response.status).to eq(404)
   end
 
+  it "creates and serializes an owner-authorized profile video membership" do
+    video = create_video
+    sign_in(profile_user)
+
+    put "/videos/profile/#{profile_user.username}/layout/videos/#{video.id}.json"
+
+    section = VideoHub::ProfileSection.find_by!(user_id: profile_user.id, section_type: "shorts")
+    item = VideoHub::ProfileItem.find_by!(profile_section_id: section.id, video_id: video.id)
+
+    expect(response.status).to eq(201)
+    expect(response.parsed_body).to eq(
+      {
+        "membership" => {
+          "username" => profile_user.username,
+          "section_id" => section.id,
+          "section_type" => "shorts",
+          "item_id" => item.id,
+          "video_id" => video.id,
+          "position" => 0,
+          "pinned" => false,
+          "visible" => true,
+        },
+      },
+    )
+  end
+
+  it "returns the existing membership on an identical add retry" do
+    video = create_video
+    sign_in(profile_user)
+
+    put "/videos/profile/#{profile_user.username}/layout/videos/#{video.id}.json"
+    first_item = VideoHub::ProfileItem.find_by!(video_id: video.id)
+
+    put "/videos/profile/#{profile_user.username}/layout/videos/#{video.id}.json"
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body.dig("membership", "item_id")).to eq(first_item.id)
+    expect(VideoHub::ProfileItem.where(video_id: video.id).count).to eq(1)
+  end
+
+  it "removes a profile membership idempotently" do
+    section = create_section
+    video = create_video
+    item = create_item(section, video)
+    sign_in(profile_user)
+
+    delete "/videos/profile/#{profile_user.username}/layout/videos/#{video.id}.json"
+
+    expect(response.status).to eq(204)
+    expect(VideoHub::ProfileItem.exists?(item.id)).to eq(false)
+    expect(VideoHub::ProfileSection.exists?(section.id)).to eq(true)
+
+    delete "/videos/profile/#{profile_user.username}/layout/videos/#{video.id}.json"
+
+    expect(response.status).to eq(204)
+  end
+
+  it "fails closed when a viewer cannot mutate another user's membership" do
+    section = create_section
+    video = create_video
+    item = create_item(section, video)
+    sign_in(Fabricate(:user))
+
+    delete "/videos/profile/#{profile_user.username}/layout/videos/#{video.id}.json"
+
+    expect(response.status).to eq(404)
+    expect(item.reload).to be_persisted
+  end
+
+  it "preserves not-found semantics when the requested canonical video is ineligible" do
+    video = create_video
+    video.topic.update_column(:visible, false)
+    sign_in(profile_user)
+
+    put "/videos/profile/#{profile_user.username}/layout/videos/#{video.id}.json"
+
+    expect(response.status).to eq(404)
+    expect(VideoHub::ProfileSection.where(user_id: profile_user.id)).to be_empty
+  end
+
+  it "returns not found before membership mutation when Video Hub is disabled" do
+    video = create_video
+    SiteSetting.video_hub_enabled = false
+    sign_in(profile_user)
+    VideoHub::ProfileMembershipMutator.expects(:add).never
+
+    put "/videos/profile/#{profile_user.username}/layout/videos/#{video.id}.json"
+
+    expect(response.status).to eq(404)
+  end
+
   def profile_result(section, item, video)
     VideoHub::ProfileQuery::Result.new(
       profile_user: profile_user,
