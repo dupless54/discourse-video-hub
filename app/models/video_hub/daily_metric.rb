@@ -7,11 +7,7 @@ module VideoHub
     belongs_to :video, class_name: "VideoHub::Video"
 
     validates :day, presence: true, uniqueness: { scope: :video_id }
-    validates :impressions,
-              numericality: {
-                only_integer: true,
-                greater_than_or_equal_to: 0,
-              }
+    validates :impressions, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
     validates :qualified_views,
               numericality: {
                 only_integer: true,
