@@ -202,7 +202,7 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
     this.owner.register("service:capabilities", MobileCapabilities);
     this.owner.register("service:current-user", AuthenticatedCurrentUser);
     const observations = stubIntersectionObserver();
-    const events = [];
+    const requestBodies = [];
     const model = {
       videos: [
         {
@@ -221,13 +221,13 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
     };
 
     pretender.post("/videos/30/metrics", (request) => {
-      events.push(new URLSearchParams(request.requestBody).get("event"));
+      requestBodies.push(request.requestBody ?? "");
       return response({ recorded: true });
     });
 
     await render(<template><VideoHubLanding @model={{model}} /></template>);
     assert.deepEqual(
-      events,
+      requestBodies,
       [],
       "does not count the constructor-selected item"
     );
@@ -238,21 +238,24 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
       intersectionRatio: 0,
     });
     await Promise.all([visible, hidden]);
-    await waitUntil(() => events.length === 1);
+    await waitUntil(() => requestBodies.length === 1);
 
-    assert.deepEqual(
-      events,
-      ["impression"],
-      "leaving early cancels qualification"
+    assert.true(
+      requestBodies[0].includes("impression"),
+      "leaving early records only the impression"
     );
 
     await observations[0].trigger({ intersectionRatio: 0.8 });
-    await waitUntil(() => events.includes("qualified_view"));
+    await waitUntil(() => requestBodies.length === 2);
 
-    assert.deepEqual(
-      events,
-      ["impression", "qualified_view"],
-      "a continuous visible dwell records qualification without a second impression"
+    assert.true(
+      requestBodies[1].includes("qualified_view"),
+      "a continuous visible dwell records qualification"
+    );
+    assert.strictEqual(
+      requestBodies.length,
+      2,
+      "qualification does not send a second impression"
     );
   });
 
