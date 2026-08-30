@@ -18,6 +18,25 @@ end
 
 require_relative "lib/video_hub/engine"
 
+Discourse::Application.routes.append do
+  get "/u/:username/videos" => "video_hub/videos#shell",
+      :constraints => {
+        username: RouteFormat.username,
+        format: /html/,
+      },
+      :defaults => {
+        format: :html,
+      }
+  get "/u/:username/videos/edit" => "video_hub/videos#shell",
+      :constraints => {
+        username: RouteFormat.username,
+        format: /html/,
+      },
+      :defaults => {
+        format: :html,
+      }
+end
+
 after_initialize do
   require_relative "lib/video_hub/sitemap_controller_extension"
   require_relative "lib/video_hub/topic_view_canonical_extension"
