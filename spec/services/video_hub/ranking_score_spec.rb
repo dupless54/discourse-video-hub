@@ -122,7 +122,9 @@ describe VideoHub::RankingScore do
         signal: signal,
         published_at: as_of,
         as_of: as_of,
-        weights: { qualified_rate: 100 },
+        weights: {
+          qualified_rate: 100,
+        },
       )
     }.to raise_error(described_class::RankingError) { |error|
       expect(error.code).to eq(:invalid_weights)
