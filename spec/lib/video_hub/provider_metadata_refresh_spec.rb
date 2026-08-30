@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe "Video Hub provider metadata refresh cache" do
+describe VideoHub::ProviderMetadataFetcher do
   let(:cache) { ActiveSupport::Cache::MemoryStore.new }
   let(:input) { "https://www.youtube.com/watch?v=refreshCache123" }
   let(:resolved) do

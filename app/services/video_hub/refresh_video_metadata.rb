@@ -4,13 +4,7 @@ module VideoHub
   class RefreshVideoMetadata
     STALE_AFTER = 24.hours
     LOCK_PREFIX = "video_hub_metadata_refresh"
-    MUTABLE_METADATA_KEYS = %i[
-      title
-      description
-      thumbnail_url
-      duration_seconds
-      author_name
-    ].freeze
+    MUTABLE_METADATA_KEYS = %i[title description thumbnail_url duration_seconds author_name].freeze
 
     def self.refresh(video_id:)
       new(video_id:).refresh

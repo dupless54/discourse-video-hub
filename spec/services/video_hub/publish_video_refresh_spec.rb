@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-describe "Video Hub publish metadata refresh scheduling" do
+describe VideoHub::PublishVideo do
   let(:category) { Fabricate(:category) }
   let(:user) { Fabricate(:user, trust_level: 1) }
   let(:input_url) { "https://youtu.be/publishRefresh123?t=42" }
@@ -49,7 +49,7 @@ describe "Video Hub publish metadata refresh scheduling" do
     video = VideoHub::PublishVideo.publish(user: user, url: input_url)
 
     expect(video.metadata_refreshed_at).to be_present
-    expect(video.metadata_refreshed_at).to eq(video.published_at)
+    expect(video.metadata_refreshed_at).to eq_time(video.published_at)
     expect(captured).to eq(
       [
         VideoHub::RefreshVideoMetadata::STALE_AFTER,
