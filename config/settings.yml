@@ -19,3 +19,15 @@ video_hub:
   video_hub_instagram_enabled:
     client: true
     default: false
+  video_hub_ranking_qualified_rate_weight:
+    default: 60
+    min: 0
+    max: 100
+  video_hub_ranking_qualified_volume_weight:
+    default: 25
+    min: 0
+    max: 100
+  video_hub_ranking_freshness_weight:
+    default: 15
+    min: 0
+    max: 100
