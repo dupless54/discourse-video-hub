@@ -20,6 +20,30 @@ describe VideoHub::RankingContext do
     expect(context).to be_frozen
   end
 
+  it "derives the completed metric day before normalizing the snapshot to UTC" do
+    Time.use_zone("Europe/Istanbul") do
+      local_now = Time.zone.parse("2026-08-30 00:30:00")
+      context = described_class.capture(now: local_now)
+
+      expect(context.snapshot_at).to eq_time(Time.utc(2026, 8, 29, 21, 30))
+      expect(context.metric_as_of).to eq(Date.new(2026, 8, 29))
+    end
+  end
+
+  it "restores an explicit metric cutoff and weight snapshot" do
+    restored =
+      described_class.restore(
+        snapshot_at: now.utc,
+        metric_as_of: Date.new(2026, 8, 28),
+        weights: { qualified_rate: 60, qualified_volume: 25, freshness: 15 },
+      )
+
+    expect(restored.snapshot_at).to eq_time(now.utc)
+    expect(restored.metric_as_of).to eq(Date.new(2026, 8, 28))
+    expect(restored.weights).to eq(qualified_rate: 60, qualified_volume: 25, freshness: 15)
+    expect(restored).to be_frozen
+  end
+
   it "reads only completed daily aggregates and excludes the mutable current day" do
     video = create_published_video
     create_metric(video, Date.new(2026, 8, 29), impressions: 10, qualified_views: 5)
@@ -47,10 +71,30 @@ describe VideoHub::RankingContext do
     expect(result.score_basis_points).to eq(10_000)
   end
 
-  it "fails closed when the capture time cannot be normalized" do
+  it "fails closed when capture or restore inputs cannot be normalized" do
     expect { described_class.capture(now: Object.new) }.to raise_error(
       described_class::ContextError,
     ) { |error| expect(error.code).to eq(:invalid_time) }
+
+    expect {
+      described_class.restore(
+        snapshot_at: now,
+        metric_as_of: "not-a-date",
+        weights: { qualified_rate: 60, qualified_volume: 25, freshness: 15 },
+      )
+    }.to raise_error(described_class::ContextError) { |error|
+      expect(error.code).to eq(:invalid_metric_day)
+    }
+
+    expect {
+      described_class.restore(
+        snapshot_at: now,
+        metric_as_of: Date.new(2026, 8, 29),
+        weights: { qualified_rate: 100 },
+      )
+    }.to raise_error(described_class::ContextError) { |error|
+      expect(error.code).to eq(:invalid_weights)
+    }
   end
 
   def build_signal(qualified_views:, qualified_rate_basis_points:)
