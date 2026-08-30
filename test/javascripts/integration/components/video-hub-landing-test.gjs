@@ -1,11 +1,5 @@
 import Service from "@ember/service";
-import {
-  click,
-  render,
-  settled,
-  triggerKeyEvent,
-  waitUntil,
-} from "@ember/test-helpers";
+import { click, render, settled, triggerKeyEvent } from "@ember/test-helpers";
 import { module, test } from "qunit";
 import { setupRenderingTest } from "discourse/tests/helpers/component-test";
 import pretender, { response } from "discourse/tests/helpers/create-pretender";
@@ -18,10 +12,6 @@ class DesktopCapabilities extends Service {
 
 class MobileCapabilities extends Service {
   viewport = { sm: false };
-}
-
-class AuthenticatedCurrentUser extends Service {
-  id = 999;
 }
 
 module("Integration | Component | VideoHubLanding", function (hooks) {
@@ -197,68 +187,6 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
     assert.dom(".video-hub-player__iframe").exists({ count: 1 });
   });
 
-  test("records mobile metrics only for an authenticated continuously visible active video", async function (assert) {
-    this.owner.unregister("service:capabilities");
-    this.owner.register("service:capabilities", MobileCapabilities);
-    this.owner.register("service:current-user", AuthenticatedCurrentUser);
-    const observations = stubIntersectionObserver();
-    const requestBodies = [];
-    const model = {
-      videos: [
-        {
-          id: 30,
-          provider: "youtube",
-          external_id: "dQw4w9WgXcQ",
-          kind: "shorts",
-          title: "First short",
-          thumbnail_url: null,
-          author_name: "First creator",
-          watch_path: "/videos/30/first-short",
-        },
-      ],
-      providers: ["youtube"],
-      pagination: { has_more: false, next_cursor: null },
-    };
-
-    pretender.post("/videos/30/metrics", (request) => {
-      requestBodies.push(request.requestBody ?? "");
-      return response({ recorded: true });
-    });
-
-    await render(<template><VideoHubLanding @model={{model}} /></template>);
-    assert.deepEqual(
-      requestBodies,
-      [],
-      "does not count the constructor-selected item"
-    );
-
-    const visible = observations[0].trigger({ intersectionRatio: 0.8 });
-    const hidden = observations[0].trigger({
-      isIntersecting: false,
-      intersectionRatio: 0,
-    });
-    await Promise.all([visible, hidden]);
-    await waitUntil(() => requestBodies.length === 1);
-
-    assert.true(
-      requestBodies[0].includes("impression"),
-      "leaving early records only the impression"
-    );
-
-    await observations[0].trigger({ intersectionRatio: 0.8 });
-    await waitUntil(() => requestBodies.length === 2);
-
-    assert.true(
-      requestBodies[1].includes("qualified_view"),
-      "a continuous visible dwell records qualification"
-    );
-    assert.strictEqual(
-      requestBodies.length,
-      2,
-      "qualification does not send a second impression"
-    );
-  });
-
   test("does not send mobile metrics for an anonymous viewer", async function (assert) {
     this.owner.unregister("service:capabilities");
     this.owner.register("service:capabilities", MobileCapabilities);
@@ -395,5 +323,71 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
     assert
       .dom(".video-hub-page__pagination .btn")
       .exists("keeps the same cursor available for retry");
+  });
+});
+
+module("Integration | Component | VideoHubLanding | authenticated metrics", function (hooks) {
+  setupRenderingTest(hooks);
+
+  hooks.beforeEach(function () {
+    this.owner.register("service:capabilities", MobileCapabilities);
+  });
+
+  test("records metrics only for a continuously visible active video", async function (assert) {
+    const observations = stubIntersectionObserver();
+    const requestBodies = [];
+    const model = {
+      videos: [
+        {
+          id: 30,
+          provider: "youtube",
+          external_id: "dQw4w9WgXcQ",
+          kind: "shorts",
+          title: "First short",
+          thumbnail_url: null,
+          author_name: "First creator",
+          watch_path: "/videos/30/first-short",
+        },
+      ],
+      providers: ["youtube"],
+      pagination: { has_more: false, next_cursor: null },
+    };
+
+    pretender.post("/videos/30/metrics", (request) => {
+      requestBodies.push(request.requestBody ?? "");
+      return response({ recorded: true });
+    });
+
+    await render(<template><VideoHubLanding @model={{model}} /></template>);
+    assert.deepEqual(
+      requestBodies,
+      [],
+      "does not count the constructor-selected item"
+    );
+
+    const visible = observations[0].trigger({ intersectionRatio: 0.8 });
+    const hidden = observations[0].trigger({
+      isIntersecting: false,
+      intersectionRatio: 0,
+    });
+    await Promise.all([visible, hidden]);
+
+    assert.strictEqual(requestBodies.length, 1, "records the first impression");
+    assert.true(
+      requestBodies[0].includes("impression"),
+      "leaving early records only the impression"
+    );
+
+    await observations[0].trigger({ intersectionRatio: 0.8 });
+
+    assert.strictEqual(
+      requestBodies.length,
+      2,
+      "qualification does not send a second impression"
+    );
+    assert.true(
+      requestBodies[1].includes("qualified_view"),
+      "a continuous visible dwell records qualification"
+    );
   });
 });
