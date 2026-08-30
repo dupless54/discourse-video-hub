@@ -11,3 +11,7 @@ tr_TR:
         youtube: "YouTube"
         tiktok: "TikTok"
         instagram: "Instagram"
+      watch:
+        back_to_videos: "Videolara dön"
+        preview_label: "Video ön izlemesi"
+        open_provider: "%{provider} sitesinde izle"
