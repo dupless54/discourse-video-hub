@@ -12,7 +12,7 @@ module VideoHub
     ].freeze
 
     before_action :ensure_video_hub_enabled
-    before_action :ensure_logged_in, only: :create
+    before_action :ensure_logged_in, only: %i[create record_metric]
     skip_before_action :check_xhr, only: %i[shell watch]
 
     def shell
@@ -79,6 +79,21 @@ module VideoHub
       render json: { video: video_payload(video) }, status: :created
     rescue VideoHub::PublishVideo::PublishError => error
       render json: { error: { code: error.code.to_s } }, status: publish_error_status(error.code)
+    end
+
+    def record_metric
+      params.require(:event)
+
+      result =
+        VideoHub::RecordMetric.record(
+          user: current_user,
+          video_id: params[:id],
+          event: params[:event],
+        )
+
+      render json: { recorded: result == :recorded }
+    rescue VideoHub::RecordMetric::MetricError => error
+      render json: { error: { code: error.code.to_s } }, status: :unprocessable_entity
     end
 
     private
