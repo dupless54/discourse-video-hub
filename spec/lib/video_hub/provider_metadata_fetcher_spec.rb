@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 describe VideoHub::ProviderMetadataFetcher do
+  let(:cache) { ActiveSupport::Cache::MemoryStore.new }
+
+  before { Discourse.stubs(:cache).returns(cache) }
+
   describe ".fetch" do
     it "resolves and dispatches YouTube metadata using only the canonical URL" do
       input = "https://youtu.be/dQw4w9WgXcQ?t=42"
@@ -39,6 +43,57 @@ describe VideoHub::ProviderMetadataFetcher do
       VideoHub::Providers::Tiktok.expects(:fetch).never
 
       expect(described_class.fetch(input)).to equal(metadata)
+    end
+
+    it "reuses bounded cached metadata for the same resolved provider identity" do
+      input = "https://www.youtube.com/watch?v=cacheSuccess123"
+      resolved = resolved_result("youtube", "cacheSuccess123", input)
+      metadata = complete_metadata(resolved, title: "Cached title")
+
+      VideoHub::ProviderUrlResolver.expects(:resolve).with(input).twice.returns(resolved)
+      VideoHub::Providers::Youtube.expects(:fetch).with(input).once.returns(metadata)
+
+      expect(described_class.fetch(input)).to equal(metadata)
+      expect(described_class.fetch(input)).to eq(metadata)
+    end
+
+    it "negative-caches stable adapter failures after canonical resolution" do
+      input = "https://www.youtube.com/watch?v=cacheFailure123"
+      resolved = resolved_result("youtube", "cacheFailure123", input)
+
+      VideoHub::ProviderUrlResolver.expects(:resolve).with(input).twice.returns(resolved)
+      VideoHub::Providers::Youtube
+        .expects(:fetch)
+        .with(input)
+        .once
+        .raises(VideoHub::Providers::Youtube::MetadataError.new(:network_error))
+
+      2.times { expect_metadata_error(input, :network_error) }
+    end
+
+    it "does not negative-cache resolver failures without a canonical provider identity" do
+      input = "https://vm.tiktok.com/ZMcachefailure/"
+      VideoHub::ProviderUrlResolver
+        .expects(:resolve)
+        .with(input)
+        .twice
+        .raises(VideoHub::ProviderUrlResolver::ResolveError.new(:network_error))
+
+      2.times { expect_metadata_error(input, :network_error) }
+    end
+
+    it "does not cache unsafe adapter error codes" do
+      input = "https://www.youtube.com/watch?v=unsafeError123"
+      resolved = resolved_result("youtube", "unsafeError123", input)
+
+      VideoHub::ProviderUrlResolver.expects(:resolve).with(input).twice.returns(resolved)
+      VideoHub::Providers::Youtube
+        .expects(:fetch)
+        .with(input)
+        .twice
+        .raises(VideoHub::Providers::Youtube::MetadataError.new(:"unsafe error"))
+
+      2.times { expect_metadata_error(input, :"unsafe error") }
     end
 
     it "fails closed when the resolver returns an unknown provider" do
@@ -105,6 +160,20 @@ describe VideoHub::ProviderMetadataFetcher do
       external_id: external_id,
       canonical_url: canonical_url,
     ).freeze
+  end
+
+  def complete_metadata(resolved, title:)
+    {
+      provider: resolved.provider,
+      external_id: resolved.external_id,
+      canonical_url: resolved.canonical_url,
+      kind: "landscape",
+      title: title,
+      description: nil,
+      thumbnail_url: nil,
+      duration_seconds: nil,
+      author_name: "Creator",
+    }.freeze
   end
 
   def expect_metadata_error(input, code)
