@@ -2,10 +2,7 @@
 
 module VideoHub
   class RecordMetric
-    EVENT_COLUMNS = {
-      "impression" => :impressions,
-      "qualified_view" => :qualified_views,
-    }.freeze
+    EVENT_COLUMNS = { "impression" => :impressions, "qualified_view" => :qualified_views }.freeze
     EVENT_MAX_LENGTH = 32
     DEDUPE_TTL = 2.days.to_i
     QUALIFIED_AFTER = 3.seconds.to_i
