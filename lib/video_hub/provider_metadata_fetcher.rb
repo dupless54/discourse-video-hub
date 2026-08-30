@@ -95,11 +95,7 @@ module VideoHub
       cached = serialize_metadata(metadata, resolved)
       return unless cached
 
-      Discourse.cache.write(
-        cache_key(resolved, "success"),
-        cached,
-        expires_in: SUCCESS_CACHE_TTL,
-      )
+      Discourse.cache.write(cache_key(resolved, "success"), cached, expires_in: SUCCESS_CACHE_TTL)
     end
 
     def read_failure_cache(resolved)
@@ -115,11 +111,7 @@ module VideoHub
       cached = code.to_s
       return unless cached.match?(SAFE_ERROR_CODE)
 
-      Discourse.cache.write(
-        cache_key(resolved, "failure"),
-        cached,
-        expires_in: FAILURE_CACHE_TTL,
-      )
+      Discourse.cache.write(cache_key(resolved, "failure"), cached, expires_in: FAILURE_CACHE_TTL)
     end
 
     def serialize_metadata(metadata, resolved)
