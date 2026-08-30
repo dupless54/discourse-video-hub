@@ -79,6 +79,64 @@ describe VideoHub::ProfilesController do
     expect(response.status).to eq(404)
   end
 
+  it "serializes an owner-authorized complete layout snapshot including hidden records" do
+    section = create_section(visible: false)
+    video = create_video
+    item = create_item(section, video, visible: false)
+    sign_in(profile_user)
+
+    get "/videos/profile/#{profile_user.username}/layout.json"
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body).to eq(
+      {
+        "profile" => {
+          "username" => profile_user.username,
+          "sections" => [
+            {
+              "id" => section.id,
+              "section_type" => "shorts",
+              "title" => "Shorts",
+              "position" => 0,
+              "visible" => false,
+              "items" => [
+                {
+                  "id" => item.id,
+                  "video_id" => video.id,
+                  "position" => 0,
+                  "pinned" => true,
+                  "visible" => false,
+                  "video" => video_payload(video),
+                },
+              ],
+            },
+          ],
+        },
+      },
+    )
+  end
+
+  it "fails closed when the viewer cannot read the requested layout snapshot" do
+    section = create_section(visible: false)
+    video = create_video
+    create_item(section, video, visible: false)
+    sign_in(Fabricate(:user))
+
+    get "/videos/profile/#{profile_user.username}/layout.json"
+
+    expect(response.status).to eq(404)
+  end
+
+  it "returns not found before reading layout when Video Hub is disabled" do
+    SiteSetting.video_hub_enabled = false
+    sign_in(profile_user)
+    VideoHub::ProfileLayoutQuery.expects(:fetch).never
+
+    get "/videos/profile/#{profile_user.username}/layout.json"
+
+    expect(response.status).to eq(404)
+  end
+
   it "updates and serializes an owner-authorized existing layout" do
     section = create_section
     video = create_video
@@ -203,23 +261,23 @@ describe VideoHub::ProfilesController do
     ).freeze
   end
 
-  def create_section
+  def create_section(visible: true)
     VideoHub::ProfileSection.create!(
       user: profile_user,
       section_type: "shorts",
       title: "Shorts",
       position: 0,
-      visible: true,
+      visible: visible,
     )
   end
 
-  def create_item(section, video)
+  def create_item(section, video, visible: true)
     VideoHub::ProfileItem.create!(
       profile_section: section,
       video: video,
       position: 0,
       pinned: true,
-      visible: true,
+      visible: visible,
     )
   end
 
