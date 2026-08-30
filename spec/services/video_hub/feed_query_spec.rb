@@ -129,7 +129,7 @@ describe VideoHub::FeedQuery do
   end
 
   it "fails closed on malformed or legacy cursors" do
-    ["not-a-cursor", "ZmFrZS1sZWdhY3ktY3Vyc29y"].each do |cursor|
+    %w[not-a-cursor ZmFrZS1sZWdhY3ktY3Vyc29y].each do |cursor|
       expect { described_class.fetch(user: nil, cursor: cursor) }.to raise_error(
         described_class::FeedError,
       ) do |error|
