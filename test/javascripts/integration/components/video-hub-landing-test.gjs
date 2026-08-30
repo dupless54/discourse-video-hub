@@ -19,7 +19,7 @@ class AuthenticatedCurrentUser extends Service {
 }
 
 module("Integration | Component | VideoHubLanding", function (hooks) {
-  setupRenderingTest(hooks);
+  setupRenderingTest(hooks, { anonymous: true });
 
   hooks.beforeEach(function () {
     this.owner.register("service:capabilities", DesktopCapabilities);
@@ -222,9 +222,12 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
     await render(<template><VideoHubLanding @model={{model}} /></template>);
     assert.deepEqual(events, [], "does not count the constructor-selected item");
 
-    observations[0].trigger({ intersectionRatio: 0.8 });
-    observations[0].trigger({ isIntersecting: false, intersectionRatio: 0 });
-    await settled();
+    const visible = observations[0].trigger({ intersectionRatio: 0.8 });
+    const hidden = observations[0].trigger({
+      isIntersecting: false,
+      intersectionRatio: 0,
+    });
+    await Promise.all([visible, hidden]);
 
     assert.deepEqual(events, ["impression"], "leaving early cancels qualification");
 
