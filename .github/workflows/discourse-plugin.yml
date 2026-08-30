@@ -1,11 +1,20 @@
-name: Discourse Plugin
+name: Format Probe
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
 
 jobs:
-  ci:
-    uses: discourse/.github/.github/workflows/discourse-plugin.yml@v1
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.0 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Show canonical Prettier diff
+        run: |
+          pnpm prettier test/javascripts/integration/components/video-hub-landing-test.gjs --write
+          git diff -- test/javascripts/integration/components/video-hub-landing-test.gjs
