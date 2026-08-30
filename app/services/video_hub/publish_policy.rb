@@ -21,25 +21,67 @@ module VideoHub
       new(user: user, provider: provider).authorize!
     end
 
+    def self.authorize_base!(user:)
+      new(user: user, provider: nil).authorize_base!
+    end
+
+    def self.authorize_provider!(provider:)
+      new(user: nil, provider: provider).authorize_provider!
+    end
+
     def initialize(user:, provider:)
       @user = user
       @provider = provider
     end
 
     def authorize!
-      raise AuthorizationError.new(:video_hub_disabled) unless SiteSetting.video_hub_enabled
-      raise AuthorizationError.new(:login_required) unless user
+      ensure_video_hub_enabled!
+      ensure_logged_in!
+      ensure_provider_enabled!
+      ensure_trust_level!
+      authorized_category
+    end
 
+    def authorize_base!
+      ensure_video_hub_enabled!
+      ensure_logged_in!
+      ensure_trust_level!
+      authorized_category
+    end
+
+    def authorize_provider!
+      ensure_video_hub_enabled!
+      ensure_provider_enabled!
+      provider
+    end
+
+    private
+
+    attr_reader :user, :provider
+
+    def ensure_video_hub_enabled!
+      raise AuthorizationError.new(:video_hub_disabled) unless SiteSetting.video_hub_enabled
+    end
+
+    def ensure_logged_in!
+      raise AuthorizationError.new(:login_required) unless user
+    end
+
+    def ensure_provider_enabled!
       provider_setting = PROVIDER_SETTINGS[provider]
       raise AuthorizationError.new(:unsupported_provider) unless provider_setting
       unless SiteSetting.public_send(provider_setting)
         raise AuthorizationError.new(:provider_disabled)
       end
+    end
 
-      unless user.staff? || user.trust_level >= SiteSetting.video_hub_min_trust_level
-        raise AuthorizationError.new(:insufficient_trust)
-      end
+    def ensure_trust_level!
+      return if user.staff? || user.trust_level >= SiteSetting.video_hub_min_trust_level
 
+      raise AuthorizationError.new(:insufficient_trust)
+    end
+
+    def authorized_category
       category = configured_category
       raise AuthorizationError.new(:category_not_configured) unless category
 
@@ -50,10 +92,6 @@ module VideoHub
 
       category
     end
-
-    private
-
-    attr_reader :user, :provider
 
     def configured_category
       category_id = SiteSetting.video_hub_category.to_i
