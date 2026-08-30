@@ -43,29 +43,32 @@ describe VideoHub::RankingSignals do
   end
 
   it "deduplicates requested ids and rejects invalid or oversized batches" do
-    duplicate_results = described_class.fetch(video_ids: [first_video.id, first_video.id], as_of: as_of)
+    duplicate_results =
+      described_class.fetch(video_ids: [first_video.id, first_video.id], as_of: as_of)
     expect(duplicate_results.keys).to eq([first_video.id])
 
-    expect {
-      described_class.fetch(video_ids: [0], as_of: as_of)
-    }.to raise_error(described_class::RankingError) { |error| expect(error.code).to eq(:invalid_video_ids) }
+    expect { described_class.fetch(video_ids: [0], as_of: as_of) }.to raise_error(
+      described_class::RankingError,
+    ) { |error| expect(error.code).to eq(:invalid_video_ids) }
 
     expect {
       described_class.fetch(
         video_ids: Array.new(described_class::MAX_BATCH_SIZE + 1) { |index| index + 1 },
         as_of: as_of,
       )
-    }.to raise_error(described_class::RankingError) { |error| expect(error.code).to eq(:too_many_videos) }
+    }.to raise_error(described_class::RankingError) { |error|
+      expect(error.code).to eq(:too_many_videos)
+    }
   end
 
   it "fails closed on malformed ids or ranking dates" do
-    expect {
-      described_class.fetch(video_ids: ["not-an-id"], as_of: as_of)
-    }.to raise_error(described_class::RankingError) { |error| expect(error.code).to eq(:invalid_input) }
+    expect { described_class.fetch(video_ids: ["not-an-id"], as_of: as_of) }.to raise_error(
+      described_class::RankingError,
+    ) { |error| expect(error.code).to eq(:invalid_input) }
 
-    expect {
-      described_class.fetch(video_ids: [first_video.id], as_of: Object.new)
-    }.to raise_error(described_class::RankingError) { |error| expect(error.code).to eq(:invalid_input) }
+    expect { described_class.fetch(video_ids: [first_video.id], as_of: Object.new) }.to raise_error(
+      described_class::RankingError,
+    ) { |error| expect(error.code).to eq(:invalid_input) }
   end
 
   def create_metric(video, day, impressions:, qualified_views:)
