@@ -50,3 +50,15 @@ tr_TR:
         reply_placeholder: "Bir yanıt yaz"
         reply_submit: "Yanıtı gönder"
         reply_cancel: "İptal"
+      profile:
+        nav: "Videolar"
+        title: "Videolar"
+        description: "@%{username} profilinde gösterilen herkese açık videolar."
+        shorts: "Shorts"
+        landscape: "Videolar"
+        video_count:
+          one: "%{count} video"
+          other: "%{count} video"
+        pinned: "Sabitlenmiş"
+        section_empty: "Bu bölümde görünür video yok."
+        empty: "Bu profilde henüz herkese açık video yok."
