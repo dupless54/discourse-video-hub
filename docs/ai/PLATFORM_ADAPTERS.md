@@ -14,9 +14,5 @@ Rules:
 - Do not hard-code unsupported model IDs.
 - If native switching is unavailable, preserve tier classification and apply it at orchestrator/session level.
 - If native effort control is unavailable, preserve behavioral limits: narrow reads, bounded turns, targeted checks, explicit escalation.
-
-## Delivery roles
-- Claude: builder; returns `READY` with exact paths/evidence, never self-approval.
-- Codex: independent diff-first reviewer; returns `APPROVE` or `REQUEST_CHANGES`.
-- Gemini: mandatory final exact-head verifier; returns `APPROVE`, `REJECT` or `NEEDS_HUMAN`.
-- Any unresolved disagreement requires human arbitration. None of these roles grants merge authority.
+- Claude, Codex, Gemini, ChatGPT, or other models may be used according to capability/effort needs; no model-specific READY/APPROVE/verification role is required.
+- Merge eligibility comes only from the canonical CI-only gate in root `AGENTS.md`: latest exact-head required Discourse CI GREEN, scope valid, and no unresolved high-risk blocker.
