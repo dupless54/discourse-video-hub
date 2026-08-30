@@ -1,15 +1,11 @@
-name: Format Probe
+name: Discourse Plugin
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
 
 jobs:
-  format:
-    runs-on: ubuntu-latest
-    container: discourse/discourse_test:slim
-    steps:
-      - uses: actions/checkout@v6
-      - name: Install Ruby dependencies
-        run: bundle install
-      - name: Show canonical Syntax Tree output
-        run: bundle exec stree format spec/services/video_hub/feed_query_spec.rb
+  ci:
+    uses: discourse/.github/.github/workflows/discourse-plugin.yml@v1
