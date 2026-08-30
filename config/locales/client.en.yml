@@ -15,4 +15,6 @@ en:
       watch:
         back_to_videos: "Back to videos"
         preview_label: "Video preview"
+        play_video: "Play video"
+        player_title: "%{provider} video player"
         open_provider: "Watch on %{provider}"

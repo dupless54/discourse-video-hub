@@ -15,4 +15,6 @@ tr_TR:
       watch:
         back_to_videos: "Videolara dön"
         preview_label: "Video ön izlemesi"
+        play_video: "Videoyu oynat"
+        player_title: "%{provider} video oynatıcısı"
         open_provider: "%{provider} sitesinde izle"
