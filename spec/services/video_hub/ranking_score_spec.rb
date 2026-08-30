@@ -77,21 +77,31 @@ describe VideoHub::RankingScore do
     unsupported = build_signal(version: 2)
     invalid = build_signal(qualified_rate_basis_points: 10_001)
 
-    expect { described_class.score(signal: unsupported, published_at: as_of, as_of: as_of) }.to raise_error(
-      described_class::RankingError,
-    ) { |error| expect(error.code).to eq(:unsupported_signal_version) }
+    expect {
+      described_class.score(signal: unsupported, published_at: as_of, as_of: as_of)
+    }.to raise_error(described_class::RankingError) { |error|
+      expect(error.code).to eq(:unsupported_signal_version)
+    }
 
-    expect { described_class.score(signal: invalid, published_at: as_of, as_of: as_of) }.to raise_error(
-      described_class::RankingError,
-    ) { |error| expect(error.code).to eq(:invalid_signal) }
+    expect {
+      described_class.score(signal: invalid, published_at: as_of, as_of: as_of)
+    }.to raise_error(described_class::RankingError) { |error|
+      expect(error.code).to eq(:invalid_signal)
+    }
 
-    expect { described_class.score(signal: Object.new, published_at: as_of, as_of: as_of) }.to raise_error(
-      described_class::RankingError,
-    ) { |error| expect(error.code).to eq(:invalid_input) }
+    expect {
+      described_class.score(signal: Object.new, published_at: as_of, as_of: as_of)
+    }.to raise_error(described_class::RankingError) { |error|
+      expect(error.code).to eq(:invalid_input)
+    }
   end
 
   def score_for(signal, published_at:)
-    described_class.score(signal: signal, published_at: published_at, as_of: as_of).score_basis_points
+    described_class.score(
+      signal: signal,
+      published_at: published_at,
+      as_of: as_of,
+    ).score_basis_points
   end
 
   def build_signal(version: 1, qualified_views: 5_000, qualified_rate_basis_points: 5_000)
