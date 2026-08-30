@@ -54,6 +54,11 @@ module VideoHub
       canonical_url(seo.canonical_url)
 
       render :watch
+    rescue Discourse::NotFound
+      raise unless VideoHub::WatchQuery.gone?(user: current_user, id: params[:id])
+
+      response.headers["X-Robots-Tag"] = "noindex"
+      raise Discourse::NotFound.new(nil, status: 410)
     end
 
     def create
