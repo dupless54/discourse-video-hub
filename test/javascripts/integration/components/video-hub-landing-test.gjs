@@ -1,5 +1,5 @@
 import Service from "@ember/service";
-import { click, render, triggerKeyEvent } from "@ember/test-helpers";
+import { click, render, settled, triggerKeyEvent } from "@ember/test-helpers";
 import { module, test } from "qunit";
 import { setupRenderingTest } from "discourse/tests/helpers/component-test";
 import pretender, { response } from "discourse/tests/helpers/create-pretender";
@@ -12,6 +12,10 @@ class DesktopCapabilities extends Service {
 
 class MobileCapabilities extends Service {
   viewport = { sm: false };
+}
+
+class AuthenticatedCurrentUser extends Service {
+  id = 999;
 }
 
 module("Integration | Component | VideoHubLanding", function (hooks) {
@@ -185,6 +189,87 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
       .dom('[data-video-hub-feed-index="0"]')
       .hasAttribute("data-active", "true", "keyboard fallback moves upward");
     assert.dom(".video-hub-player__iframe").exists({ count: 1 });
+  });
+
+  test("records mobile metrics only for an authenticated continuously visible active video", async function (assert) {
+    this.owner.unregister("service:capabilities");
+    this.owner.register("service:capabilities", MobileCapabilities);
+    this.owner.register("service:current-user", AuthenticatedCurrentUser);
+    const observations = stubIntersectionObserver();
+    const events = [];
+    const model = {
+      videos: [
+        {
+          id: 30,
+          provider: "youtube",
+          external_id: "dQw4w9WgXcQ",
+          kind: "shorts",
+          title: "First short",
+          thumbnail_url: null,
+          author_name: "First creator",
+          watch_path: "/videos/30/first-short",
+        },
+      ],
+      providers: ["youtube"],
+      pagination: { has_more: false, next_cursor: null },
+    };
+
+    pretender.post("/videos/30/metrics", (request) => {
+      events.push(new URLSearchParams(request.requestBody).get("event"));
+      return response({ recorded: true });
+    });
+
+    await render(<template><VideoHubLanding @model={{model}} /></template>);
+    assert.deepEqual(events, [], "does not count the constructor-selected item");
+
+    observations[0].trigger({ intersectionRatio: 0.8 });
+    observations[0].trigger({ isIntersecting: false, intersectionRatio: 0 });
+    await settled();
+
+    assert.deepEqual(events, ["impression"], "leaving early cancels qualification");
+
+    await observations[0].trigger({ intersectionRatio: 0.8 });
+    await settled();
+
+    assert.deepEqual(
+      events,
+      ["impression", "qualified_view"],
+      "a continuous visible dwell records qualification without a second impression"
+    );
+  });
+
+  test("does not send mobile metrics for an anonymous viewer", async function (assert) {
+    this.owner.unregister("service:capabilities");
+    this.owner.register("service:capabilities", MobileCapabilities);
+    const observations = stubIntersectionObserver();
+    let requestCount = 0;
+    const model = {
+      videos: [
+        {
+          id: 30,
+          provider: "youtube",
+          external_id: "dQw4w9WgXcQ",
+          kind: "shorts",
+          title: "First short",
+          thumbnail_url: null,
+          author_name: null,
+          watch_path: "/videos/30/first-short",
+        },
+      ],
+      providers: ["youtube"],
+      pagination: { has_more: false, next_cursor: null },
+    };
+
+    pretender.post("/videos/30/metrics", () => {
+      requestCount += 1;
+      return response({ recorded: true });
+    });
+
+    await render(<template><VideoHubLanding @model={{model}} /></template>);
+    await observations[0].trigger({ intersectionRatio: 0.8 });
+    await settled();
+
+    assert.strictEqual(requestCount, 0);
   });
 
   test("loads the next server cursor page without duplicating existing cards", async function (assert) {
