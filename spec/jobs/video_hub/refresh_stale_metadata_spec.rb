@@ -10,9 +10,10 @@ describe Jobs::VideoHub::RefreshStaleMetadata do
 
   it "does nothing while Video Hub is disabled" do
     SiteSetting.video_hub_enabled = false
-    Jobs.expects(:enqueue).never
 
-    expect(described_class.new.execute({})).to be_nil
+    expect_not_enqueued_with(job: Jobs::VideoHub::RefreshVideoMetadata) do
+      described_class.new.execute({})
+    end
   end
 
   it "enqueues only stale published videos for enabled providers in backfill-first order" do
@@ -25,31 +26,20 @@ describe Jobs::VideoHub::RefreshStaleMetadata do
 
     expect(described_class.new.candidate_ids).to eq([backfill.id, old_stale.id, newer_stale.id])
 
-    sequence = sequence("metadata refresh enqueue")
-    Jobs
-      .expects(:enqueue)
-      .with(Jobs::VideoHub::RefreshVideoMetadata, video_id: backfill.id)
-      .in_sequence(sequence)
-    Jobs
-      .expects(:enqueue)
-      .with(Jobs::VideoHub::RefreshVideoMetadata, video_id: old_stale.id)
-      .in_sequence(sequence)
-    Jobs
-      .expects(:enqueue)
-      .with(Jobs::VideoHub::RefreshVideoMetadata, video_id: newer_stale.id)
-      .in_sequence(sequence)
-
+    original_jobs = Jobs::VideoHub::RefreshVideoMetadata.jobs.dup
     described_class.new.execute({})
+    queued_jobs = Jobs::VideoHub::RefreshVideoMetadata.jobs - original_jobs
+    queued_ids = queued_jobs.map { |job| job.fetch("args").first.fetch("video_id") }
+
+    expect(queued_ids).to eq([backfill.id, old_stale.id, newer_stale.id])
   end
 
   it "returns no candidates when every provider is disabled" do
     SiteSetting.video_hub_youtube_enabled = false
-    Jobs.expects(:enqueue).never
-
     job = described_class.new
 
     expect(job.candidate_ids).to eq([])
-    expect(job.execute({})).to be_nil
+    expect_not_enqueued_with(job: Jobs::VideoHub::RefreshVideoMetadata) { job.execute({}) }
   end
 
   def create_video(provider: "youtube", metadata_refreshed_at:, status: "published")
