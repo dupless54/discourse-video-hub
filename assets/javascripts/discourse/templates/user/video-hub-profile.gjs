@@ -1,3 +1,4 @@
+import { LinkTo } from "@ember/routing";
 import bodyClass from "discourse/helpers/body-class";
 import { i18n } from "discourse-i18n";
 
@@ -6,11 +7,22 @@ export default <template>
 
   <div class="user-content video-hub-profile" id="user-content">
     <header class="video-hub-profile__header">
-      <h1>{{i18n "video_hub.profile.title"}}</h1>
-      <p>{{i18n
-          "video_hub.profile.description"
-          username=@controller.model.profile.username
-        }}</p>
+      <div>
+        <h1>{{i18n "video_hub.profile.title"}}</h1>
+        <p>{{i18n
+            "video_hub.profile.description"
+            username=@controller.model.profile.username
+          }}</p>
+      </div>
+
+      {{#if @controller.model.can_edit}}
+        <LinkTo
+          @route="user.video-hub-profile-layout"
+          class="btn btn-default video-hub-profile__manage"
+        >
+          {{i18n "video_hub.profile.manage"}}
+        </LinkTo>
+      {{/if}}
     </header>
 
     {{#if @controller.model.profile.sections.length}}

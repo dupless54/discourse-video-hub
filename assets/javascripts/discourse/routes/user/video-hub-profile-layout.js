@@ -2,19 +2,16 @@ import Route from "@ember/routing/route";
 import { ajax } from "discourse/lib/ajax";
 import { i18n } from "discourse-i18n";
 
-export default class UserVideoHubProfileRoute extends Route {
-  templateName = "user/video-hub-profile";
+export default class UserVideoHubProfileLayoutRoute extends Route {
+  templateName = "user/video-hub-profile-layout";
 
   async model() {
     const user = this.modelFor("user");
     const response = await ajax(
-      `/videos/profile/${encodeURIComponent(user.username)}.json`
+      `/videos/profile/${encodeURIComponent(user.username)}/layout.json`
     );
 
-    return this.withPresentationLabels({
-      ...response,
-      can_edit: user.can_edit,
-    });
+    return this.withPresentationLabels(response);
   }
 
   withPresentationLabels(response) {
@@ -28,9 +25,7 @@ export default class UserVideoHubProfileRoute extends Route {
           ...section,
           display_title:
             section.title || this.sectionLabel(section.section_type),
-          item_count_label: i18n("video_hub.profile.video_count", {
-            count: section.items?.length ?? 0,
-          }),
+          section_type_label: this.sectionLabel(section.section_type),
           items: (section.items ?? []).map((item) => ({
             ...item,
             video: {
