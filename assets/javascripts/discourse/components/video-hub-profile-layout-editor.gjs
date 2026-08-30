@@ -14,10 +14,75 @@ export default class VideoHubProfileLayoutEditor extends Component {
   @service toasts;
 
   @tracked isSaving = false;
+  @tracked isMembershipUpdating = false;
+  @tracked isLoadingCatalog = false;
+  @tracked formApi = null;
+  @tracked additionalCatalogVideos = [];
+  @tracked catalogPaginationOverride = null;
 
   @cached
   get formData() {
     return { sections: this.copySections(this.args.profile.sections ?? []) };
+  }
+
+  get catalogPagination() {
+    return (
+      this.catalogPaginationOverride ??
+      this.args.profile.catalog?.pagination ?? {
+        has_more: false,
+        next_cursor: null,
+      }
+    );
+  }
+
+  get catalogVideos() {
+    const videos = [
+      ...(this.args.profile.catalog?.videos ?? []),
+      ...this.additionalCatalogVideos,
+    ];
+    const seen = new Set();
+
+    return videos.filter((video) => {
+      if (!video || seen.has(video.id)) {
+        return false;
+      }
+
+      seen.add(video.id);
+      return true;
+    });
+  }
+
+  get membershipVideoIds() {
+    return new Set(
+      (this.args.profile.sections ?? []).flatMap((section) =>
+        (section.items ?? []).map((item) => item.video_id)
+      )
+    );
+  }
+
+  get availableCatalogVideos() {
+    return this.catalogVideos.filter(
+      (video) => !this.membershipVideoIds.has(video.id)
+    );
+  }
+
+  get hasUnsavedLayoutChanges() {
+    return this.formApi?.isDirty === true;
+  }
+
+  get membershipLocked() {
+    return (
+      this.isSaving || this.isMembershipUpdating || this.hasUnsavedLayoutChanges
+    );
+  }
+
+  get isFormBusy() {
+    return this.isSaving || this.isMembershipUpdating;
+  }
+
+  @action
+  registerFormApi(api) {
+    this.formApi = api;
   }
 
   @action
@@ -62,6 +127,100 @@ export default class VideoHubProfileLayoutEditor extends Component {
     } finally {
       this.isSaving = false;
     }
+  }
+
+  @action
+  async addVideo(video) {
+    if (this.membershipLocked) {
+      return;
+    }
+
+    this.isMembershipUpdating = true;
+
+    try {
+      await ajax(
+        `/videos/profile/${encodeURIComponent(this.args.profile.username)}/layout/videos/${video.id}.json`,
+        { type: "PUT" }
+      );
+
+      this.toasts.success({
+        data: { message: i18n("video_hub.profile.editor.video_added") },
+        duration: "short",
+      });
+
+      await this.refreshMembershipLayout();
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.isMembershipUpdating = false;
+    }
+  }
+
+  @action
+  async removeVideo(videoId) {
+    if (this.membershipLocked) {
+      return;
+    }
+
+    this.isMembershipUpdating = true;
+
+    try {
+      await ajax(
+        `/videos/profile/${encodeURIComponent(this.args.profile.username)}/layout/videos/${videoId}.json`,
+        { type: "DELETE" }
+      );
+
+      this.toasts.success({
+        data: { message: i18n("video_hub.profile.editor.video_removed") },
+        duration: "short",
+      });
+
+      await this.refreshMembershipLayout();
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.isMembershipUpdating = false;
+    }
+  }
+
+  @action
+  async loadMoreCatalog() {
+    const cursor = this.catalogPagination.next_cursor;
+
+    if (!cursor || this.isLoadingCatalog) {
+      return;
+    }
+
+    this.isLoadingCatalog = true;
+
+    try {
+      const response = await ajax(
+        `/videos.json?limit=20&cursor=${encodeURIComponent(cursor)}`
+      );
+      const knownIds = new Set(this.catalogVideos.map((video) => video.id));
+      const nextVideos = (response?.videos ?? [])
+        .filter((video) => !knownIds.has(video.id))
+        .map((video) => this.withProviderLabel(video));
+
+      this.additionalCatalogVideos = [
+        ...this.additionalCatalogVideos,
+        ...nextVideos,
+      ];
+      this.catalogPaginationOverride = response?.pagination ?? {
+        has_more: false,
+        next_cursor: null,
+      };
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.isLoadingCatalog = false;
+    }
+  }
+
+  async refreshMembershipLayout() {
+    this.additionalCatalogVideos = [];
+    this.catalogPaginationOverride = null;
+    await this.router.refresh();
   }
 
   @action
@@ -212,14 +371,121 @@ export default class VideoHubProfileLayoutEditor extends Component {
     }));
   }
 
+  withProviderLabel(video) {
+    return {
+      ...video,
+      provider_label: this.providerLabel(video?.provider),
+    };
+  }
+
+  providerLabel(provider) {
+    switch (provider) {
+      case "youtube":
+        return i18n("video_hub.providers.youtube");
+      case "tiktok":
+        return i18n("video_hub.providers.tiktok");
+      case "instagram":
+        return i18n("video_hub.providers.instagram");
+      default:
+        return provider ?? "";
+    }
+  }
+
   <template>
     <Form
       @data={{this.formData}}
       @onSubmit={{this.save}}
       @onDirtyCheck={{this.onDirtyCheck}}
+      @onRegisterApi={{this.registerFormApi}}
       class="video-hub-profile-editor"
       as |form data|
     >
+      <section
+        class="video-hub-profile-editor__catalog"
+        aria-labelledby="video-hub-profile-editor-catalog-title"
+      >
+        <header class="video-hub-profile-editor__catalog-heading">
+          <div>
+            <p class="video-hub-profile-editor__eyebrow">
+              {{i18n "video_hub.profile.editor.catalog_eyebrow"}}
+            </p>
+            <h2 id="video-hub-profile-editor-catalog-title">
+              {{i18n "video_hub.profile.editor.catalog_title"}}
+            </h2>
+            <p>{{i18n "video_hub.profile.editor.catalog_description"}}</p>
+          </div>
+        </header>
+
+        {{#if this.args.profile.catalog.failed}}
+          <form.Alert @type="warning" @icon="triangle-exclamation">
+            {{i18n "video_hub.profile.editor.catalog_failed"}}
+          </form.Alert>
+        {{else if this.availableCatalogVideos.length}}
+          <div class="video-hub-profile-editor__catalog-grid">
+            {{#each this.availableCatalogVideos as |video|}}
+              <article
+                class="video-hub-profile-editor__catalog-item"
+                data-video-id={{video.id}}
+              >
+                <div
+                  class="video-hub-profile-editor__thumbnail"
+                  data-kind={{video.kind}}
+                >
+                  {{#if video.thumbnail_url}}
+                    <img
+                      src={{video.thumbnail_url}}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  {{else}}
+                    <span aria-hidden="true">{{video.provider_label}}</span>
+                  {{/if}}
+                </div>
+
+                <div class="video-hub-profile-editor__item-copy">
+                  <p>{{video.provider_label}}</p>
+                  <strong>{{video.title}}</strong>
+                  {{#if video.author_name}}
+                    <span>{{video.author_name}}</span>
+                  {{/if}}
+                </div>
+
+                <form.Button
+                  @icon="plus"
+                  @label="video_hub.profile.editor.add_video"
+                  @action={{fn this.addVideo video}}
+                  @disabled={{this.membershipLocked}}
+                  class="btn-small video-hub-profile-editor__add-video"
+                />
+              </article>
+            {{/each}}
+          </div>
+        {{else}}
+          <p class="video-hub-profile-editor__catalog-empty">
+            {{i18n "video_hub.profile.editor.catalog_empty"}}
+          </p>
+        {{/if}}
+
+        {{#if this.catalogPagination.has_more}}
+          <div class="video-hub-profile-editor__catalog-more">
+            <form.Button
+              @icon="chevron-down"
+              @label="video_hub.profile.editor.catalog_load_more"
+              @action={{this.loadMoreCatalog}}
+              @disabled={{this.isLoadingCatalog}}
+              class="btn-default video-hub-profile-editor__catalog-load-more"
+            />
+          </div>
+        {{/if}}
+
+        {{#if this.hasUnsavedLayoutChanges}}
+          <p class="video-hub-profile-editor__membership-lock-hint">
+            {{i18n "video_hub.profile.editor.membership_dirty_hint"}}
+          </p>
+        {{/if}}
+      </section>
+
       {{#if data.sections.length}}
         <form.Collection @name="sections" as |section sectionIndex sectionData|>
           <VideoHubLayoutDraggable
@@ -296,6 +562,7 @@ export default class VideoHubProfileLayoutEditor extends Component {
                   @onDrop={{fn this.dropItem form data sectionIndex itemIndex}}
                   class="video-hub-profile-editor__item"
                   data-item-id={{itemData.id}}
+                  data-video-id={{itemData.video_id}}
                 >
                   <div class="video-hub-profile-editor__item-preview">
                     <div
@@ -372,6 +639,14 @@ export default class VideoHubProfileLayoutEditor extends Component {
                         <field.Control />
                       </item.Field>
                     </div>
+
+                    <form.Button
+                      @icon="trash-can"
+                      @label="video_hub.profile.editor.remove_video"
+                      @action={{fn this.removeVideo itemData.video_id}}
+                      @disabled={{this.membershipLocked}}
+                      class="btn-small btn-danger video-hub-profile-editor__remove-video"
+                    />
                   </div>
                 </VideoHubLayoutDraggable>
               </section.Collection>
@@ -391,11 +666,12 @@ export default class VideoHubProfileLayoutEditor extends Component {
       <form.Actions class="video-hub-profile-editor__actions">
         <form.Submit
           @label="video_hub.profile.editor.save"
-          @disabled={{this.isSaving}}
+          @disabled={{this.isFormBusy}}
           class="video-hub-profile-editor__save"
         />
         <form.Reset
           @label="video_hub.profile.editor.reset"
+          @disabled={{this.isFormBusy}}
           class="video-hub-profile-editor__reset"
         />
       </form.Actions>
