@@ -13,11 +13,7 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
       pagination: { has_more: false, next_cursor: null },
     };
 
-    await render(
-      <template>
-        <VideoHubLanding @model={{model}} />
-      </template>
-    );
+    await render(<template><VideoHubLanding @model={{model}} /></template>);
 
     assert.dom(".video-hub-page").exists();
     assert.dom(".video-hub-page__empty").exists();
