@@ -92,6 +92,48 @@ describe VideoHub::VideosController do
     end
   end
 
+  describe "GET /videos/:id/:slug.json" do
+    it "loads the watch record for an anonymous viewer and returns the canonical core-derived path" do
+      video = create_published_video(Fabricate(:user))
+      VideoHub::WatchQuery
+        .expects(:fetch)
+        .with(user: nil, id: video.id.to_s)
+        .returns(VideoHub::WatchQuery::Result.new(video: video, slug: video.topic.slug))
+
+      get "/videos/#{video.id}/wrong-slug.json"
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body).to eq({ "video" => video_payload(video) })
+    end
+
+    it "preserves not-found semantics from the watch query" do
+      video = create_published_video(Fabricate(:user))
+      VideoHub::WatchQuery.expects(:fetch).raises(Discourse::NotFound)
+
+      get "/videos/#{video.id}/hidden.json"
+
+      expect(response.status).to eq(404)
+    end
+
+    it "does not invoke the watch query for a non-numeric route identifier" do
+      VideoHub::WatchQuery.expects(:fetch).never
+
+      get "/videos/not-an-id/video.json"
+
+      expect(response.status).to eq(404)
+    end
+
+    it "returns not found before querying when the plugin is disabled" do
+      video = create_published_video(Fabricate(:user))
+      SiteSetting.video_hub_enabled = false
+      VideoHub::WatchQuery.expects(:fetch).never
+
+      get "/videos/#{video.id}/#{video.topic.slug}.json"
+
+      expect(response.status).to eq(404)
+    end
+  end
+
   describe "POST /videos" do
     let(:user) { Fabricate(:user) }
     let(:input_url) { "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }
@@ -220,6 +262,7 @@ describe VideoHub::VideosController do
       "topic_id" => video.topic_id,
       "post_id" => video.post_id,
       "published_at" => video.published_at.iso8601,
+      "watch_path" => "/videos/#{video.id}/#{video.topic.slug}",
     }
   end
 

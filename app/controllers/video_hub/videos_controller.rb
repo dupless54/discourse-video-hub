@@ -34,6 +34,12 @@ module VideoHub
       render json: { error: { code: error.code.to_s } }, status: :bad_request
     end
 
+    def show
+      result = VideoHub::WatchQuery.fetch(user: current_user, id: params[:id])
+
+      render json: { video: video_payload(result.video, slug: result.slug) }
+    end
+
     def create
       params.require(:url)
 
@@ -63,7 +69,7 @@ module VideoHub
       providers
     end
 
-    def video_payload(video)
+    def video_payload(video, slug: video.topic.slug)
       {
         id: video.id,
         provider: video.provider,
@@ -77,6 +83,7 @@ module VideoHub
         topic_id: video.topic_id,
         post_id: video.post_id,
         published_at: video.published_at&.iso8601,
+        watch_path: "/videos/#{video.id}/#{slug}",
       }
     end
 
