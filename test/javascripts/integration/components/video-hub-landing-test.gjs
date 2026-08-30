@@ -16,7 +16,7 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
     await render(
       <template>
         <VideoHubLanding @model={{model}} />
-      </template>,
+      </template>
     );
 
     assert.dom(".video-hub-page").exists();
