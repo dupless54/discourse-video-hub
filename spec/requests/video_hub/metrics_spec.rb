@@ -57,9 +57,9 @@ describe VideoHub::VideosController do
 
     it "maps invalid metric events to a stable unprocessable response" do
       sign_in(user)
-      VideoHub::RecordMetric
-        .expects(:record)
-        .raises(VideoHub::RecordMetric::MetricError.new(:invalid_event))
+      VideoHub::RecordMetric.expects(:record).raises(
+        VideoHub::RecordMetric::MetricError.new(:invalid_event),
+      )
 
       post "/videos/42/metrics", params: { event: "completion" }
 
