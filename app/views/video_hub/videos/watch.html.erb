@@ -1,0 +1,28 @@
+<% content_for :title do %><%= @video_hub_watch_seo.document_title %><% end %>
+
+<% content_for :head do %>
+  <%= raw crawlable_meta_data(
+    url: @video_hub_watch_seo.canonical_url,
+    title: @video_hub_watch_seo.title,
+    description: @video_hub_watch_seo.description,
+    image: @video_hub_watch_seo.image_url,
+    published_time: @video_hub_watch_seo.published_at,
+  ) %>
+
+  <% if @video_hub_watch_seo.json_ld %>
+    <%= content_tag(
+      :script,
+      ERB::Util.json_escape(MultiJson.dump(@video_hub_watch_seo.json_ld)).html_safe,
+      type: "application/ld+json",
+    ) %>
+  <% end %>
+<% end %>
+
+<article class="video-hub-crawler">
+  <h1><%= @video_hub_watch_seo.title %></h1>
+  <p><%= @video_hub_watch_seo.description %></p>
+
+  <% if @video_hub_watch_seo.image_url %>
+    <img src="<%= @video_hub_watch_seo.image_url %>" alt="">
+  <% end %>
+</article>

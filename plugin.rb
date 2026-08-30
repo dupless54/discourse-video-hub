@@ -19,5 +19,17 @@ end
 require_relative "lib/video_hub/engine"
 
 after_initialize do
+  Discourse::Application.routes.prepend do
+    get "/videos/:id/:slug" => "video_hub/videos#watch",
+        :constraints => {
+          id: /\d+/,
+          slug: %r{[^./]+},
+          format: /html/,
+        },
+        :defaults => {
+          format: :html,
+        }
+  end
+
   Discourse::Application.routes.append { mount ::VideoHub::Engine, at: "/videos" }
 end
