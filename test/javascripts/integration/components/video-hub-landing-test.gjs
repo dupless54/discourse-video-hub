@@ -226,7 +226,11 @@ module("Integration | Component | VideoHubLanding", function (hooks) {
     });
 
     await render(<template><VideoHubLanding @model={{model}} /></template>);
-    assert.deepEqual(events, [], "does not count the constructor-selected item");
+    assert.deepEqual(
+      events,
+      [],
+      "does not count the constructor-selected item"
+    );
 
     const visible = observations[0].trigger({ intersectionRatio: 0.8 });
     const hidden = observations[0].trigger({
