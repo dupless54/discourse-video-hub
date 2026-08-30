@@ -13,5 +13,6 @@ jobs:
         run: bundle install
       - name: Show canonical Syntax Tree diff
         run: |
-          bundle exec stree write app/services/video_hub/ranking_signals.rb spec/services/video_hub/ranking_signals_spec.rb
-          git diff -- app/services/video_hub/ranking_signals.rb spec/services/video_hub/ranking_signals_spec.rb
+          bundle exec stree write app/services/video_hub/ranking_signals.rb
+          bundle exec stree write spec/services/video_hub/ranking_signals_spec.rb
+          git diff --no-renames -- app/services/video_hub/ranking_signals.rb spec/services/video_hub/ranking_signals_spec.rb
