@@ -169,35 +169,38 @@ module("Integration | Component | VideoHubWatch", function (hooks) {
   });
 });
 
-module("Integration | Component | VideoHubWatch | authenticated metrics", function (hooks) {
-  setupRenderingTest(hooks);
+module(
+  "Integration | Component | VideoHubWatch | authenticated metrics",
+  function (hooks) {
+    setupRenderingTest(hooks);
 
-  test("records one canonical impression and qualified view after dwell", async function (assert) {
-    const requestBodies = [];
-    const model = {
-      video: {
-        id: 12,
-        provider: "youtube",
-        external_id: "dQw4w9WgXcQ",
-        canonical_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        kind: "landscape",
-        title: "Authenticated watch",
-        thumbnail_url: null,
-        author_name: "Creator",
-        watch_path: "/videos/12/authenticated-watch",
-      },
-    };
+    test("records one canonical impression and qualified view after dwell", async function (assert) {
+      const requestBodies = [];
+      const model = {
+        video: {
+          id: 12,
+          provider: "youtube",
+          external_id: "dQw4w9WgXcQ",
+          canonical_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          kind: "landscape",
+          title: "Authenticated watch",
+          thumbnail_url: null,
+          author_name: "Creator",
+          watch_path: "/videos/12/authenticated-watch",
+        },
+      };
 
-    pretender.post("/videos/12/metrics", (request) => {
-      requestBodies.push(request.requestBody ?? "");
-      return response({ recorded: true });
+      pretender.post("/videos/12/metrics", (request) => {
+        requestBodies.push(request.requestBody ?? "");
+        return response({ recorded: true });
+      });
+
+      await render(<template><VideoHubWatch @model={{model}} /></template>);
+      await settled();
+
+      assert.strictEqual(requestBodies.length, 2);
+      assert.true(requestBodies[0].includes("impression"));
+      assert.true(requestBodies[1].includes("qualified_view"));
     });
-
-    await render(<template><VideoHubWatch @model={{model}} /></template>);
-    await settled();
-
-    assert.strictEqual(requestBodies.length, 2);
-    assert.true(requestBodies[0].includes("impression"));
-    assert.true(requestBodies[1].includes("qualified_view"));
-  });
-});
+  }
+);
