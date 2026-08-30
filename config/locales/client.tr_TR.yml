@@ -8,6 +8,11 @@ tr_TR:
       empty_description: "Desteklenen ilk herkese açık videoyu toplulukla sen paylaş."
       supported_providers: "Desteklenen platformlar"
       load_more: "Daha fazla yükle"
+      feed:
+        label: "Mobil video akışı"
+        instructions: "Videolar arasında geçmek için dikey kaydır veya ok, Page Up, Page Down, Home ve End tuşlarını kullan."
+        previous: "Önceki video"
+        next: "Sonraki video"
       providers:
         youtube: "YouTube"
         tiktok: "TikTok"

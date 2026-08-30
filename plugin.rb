@@ -10,6 +10,7 @@ enabled_site_setting :video_hub_enabled
 
 register_asset "stylesheets/common/video-hub.scss"
 register_asset "stylesheets/common/video-hub-profile.scss"
+register_asset "stylesheets/common/video-hub-mobile-feed.scss"
 
 module ::VideoHub
   PLUGIN_NAME = "discourse-video-hub"

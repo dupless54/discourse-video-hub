@@ -1,0 +1,118 @@
+@use "lib/viewport";
+
+.video-hub-mobile-feed {
+  display: grid;
+  height: min(82dvh, 52rem);
+  min-height: 28rem;
+  margin-top: 1rem;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y mandatory;
+  scrollbar-gutter: stable;
+  background: var(--primary-very-low);
+  border: 1px solid var(--primary-low);
+  border-radius: var(--d-border-radius-large, 1rem);
+
+  &__item {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    min-width: 0;
+    min-height: 100%;
+    overflow: hidden;
+    color: var(--primary);
+    background: var(--secondary);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+
+    &:focus-visible {
+      outline: 2px solid var(--tertiary);
+      outline-offset: -2px;
+    }
+
+    &[data-active="true"] {
+      box-shadow: inset 0 0 0 2px var(--tertiary-low);
+    }
+
+    .video-hub-watch__media {
+      width: 100%;
+      max-width: none;
+      min-height: 0;
+      height: 100%;
+      aspect-ratio: auto;
+      justify-self: stretch;
+      background: var(--primary-very-low);
+      border: 0;
+      border-radius: 0;
+    }
+  }
+
+  &__details {
+    position: relative;
+    z-index: 1;
+    padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+    background: var(--secondary);
+    border-top: 1px solid var(--primary-low);
+
+    h2 {
+      margin: 0;
+      font-size: var(--font-up-1);
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+
+      a {
+        color: var(--primary);
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+
+        &:focus-visible {
+          outline: 2px solid var(--tertiary);
+          outline-offset: 3px;
+        }
+      }
+    }
+  }
+
+  &__provider {
+    margin: 0 0 0.4rem;
+    color: var(--tertiary);
+    font-size: var(--font-down-2);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  &__author {
+    margin: 0.55rem 0 0;
+    color: var(--primary-high);
+    font-size: var(--font-down-1);
+    overflow-wrap: anywhere;
+  }
+
+  &__controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+
+    .btn {
+      flex: 1 1 0;
+      justify-content: center;
+      min-height: 2.75rem;
+    }
+  }
+}
+
+@include viewport.until(sm) {
+  .video-hub-page:has(.video-hub-mobile-feed) {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-hub-mobile-feed {
+    scroll-behavior: auto;
+    scroll-snap-stop: normal;
+  }
+}

@@ -8,6 +8,11 @@ en:
       empty_description: "Share the first supported public video with the community."
       supported_providers: "Supported providers"
       load_more: "Load more"
+      feed:
+        label: "Mobile video feed"
+        instructions: "Swipe vertically or use the arrow, Page Up, Page Down, Home, and End keys to move between videos."
+        previous: "Previous video"
+        next: "Next video"
       providers:
         youtube: "YouTube"
         tiktok: "TikTok"
