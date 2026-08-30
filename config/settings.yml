@@ -7,6 +7,9 @@ video_hub:
     default: 1
     min: 0
     max: 4
+  video_hub_category:
+    default: ""
+    type: category
   video_hub_youtube_enabled:
     client: true
     default: true

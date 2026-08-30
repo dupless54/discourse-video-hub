@@ -2,6 +2,7 @@ en:
   site_settings:
     video_hub_enabled: "Enable Discourse Video Hub"
     video_hub_min_trust_level: "Minimum trust level required to publish a video"
+    video_hub_category: "Category used for Video Hub topics. Video publishing stays unavailable until a category is selected."
     video_hub_youtube_enabled: "Allow public YouTube and YouTube Shorts links"
     video_hub_tiktok_enabled: "Allow public TikTok links"
     video_hub_instagram_enabled: "Allow public Instagram and Reels links"

@@ -2,6 +2,7 @@ tr_TR:
   site_settings:
     video_hub_enabled: "Discourse Video Merkezi'ni etkinleştir"
     video_hub_min_trust_level: "Video paylaşmak için gereken minimum güven seviyesi"
+    video_hub_category: "Video Merkezi konularının oluşturulacağı kategori. Bir kategori seçilene kadar video yayımlama kullanılamaz."
     video_hub_youtube_enabled: "Herkese açık YouTube ve YouTube Shorts bağlantılarına izin ver"
     video_hub_tiktok_enabled: "Herkese açık TikTok bağlantılarına izin ver"
     video_hub_instagram_enabled: "Herkese açık Instagram ve Reels bağlantılarına izin ver"
