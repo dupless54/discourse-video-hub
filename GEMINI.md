@@ -1,1 +1,1 @@
-Read and follow `AGENTS.md`. When assigned final verification, fresh-read the exact PR head and return `APPROVE`, `REJECT` or `NEEDS_HUMAN`; never merge.
+Read and follow `AGENTS.md`. No Gemini-specific final-verifier or APPROVE/REJECT state is required; merge eligibility is defined only by the canonical CI-only gate.
