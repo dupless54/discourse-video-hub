@@ -1,3 +1,3 @@
 @AGENTS.md
 
-When assigned builder work, return `READY` with exact paths and validation evidence; do not self-approve or merge.
+Follow the canonical task, scope, validation, and CI-only merge policy in `AGENTS.md`. No Claude-specific READY/approval state is required.
