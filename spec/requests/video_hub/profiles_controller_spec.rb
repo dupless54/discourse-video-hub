@@ -79,6 +79,116 @@ describe VideoHub::ProfilesController do
     expect(response.status).to eq(404)
   end
 
+  it "updates and serializes an owner-authorized existing layout" do
+    section = create_section
+    video = create_video
+    item = create_item(section, video)
+    sign_in(profile_user)
+
+    put "/videos/profile/#{profile_user.username}/layout.json",
+        params: {
+          layout: {
+            sections: [
+              {
+                id: section.id,
+                position: 0,
+                title: "Pinned shorts",
+                visible: false,
+                items: [{ id: item.id, position: 0, pinned: false, visible: false }],
+              },
+            ],
+          },
+        }
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body).to eq(
+      {
+        "profile" => {
+          "username" => profile_user.username,
+          "sections" => [
+            {
+              "id" => section.id,
+              "section_type" => "shorts",
+              "title" => "Pinned shorts",
+              "position" => 0,
+              "visible" => false,
+              "items" => [
+                {
+                  "id" => item.id,
+                  "video_id" => video.id,
+                  "position" => 0,
+                  "pinned" => false,
+                  "visible" => false,
+                },
+              ],
+            },
+          ],
+        },
+      },
+    )
+  end
+
+  it "fails closed when the viewer cannot edit the requested profile layout" do
+    section = create_section
+    video = create_video
+    item = create_item(section, video)
+    sign_in(Fabricate(:user))
+
+    put "/videos/profile/#{profile_user.username}/layout.json",
+        params: {
+          layout: {
+            sections: [
+              {
+                id: section.id,
+                position: 0,
+                title: "Unauthorized change",
+                visible: false,
+                items: [{ id: item.id, position: 0, pinned: false, visible: false }],
+              },
+            ],
+          },
+        }
+
+    expect(response.status).to eq(404)
+    expect(section.reload).to have_attributes(title: "Shorts", visible: true)
+    expect(item.reload).to have_attributes(pinned: true, visible: true)
+  end
+
+  it "maps invalid layout contracts to a bounded unprocessable response" do
+    section = create_section
+    video = create_video
+    item = create_item(section, video)
+    sign_in(profile_user)
+
+    put "/videos/profile/#{profile_user.username}/layout.json",
+        params: {
+          layout: {
+            sections: [
+              {
+                id: section.id,
+                position: 1,
+                title: "Invalid gap",
+                visible: true,
+                items: [{ id: item.id, position: 0, pinned: true, visible: true }],
+              },
+            ],
+          },
+        }
+
+    expect(response.status).to eq(422)
+    expect(response.parsed_body).to eq({ "error" => { "code" => "invalid_layout" } })
+    expect(section.reload).to have_attributes(position: 0, title: "Shorts", visible: true)
+  end
+
+  it "returns not found before mutating layout when Video Hub is disabled" do
+    SiteSetting.video_hub_enabled = false
+    sign_in(profile_user)
+
+    put "/videos/profile/#{profile_user.username}/layout.json", params: { layout: { sections: [] } }
+
+    expect(response.status).to eq(404)
+  end
+
   def profile_result(section, item, video)
     VideoHub::ProfileQuery::Result.new(
       profile_user: profile_user,

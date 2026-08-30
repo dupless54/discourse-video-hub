@@ -17,10 +17,34 @@ module VideoHub
              }
     end
 
+    def update_layout
+      result =
+        VideoHub::ProfileLayoutUpdater.update(
+          user: current_user,
+          username: params[:username],
+          sections: layout_params[:sections],
+        )
+
+      render json: {
+               profile: {
+                 username: result.profile_user.username,
+                 sections: result.sections.map { |section| layout_section_payload(section) },
+               },
+             }
+    rescue VideoHub::ProfileLayoutUpdater::LayoutError => error
+      render json: { error: { code: error.code.to_s } }, status: :unprocessable_entity
+    end
+
     private
 
     def ensure_video_hub_enabled
       raise Discourse::NotFound unless SiteSetting.video_hub_enabled
+    end
+
+    def layout_params
+      params.require(:layout).permit(
+        sections: [:id, :position, :title, :visible, { items: %i[id position pinned visible] }],
+      )
     end
 
     def section_payload(result)
@@ -43,6 +67,29 @@ module VideoHub
         position: item.position,
         pinned: item.pinned,
         video: video_payload(result.video),
+      }
+    end
+
+    def layout_section_payload(result)
+      section = result.profile_section
+
+      {
+        id: section.id,
+        section_type: section.section_type,
+        title: section.title,
+        position: section.position,
+        visible: section.visible,
+        items: result.items.map { |item| layout_item_payload(item) },
+      }
+    end
+
+    def layout_item_payload(item)
+      {
+        id: item.id,
+        video_id: item.video_id,
+        position: item.position,
+        pinned: item.pinned,
+        visible: item.visible,
       }
     end
 
