@@ -375,7 +375,11 @@ module(
       });
       await Promise.all([visible, hidden]);
 
-      assert.strictEqual(requestBodies.length, 1, "records the first impression");
+      assert.strictEqual(
+        requestBodies.length,
+        1,
+        "records the first impression"
+      );
       assert.true(
         requestBodies[0].includes("impression"),
         "leaving early records only the impression"
