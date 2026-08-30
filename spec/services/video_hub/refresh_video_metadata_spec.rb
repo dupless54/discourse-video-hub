@@ -38,7 +38,6 @@ describe VideoHub::RefreshVideoMetadata do
   before do
     SiteSetting.video_hub_enabled = true
     SiteSetting.video_hub_youtube_enabled = true
-    DistributedMutex.stubs(:synchronize).yields
     Rails.logger.stubs(:warn)
   end
 

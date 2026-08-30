@@ -27,6 +27,7 @@ describe VideoHub::PublishVideo do
   end
 
   before do
+    PostCreator.any_instance.stubs(:enqueue_jobs)
     VideoHub::PublishPolicy.expects(:authorize_base!).with(user: user).returns(category)
     VideoHub::PublishPolicy
       .expects(:authorize_provider!)
