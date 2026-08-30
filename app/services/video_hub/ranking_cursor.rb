@@ -21,8 +21,7 @@ module VideoHub
       video_id
     ].freeze
 
-    Result =
-      Struct.new(:context, :score_basis_points, :published_at, :video_id, keyword_init: true)
+    Result = Struct.new(:context, :score_basis_points, :published_at, :video_id, keyword_init: true)
 
     class CursorError < StandardError
       attr_reader :code
@@ -38,7 +37,9 @@ module VideoHub
       id = Integer(video_id)
       raise CursorError.new(:invalid_cursor) unless context.is_a?(RankingContext)
       raise CursorError.new(:invalid_cursor) unless context.version == RankingContext::VERSION
-      raise CursorError.new(:invalid_cursor) unless score.between?(0, RankingScore::MAX_BASIS_POINTS)
+      unless score.between?(0, RankingScore::MAX_BASIS_POINTS)
+        raise CursorError.new(:invalid_cursor)
+      end
       raise CursorError.new(:invalid_cursor) unless id.positive?
 
       payload = {
@@ -78,7 +79,9 @@ module VideoHub
       score = Integer(payload.fetch("score_basis_points"))
       video_id = Integer(payload.fetch("video_id"))
       published_at = time_from_microseconds(payload.fetch("published_microseconds"))
-      raise CursorError.new(:invalid_cursor) unless score.between?(0, RankingScore::MAX_BASIS_POINTS)
+      unless score.between?(0, RankingScore::MAX_BASIS_POINTS)
+        raise CursorError.new(:invalid_cursor)
+      end
       raise CursorError.new(:invalid_cursor) unless video_id.positive?
 
       Result.new(
