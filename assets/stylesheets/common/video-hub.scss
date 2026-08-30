@@ -69,6 +69,14 @@
     }
   }
 
+  &__feed {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+    gap: 1rem;
+    align-items: start;
+    margin-top: 2rem;
+  }
+
   &__empty {
     display: grid;
     justify-items: center;
@@ -106,6 +114,89 @@
       border: 1px solid var(--primary-low-mid);
       border-radius: var(--d-border-radius, 0.5rem);
     }
+  }
+}
+
+.video-hub-card {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--primary);
+  text-decoration: none;
+  background: var(--secondary);
+  border: 1px solid var(--primary-low);
+  border-radius: var(--d-border-radius-large, 1rem);
+
+  &:hover {
+    border-color: var(--primary-low-mid);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tertiary);
+    outline-offset: 3px;
+  }
+
+  &__media {
+    overflow: hidden;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--primary-very-low);
+  }
+
+  &[data-kind="shorts"] &__media {
+    aspect-ratio: 9 / 16;
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__placeholder {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    color: var(--primary-high);
+    background: linear-gradient(
+      145deg,
+      var(--tertiary-low),
+      var(--primary-very-low)
+    );
+
+    span {
+      font-weight: 700;
+    }
+  }
+
+  &__body {
+    padding: 0.9rem 1rem 1rem;
+  }
+
+  &__provider {
+    margin: 0 0 0.4rem;
+    color: var(--tertiary);
+    font-size: var(--font-down-2);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--primary);
+    font-size: var(--font-up-1);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  &__author {
+    margin: 0.6rem 0 0;
+    color: var(--primary-high);
+    font-size: var(--font-down-1);
+    overflow-wrap: anywhere;
   }
 }
 
@@ -219,6 +310,11 @@
       grid-template-columns: 1fr;
       gap: 1.5rem;
       padding: 1.25rem;
+    }
+
+    &__feed {
+      grid-template-columns: 1fr;
+      margin-top: 1rem;
     }
 
     &__empty {
