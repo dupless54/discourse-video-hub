@@ -167,7 +167,26 @@ describe "Video Hub collection management" do
 
     expect(response.status).to eq(200)
     expect(response.parsed_body.dig("collections", 0, "items")).to eq(
-      [{ "id" => item_id, "video_id" => video.id, "position" => 0 }],
+      [
+        {
+          "id" => item_id,
+          "video_id" => video.id,
+          "position" => 0,
+          "video" => {
+            "id" => video.id,
+            "provider" => "youtube",
+            "external_id" => video.external_id,
+            "canonical_url" => video.canonical_url,
+            "kind" => "landscape",
+            "title" => video.title,
+            "thumbnail_url" => nil,
+            "duration_seconds" => nil,
+            "author_name" => "Collection author",
+            "published_at" => video.published_at.iso8601,
+            "watch_path" => "/videos/#{video.id}/#{video.topic.slug}",
+          },
+        },
+      ],
     )
 
     delete "/videos/collections/#{collection.id}/videos/#{video.id}.json"
@@ -175,6 +194,22 @@ describe "Video Hub collection management" do
 
     delete "/videos/collections/#{collection.id}/videos/#{video.id}.json"
     expect(response.status).to eq(204)
+  end
+
+  it "keeps hidden memberships removable without exposing hidden video metadata" do
+    collection = create_collection(user: owner, collection_type: "playlist")
+    video = create_video(user: Fabricate(:user))
+    item =
+      VideoHub::VideoCollectionItem.create!(video_collection: collection, video: video, position: 0)
+    video.post.update_column(:hidden, true)
+    sign_in(owner)
+
+    get "/videos/collections.json"
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body.dig("collections", 0, "items", 0)).to eq(
+      { "id" => item.id, "video_id" => video.id, "position" => 0, "video" => nil },
+    )
   end
 
   it "maps a foreign video added to a series to a bounded validation error" do
