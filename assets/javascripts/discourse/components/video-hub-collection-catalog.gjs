@@ -64,7 +64,12 @@ export default class VideoHubCollectionCatalog extends Component {
 
   @action
   async loadMore() {
-    if (this.loading || this.mutationBusy || !this.hasMore || !this.nextCursor) {
+    if (
+      this.loading ||
+      this.mutationBusy ||
+      !this.hasMore ||
+      !this.nextCursor
+    ) {
       return;
     }
 
@@ -88,7 +93,9 @@ export default class VideoHubCollectionCatalog extends Component {
       const incoming = Array.isArray(response?.videos) ? response.videos : [];
 
       if (append) {
-        const videosById = new Map(this.videos.map((video) => [video.id, video]));
+        const videosById = new Map(
+          this.videos.map((video) => [video.id, video])
+        );
         incoming.forEach((video) => videosById.set(video.id, video));
         this.videos = [...videosById.values()];
       } else {
