@@ -293,7 +293,7 @@
   }
 }
 
-@media (max-width: 800px) {
+@media (width <= 800px) {
   .video-hub-collections {
     gap: 1.25rem;
     padding-inline: max(0.75rem, env(safe-area-inset-left))
@@ -337,7 +337,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (width <= 480px) {
   .video-hub-collections {
     &__item-preview {
       grid-template-columns: 5.5rem minmax(0, 1fr);

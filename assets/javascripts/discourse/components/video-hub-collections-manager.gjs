@@ -154,10 +154,7 @@ class VideoHubCollectionManagerCard extends Component {
           <div class="video-hub-collections__collection-meta">
             <span class="video-hub-collections__type">{{this.typeLabel}}</span>
             <span>
-              {{i18n
-                "video_hub.collections.video_count"
-                count=this.itemCount
-              }}
+              {{i18n "video_hub.collections.video_count" count=this.itemCount}}
             </span>
           </div>
           <h2>{{@collection.title}}</h2>
@@ -228,13 +225,19 @@ class VideoHubCollectionManagerCard extends Component {
         {{#if @collection.items.length}}
           <ul class="video-hub-collections__item-list">
             {{#each @collection.items as |item|}}
-              <li class="video-hub-collections__item" data-video-id={{item.video_id}}>
+              <li
+                class="video-hub-collections__item"
+                data-video-id={{item.video_id}}
+              >
                 {{#if item.video}}
                   <a
                     class="video-hub-collections__item-preview"
                     href={{item.video.watch_path}}
                   >
-                    <div class="video-hub-collections__thumbnail" aria-hidden="true">
+                    <div
+                      class="video-hub-collections__thumbnail"
+                      aria-hidden="true"
+                    >
                       {{#if item.video.thumbnail_url}}
                         <img src={{item.video.thumbnail_url}} alt="" />
                       {{else}}
@@ -257,8 +260,12 @@ class VideoHubCollectionManagerCard extends Component {
                       <span>—</span>
                     </div>
                     <div class="video-hub-collections__item-copy">
-                      <strong>{{i18n "video_hub.collections.unavailable_video"}}</strong>
-                      <span>{{i18n "video_hub.collections.unavailable_video_hint"}}</span>
+                      <strong>{{i18n
+                          "video_hub.collections.unavailable_video"
+                        }}</strong>
+                      <span>{{i18n
+                          "video_hub.collections.unavailable_video_hint"
+                        }}</span>
                     </div>
                   </div>
                 {{/if}}
@@ -389,7 +396,11 @@ export default class VideoHubCollectionsManager extends Component {
           <p>{{i18n "video_hub.collections.create_description"}}</p>
         </div>
 
-        <Form @data={{this.createData}} @onSubmit={{this.createCollection}} as |form|>
+        <Form
+          @data={{this.createData}}
+          @onSubmit={{this.createCollection}}
+          as |form|
+        >
           <div class="video-hub-collections__create-grid">
             <form.Field
               @name="collection_type"

@@ -51,7 +51,9 @@ acceptance("Video Hub collections management", function (needs) {
       .dom('.video-hub-collections__public-link[href="/videos/collections/42"]')
       .exists();
     assert
-      .dom('.video-hub-collections__item-preview[href="/videos/91/managed-video"]')
+      .dom(
+        '.video-hub-collections__item-preview[href="/videos/91/managed-video"]'
+      )
       .exists();
   });
 });
