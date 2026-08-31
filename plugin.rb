@@ -11,6 +11,7 @@ enabled_site_setting :video_hub_enabled
 register_asset "stylesheets/common/video-hub.scss"
 register_asset "stylesheets/common/video-hub-profile.scss"
 register_asset "stylesheets/common/video-hub-mobile-feed.scss"
+register_asset "stylesheets/common/video-hub-explore.scss"
 register_asset "stylesheets/common/video-hub-saved.scss"
 register_asset "stylesheets/common/video-hub-trending.scss"
 register_asset "stylesheets/common/video-hub-following.scss"
