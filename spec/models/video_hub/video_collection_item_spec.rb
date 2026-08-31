@@ -90,11 +90,7 @@ describe VideoHub::VideoCollectionItem do
 
   it "rejects negative positions" do
     item =
-      described_class.new(
-        video_collection: create_collection,
-        video: create_video,
-        position: -1,
-      )
+      described_class.new(video_collection: create_collection, video: create_video, position: -1)
 
     expect(item).not_to be_valid
     expect(item.errors[:position]).to be_present
@@ -103,9 +99,13 @@ describe VideoHub::VideoCollectionItem do
   it "enforces placement uniqueness at the database layer" do
     indexes = described_class.connection.indexes(:video_hub_video_collection_items)
     video_index =
-      indexes.find { |candidate| candidate.name == "idx_video_hub_collection_items_collection_video" }
+      indexes.find do |candidate|
+        candidate.name == "idx_video_hub_collection_items_collection_video"
+      end
     position_index =
-      indexes.find { |candidate| candidate.name == "idx_video_hub_collection_items_collection_position" }
+      indexes.find do |candidate|
+        candidate.name == "idx_video_hub_collection_items_collection_position"
+      end
 
     expect(video_index).to be_present
     expect(video_index.unique).to eq(true)
