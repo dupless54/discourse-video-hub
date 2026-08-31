@@ -13,6 +13,16 @@ en:
         instructions: "Swipe vertically or use the arrow, Page Up, Page Down, Home, and End keys to move between videos."
         previous: "Previous video"
         next: "Next video"
+      explore:
+        cta: "Explore"
+        title: "Explore"
+        label: "Immersive video feed"
+        instructions: "Swipe or scroll vertically to move one video at a time. Arrow, Page Up, Page Down, Home, and End keys are also supported."
+        back_to_videos: "Back to videos"
+        share: "Share"
+        loading_more: "Loading more videos…"
+        empty_title: "Nothing to explore yet"
+        empty_description: "Share a supported public video and it can appear in the immersive discovery feed."
       providers:
         youtube: "YouTube"
         tiktok: "TikTok"
