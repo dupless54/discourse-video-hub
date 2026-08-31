@@ -77,18 +77,21 @@ describe VideoHub::FollowingFeedQuery do
       .with(user: viewer)
       .raises(VideoHub::FollowSource::SourceError.new(:follow_unavailable))
 
-    expect { described_class.fetch(user: viewer) }.to raise_error(described_class::FeedError) do |error|
+    expect { described_class.fetch(user: viewer) }.to raise_error(
+      described_class::FeedError,
+    ) do |error|
       expect(error.code).to eq(:follow_unavailable)
     end
   end
 
   it "rejects anonymous access, foreign cursors, and page sizes above the maximum" do
-    expect { described_class.fetch(user: nil) }.to raise_error(described_class::FeedError) do |error|
+    expect { described_class.fetch(user: nil) }.to raise_error(
+      described_class::FeedError,
+    ) do |error|
       expect(error.code).to eq(:login_required)
     end
 
-    saved_cursor =
-      VideoHub::SavedFeedCursor.encode(saved_at: now - 1.minute, bookmark_id: 42)
+    saved_cursor = VideoHub::SavedFeedCursor.encode(saved_at: now - 1.minute, bookmark_id: 42)
 
     expect { described_class.fetch(user: viewer, cursor: saved_cursor) }.to raise_error(
       described_class::FeedError,
