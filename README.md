@@ -6,67 +6,73 @@
 
 # Discourse Video Hub
 
-A native Discourse video discovery and profile-showcase project for public YouTube, TikTok, and Instagram links.
+A native Discourse video discovery, publishing, profile-showcase, saved-video, follow-feed, trending, and collection experience for public YouTube, TikTok, and Instagram links.
 
-Video Hub is designed around external public video URLs. It does **not** require Discourse to become a video-file hosting, download, re-hosting, or transcoding platform.
+Video Hub is designed around external public video URLs. It does **not** require Discourse to become a video-file hosting, download, re-hosting, proxy, transcoding, or CDN platform.
 
 ## Main Branch Status
 
-The current `main` branch is the **Phase 0 foundation** and plugin version `0.1.0`.
+The current `main` branch contains the completed V1 product scope plus several originally planned extensions. The plugin metadata version is still `0.1.0`; there is no GitHub Release or release tag yet, so `main` should currently be treated as a **feature-complete release candidate**, not a published stable release.
 
 Shipped on `main`:
 
-- isolated `VideoHub` Rails engine mounted at `/videos`;
-- guarded cursor-ready discovery-feed contract;
-- native `/videos` Glimmer page and empty-state experience;
-- responsive light/dark styling using Discourse theme variables;
-- English and Turkish locales;
-- request/component test sources;
-- official reusable Discourse Plugin CI workflow;
-- project-specific architecture, security, and development governance.
+- strict supported-provider URL resolution for public YouTube/Shorts, TikTok, and Instagram/Reels links;
+- SSRF-aware provider metadata fetching, bounded metadata caching, background refresh, and stale-metadata sweeping;
+- canonical `VideoHub::Video` persistence backed by standard Discourse Topic + root Post discussion truth;
+- publish flow with canonical-video reuse, server-side authorization, provider controls, category controls, and bounded rate limits;
+- canonical watch pages with safe provider playback, core-backed likes, comments, nested replies, and saved-video controls;
+- responsive desktop discovery plus a mobile vertical active-player feed that keeps only one active provider iframe;
+- bounded aggregate view metrics, versioned ranking signals/score/context, signed ranking cursors, and a dedicated Trending feed/page;
+- Saved Videos backed by Discourse core bookmarks rather than plugin-owned duplicate persistence;
+- Following feed/page backed by the official `discourse-follow` relationship when that plugin is available and enabled;
+- profile `Videos` surfaces with Shorts/landscape sections, owner/staff editing, membership add/remove, reorder, pin, hide, and visibility controls;
+- public playlists/series plus owner collection management, canonical-video catalog add flow, removal, and atomic collection/item reordering;
+- canonical watch SEO, safe Open Graph/Twitter metadata, `VideoObject` JSON-LD, backing-topic canonical alignment, sitemap alignment, terminal unavailable semantics, and `noindex,follow` aggregate SPA policy;
+- responsive light/dark/custom-scheme styling built from Discourse theme variables, including mobile safe-area and reduced-motion handling;
+- English and Turkish client/server locale coverage;
+- official reusable Discourse Plugin CI with lint, formatting, type, backend, frontend, annotation, and migration/runtime checks.
 
-Publishing, provider fetching, canonical video persistence, Topic/Post discussion integration, profile layouts, ranking, and SEO work should not be treated as shipped on `main` merely because feature branches exist.
+## Release Status
 
-## Active Development Stack — Not Yet on `main`
+The repository has not published a GitHub Release yet. Before assigning the first stable tag, release hardening should keep these gates explicit:
 
-Video Hub currently has a stacked draft development series. The upper part of that stack includes:
+- fresh official Discourse Plugin CI on the exact release candidate;
+- a real Discourse-instance smoke test covering install/rebuild, migrations, publish, watch, discovery, profile, saved/following/trending, and collections;
+- semantic version selection and `plugin.rb` version bump;
+- release notes/changelog generated from the merged feature history;
+- final confirmation that optional integrations, especially `discourse-follow`, fail closed when unavailable.
 
-- **PR #26** — authorized profile layout management read contract;
-- **PR #27** — profile video layout editor;
-- **PR #28** — profile video membership mutations;
-- **PR #29** — profile membership editor controls;
-- **PR #30** — mobile active-player discovery feed;
-- **PR #31** — canonical watch-page SEO;
-- **PR #32** — backing-topic canonical integration;
-- **PR #33** — sitemap alignment with Video Hub canonical URLs;
-- **PR #34** — terminal watch SEO semantics for previously published unavailable videos;
-- **PR #35** — crawl/index policy for aggregate Video Hub SPA surfaces.
-
-These PRs are intentionally stacked and remain separate from `main` until their dependency order and repository delivery gates are satisfied. README readers should treat them as **in progress**, not released functionality.
+Do not infer release status from the `0.1.0` metadata value alone.
 
 ## Product Architecture
 
-The intended long-term model keeps Discourse core responsibilities intact:
+Video Hub keeps Discourse core responsibilities intact:
 
 - `VideoHub::Video` owns provider metadata, canonical public video identity, and Video Hub presentation state.
-- Every published Video Hub item maps to a standard Discourse Topic and root Post.
+- Every newly published Video Hub item maps to a standard Discourse Topic and root Post; reused canonical videos keep one canonical discussion truth.
 - Topics/Posts remain authoritative for comments, nested replies, reactions, notifications, flags, revisions, and moderation.
-- Video Hub does not create a second comment/reaction truth.
+- Discourse core `Bookmark` remains authoritative for saved videos.
+- The official `discourse-follow` relationship is the only Following-feed social source when that integration is enabled.
+- Profile layouts and video collections store presentation/membership state around canonical videos; they do not duplicate provider/video/discussion truth.
 - Only allowlisted public provider URLs are accepted; users never submit iframe/embed HTML.
 - Canonical uniqueness is based on provider + external video identity.
 
 ## Security Boundaries
 
-Provider URL resolution and metadata fetching are SSRF-sensitive operations. Future provider integrations must preserve:
+Provider URL resolution and metadata fetching are SSRF-sensitive operations. The implementation preserves:
 
-- strict host/scheme allowlists;
+- strict provider host/scheme allowlists;
 - DNS/IP public-address validation;
 - bounded redirects with re-validation;
 - short timeouts and response-size limits;
 - sanitized provider/user metadata;
-- server-side Guardian authorization for profile/video visibility.
+- server-side Guardian authorization for video, profile, collection, Topic, and Post visibility;
+- fail-closed handling for unavailable/hidden/private backing content;
+- bounded metric aggregation without persistent raw viewer-event, session, device, or fingerprint history.
 
-Privacy-sensitive analytics should use minimal personal data, short retention, and aggregate metrics rather than indefinitely storing raw scrolling events.
+## Optional Integration
+
+The Following surface uses the official `discourse-follow` plugin. If that plugin, its setting, or the expected following association is unavailable, Video Hub does not create its own substitute follow graph and the backend fails closed for that feed.
 
 ## Installation
 
@@ -88,11 +94,11 @@ cd /var/discourse
 ./launcher rebuild app
 ```
 
-Then enable `video_hub_enabled` in site settings.
+Then enable `video_hub_enabled` in site settings and configure the Video Hub provider/category/ranking settings required by your community.
 
 ## Development
 
-Read [`AGENTS.md`](AGENTS.md) before implementation work. The current source/tests override older planning documents, and stacked PR features must not be described as released until they actually reach `main`.
+Read [`AGENTS.md`](AGENTS.md) before implementation work. Current source, tests, and merged PR state override older planning text. Features must not be described as released until they are present on `main`, and a stable release must not be inferred until a release tag/version is intentionally published.
 
 Additional design context is available in [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md) and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
