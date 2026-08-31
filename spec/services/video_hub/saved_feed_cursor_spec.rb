@@ -7,7 +7,7 @@ describe VideoHub::SavedFeedCursor do
     token = described_class.encode(saved_at: saved_at, bookmark_id: 42)
     decoded = described_class.decode(token)
 
-    expect(decoded.saved_at).to eq(saved_at)
+    expect(decoded.saved_at).to eq_time(saved_at)
     expect(decoded.bookmark_id).to eq(42)
   end
 
