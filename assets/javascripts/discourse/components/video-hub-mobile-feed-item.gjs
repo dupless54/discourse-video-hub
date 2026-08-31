@@ -44,7 +44,9 @@ export default class VideoHubMobileFeedItem extends Component {
   }
 
   get playerInteractive() {
-    return Boolean(this.args.immersive && this.isActive && this.interactionMode);
+    return Boolean(
+      this.args.immersive && this.isActive && this.interactionMode
+    );
   }
 
   get rootPost() {
