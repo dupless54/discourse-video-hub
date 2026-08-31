@@ -110,7 +110,11 @@ module(
       await settled();
 
       assert.strictEqual(likeRequests, 1);
-      assert.strictEqual(topicRequests, 2, "loads then refreshes the canonical topic");
+      assert.strictEqual(
+        topicRequests,
+        2,
+        "loads then refreshes the canonical topic"
+      );
       assert.dom(".video-hub-mobile-feed__action--like").hasClass("is-active");
 
       await click(".video-hub-mobile-feed__action--comments");
