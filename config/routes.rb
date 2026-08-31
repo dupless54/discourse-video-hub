@@ -38,6 +38,13 @@ VideoHub::Engine.routes.draw do
         format: :html,
       }
   get "/collections" => "collections#index", :defaults => { format: :json }
+  get "/collections/:id/catalog" => "collections#catalog",
+      :constraints => {
+        id: /\d+/,
+      },
+      :defaults => {
+        format: :json,
+      }
   get "/collections/:id" => "collections#show",
       :constraints => {
         id: /\d+/,
