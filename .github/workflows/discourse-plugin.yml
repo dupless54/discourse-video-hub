@@ -1,21 +1,11 @@
-name: Syntax Tree Probe
+name: Discourse Plugin
 
 on:
   push:
     branches:
-      - feature/video-collection-foundation
+      - main
+  pull_request:
 
 jobs:
-  stree:
-    runs-on: ubuntu-latest
-    container: discourse/discourse_test:slim
-    steps:
-      - uses: actions/checkout@v6
-      - run: bundle install
-      - name: Print canonical formatting
-        run: |
-          bundle exec stree write spec/models/video_hub/video_collection_spec.rb spec/models/video_hub/video_collection_item_spec.rb
-          echo '---COLLECTION_SPEC---'
-          cat spec/models/video_hub/video_collection_spec.rb
-          echo '---COLLECTION_ITEM_SPEC---'
-          cat spec/models/video_hub/video_collection_item_spec.rb
+  ci:
+    uses: discourse/.github/.github/workflows/discourse-plugin.yml@v1
