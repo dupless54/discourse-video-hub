@@ -52,6 +52,7 @@ after_initialize do
   end
 
   Discourse::Application.routes.prepend do
+    get "/videos.json" => "video_hub/videos#index", :defaults => { format: :json }
     get "/videos/:id/:slug" => "video_hub/videos#watch",
         :constraints => {
           id: /\d+/,
