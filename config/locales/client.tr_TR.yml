@@ -72,6 +72,10 @@ tr_TR:
         delete: "Koleksiyonu sil"
         delete_confirm: "‘%{title}’ koleksiyonu silinsin mi? Koleksiyon kaldırılır; özgün videolar ve tartışmalar silinmez."
         view_public: "Herkese açık sayfayı görüntüle"
+        collection_order_label: "Koleksiyon sırası"
+        video_order_label: "Video sırası"
+        move_up: "Yukarı taşı"
+        move_down: "Aşağı taşı"
         items_label: "Koleksiyon videoları"
         items_title: "Bu koleksiyondaki videolar"
         items_description: "Video görünürlüğü, özgün Discourse konu ve gönderi izinlerini izlemeye devam eder."
@@ -88,6 +92,7 @@ tr_TR:
         updated: "Koleksiyon güncellendi."
         deleted: "Koleksiyon silindi."
         video_removed: "Video koleksiyondan kaldırıldı."
+        order_updated: "Koleksiyon sırası güncellendi."
       publish:
         cta: "Video paylaş"
         eyebrow: "Yeni video"
