@@ -2,27 +2,42 @@ import Component from "@glimmer/component";
 import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
 import { LinkTo } from "@ember/routing";
+import { cancel } from "@ember/runloop";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import discourseLater from "discourse/lib/later";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import VideoHubCard from "./video-hub-card";
 import VideoHubMobileFeedItem from "./video-hub-mobile-feed-item";
 
+const QUALIFIED_VIEW_DELAY = 3000;
+
 export default class VideoHubLanding extends Component {
   @service capabilities;
+  @service currentUser;
 
   @tracked videos = [];
   @tracked pagination = { has_more: false, next_cursor: null };
   @tracked loadingMore = false;
   @tracked activeMobileVideoId = null;
 
+  visibleMobileVideoIds = new Set();
+  impressionRequests = new Set();
+  qualifiedRequests = new Set();
+  qualifiedTimers = new Map();
+
   constructor() {
     super(...arguments);
     this.videos = [...(this.args.model.videos ?? [])];
     this.pagination = this.normalizePagination(this.args.model.pagination);
     this.activeMobileVideoId = this.videos[0]?.id ?? null;
+  }
+
+  willDestroy() {
+    super.willDestroy();
+    this.clearQualifiedTimers();
   }
 
   get providerItems() {
@@ -60,8 +75,34 @@ export default class VideoHubLanding extends Component {
 
   @action
   activateMobileVideo(videoId) {
-    if (this.videos.some((video) => video.id === videoId)) {
-      this.activeMobileVideoId = videoId;
+    if (!this.videos.some((video) => video.id === videoId)) {
+      return;
+    }
+
+    const previousVideoId = this.activeMobileVideoId;
+    if (previousVideoId !== videoId) {
+      this.cancelQualifiedTimer(previousVideoId);
+    }
+
+    this.activeMobileVideoId = videoId;
+
+    if (this.visibleMobileVideoIds.has(videoId)) {
+      this.beginMetricTracking(videoId);
+    }
+  }
+
+  @action
+  updateMobileVisibility(videoId, isVisible) {
+    if (!this.videos.some((video) => video.id === videoId)) {
+      return;
+    }
+
+    if (isVisible) {
+      this.visibleMobileVideoIds.add(videoId);
+      this.activateMobileVideo(videoId);
+    } else {
+      this.visibleMobileVideoIds.delete(videoId);
+      this.cancelQualifiedTimer(videoId);
     }
   }
 
@@ -73,10 +114,97 @@ export default class VideoHubLanding extends Component {
       return;
     }
 
-    this.activeMobileVideoId = video.id;
+    this.activateMobileVideo(video.id);
     document
       .querySelector(`[data-video-hub-feed-index="${index}"]`)
       ?.scrollIntoView?.({ block: "start" });
+  }
+
+  beginMetricTracking(videoId) {
+    if (!this.currentUser) {
+      return;
+    }
+
+    void this.recordImpression(videoId);
+  }
+
+  async recordImpression(videoId) {
+    if (!this.impressionRequests.has(videoId)) {
+      this.impressionRequests.add(videoId);
+
+      try {
+        await this.sendMetric(videoId, "impression");
+      } catch {
+        this.impressionRequests.delete(videoId);
+        return;
+      }
+    }
+
+    this.armQualifiedTimer(videoId);
+  }
+
+  armQualifiedTimer(videoId) {
+    if (
+      this.qualifiedRequests.has(videoId) ||
+      this.qualifiedTimers.has(videoId) ||
+      this.activeMobileVideoId !== videoId ||
+      !this.visibleMobileVideoIds.has(videoId)
+    ) {
+      return;
+    }
+
+    const timer = discourseLater(() => {
+      this.qualifiedTimers.delete(videoId);
+
+      if (
+        this.activeMobileVideoId === videoId &&
+        this.visibleMobileVideoIds.has(videoId)
+      ) {
+        void this.recordQualifiedView(videoId);
+      }
+    }, QUALIFIED_VIEW_DELAY);
+
+    this.qualifiedTimers.set(videoId, timer);
+  }
+
+  async recordQualifiedView(videoId) {
+    if (this.qualifiedRequests.has(videoId)) {
+      return;
+    }
+
+    this.qualifiedRequests.add(videoId);
+
+    try {
+      await this.sendMetric(videoId, "qualified_view");
+    } catch {
+      this.qualifiedRequests.delete(videoId);
+    }
+  }
+
+  sendMetric(videoId, event) {
+    return ajax(`/videos/${videoId}/metrics`, {
+      type: "POST",
+      data: { event },
+    });
+  }
+
+  cancelQualifiedTimer(videoId) {
+    if (videoId === null || videoId === undefined) {
+      return;
+    }
+
+    const timer = this.qualifiedTimers.get(videoId);
+    if (timer !== undefined) {
+      cancel(timer);
+      this.qualifiedTimers.delete(videoId);
+    }
+  }
+
+  clearQualifiedTimers() {
+    for (const timer of this.qualifiedTimers.values()) {
+      cancel(timer);
+    }
+    this.qualifiedTimers.clear();
   }
 
   @action
@@ -164,6 +292,7 @@ export default class VideoHubLanding extends Component {
                 @total={{this.videos.length}}
                 @activeVideoId={{this.activeMobileVideoId}}
                 @onActivate={{this.activateMobileVideo}}
+                @onVisibilityChange={{this.updateMobileVisibility}}
                 @onNavigate={{this.navigateMobileFeed}}
               />
             {{/each}}
