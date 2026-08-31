@@ -36,9 +36,13 @@ describe VideoHub::CollectionQuery do
     deleted_topic.topic.update_column(:deleted_at, Time.zone.now)
     hidden_post.post.update_column(:hidden, true)
 
-    [visible, disabled, unavailable, deleted_topic, hidden_post].each_with_index do |video, position|
-      place_video(collection, video, position: position)
-    end
+    [
+      visible,
+      disabled,
+      unavailable,
+      deleted_topic,
+      hidden_post,
+    ].each_with_index { |video, position| place_video(collection, video, position: position) }
 
     result = described_class.fetch(user: nil, id: collection.id)
 
