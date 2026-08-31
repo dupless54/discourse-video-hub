@@ -85,8 +85,7 @@ describe VideoHub::CollectionManager do
     collection = create_collection(user: owner, collection_type: "playlist", position: 0)
     video = create_video(user: Fabricate(:user))
 
-    first =
-      described_class.add_video(user: owner, collection_id: collection.id, video_id: video.id)
+    first = described_class.add_video(user: owner, collection_id: collection.id, video_id: video.id)
     retry_result =
       described_class.add_video(user: owner, collection_id: collection.id, video_id: video.id)
 
@@ -126,11 +125,7 @@ describe VideoHub::CollectionManager do
 
     [hidden_video, disabled_video].each do |video|
       expect do
-        described_class.add_video(
-          user: owner,
-          collection_id: collection.id,
-          video_id: video.id,
-        )
+        described_class.add_video(user: owner, collection_id: collection.id, video_id: video.id)
       end.to raise_error(Discourse::NotFound)
     end
 
