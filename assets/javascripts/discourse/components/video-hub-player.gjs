@@ -22,6 +22,10 @@ export default class VideoHubPlayer extends Component {
       typeof externalId === "string" &&
       YOUTUBE_ID.test(externalId)
     ) {
+      if (this.args.immersive) {
+        return `https://www.youtube.com/embed/${externalId}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${externalId}`;
+      }
+
       return `https://www.youtube.com/embed/${externalId}?autoplay=1`;
     }
 
@@ -30,7 +34,8 @@ export default class VideoHubPlayer extends Component {
       typeof externalId === "string" &&
       TIKTOK_ID.test(externalId)
     ) {
-      return `https://www.tiktok.com/player/v1/${externalId}?autoplay=1`;
+      const query = this.args.immersive ? "autoplay=1&loop=1" : "autoplay=1";
+      return `https://www.tiktok.com/player/v1/${externalId}?${query}`;
     }
 
     return null;
