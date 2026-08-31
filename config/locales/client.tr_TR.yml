@@ -17,6 +17,15 @@ tr_TR:
         youtube: "YouTube"
         tiktok: "TikTok"
         instagram: "Instagram"
+      trending:
+        cta: "Trendler"
+        eyebrow: "Şu anda trend"
+        title: "Trend videolar"
+        description: "Anlamlı nitelikli izlenme etkinliği alan videolar, Video Hub'ın güncel keşif puanıyla sıralanır."
+        window: "Son tamamlanmış 7 günlük nitelikli izlenme etkinliği temel alınır."
+        back_to_videos: "Videolara dön"
+        empty_title: "Henüz trend video yok"
+        empty_description: "Videolar tamamlanmış sıralama penceresinde nitelikli izlenme etkinliği aldığında burada görünür."
       saved:
         cta: "Kaydedilenler"
         eyebrow: "Kütüphanen"
