@@ -26,6 +26,15 @@ tr_TR:
         back_to_videos: "Videolara dön"
         empty_title: "Henüz trend video yok"
         empty_description: "Videolar tamamlanmış sıralama penceresinde nitelikli izlenme etkinliği aldığında burada görünür."
+      following:
+        cta: "Takip ettiklerim"
+        eyebrow: "Takip ettiğin kişiler"
+        title: "Takip akışı"
+        description: "Takip ettiğin kişilerin görebildiğin en yeni videoları kronolojik sırayla burada görünür."
+        source: "Takip ilişkilerin resmi Discourse Follow eklentisinden alınır."
+        back_to_videos: "Videolara dön"
+        empty_title: "Takip ettiğin kişilerden henüz video yok"
+        empty_description: "Discourse Follow ile topluluk üyelerini takip et. Yayınladıkları görünür Video Hub videoları burada görünür."
       saved:
         cta: "Kaydedilenler"
         eyebrow: "Kütüphanen"
