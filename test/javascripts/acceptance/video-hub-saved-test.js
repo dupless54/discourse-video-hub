@@ -57,6 +57,6 @@ acceptance("Video Hub saved videos | anonymous", function () {
       await visit("/videos/saved");
 
       assert.strictEqual(requests, 0);
-    }
+    },
   );
 });
