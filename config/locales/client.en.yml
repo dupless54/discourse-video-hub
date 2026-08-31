@@ -17,6 +17,15 @@ en:
         youtube: "YouTube"
         tiktok: "TikTok"
         instagram: "Instagram"
+      trending:
+        cta: "Trending"
+        eyebrow: "Trending now"
+        title: "Trending videos"
+        description: "Videos with meaningful qualified viewing activity, ranked with the Video Hub's current discovery score."
+        window: "Based on the last 7 completed days of qualified viewing activity."
+        back_to_videos: "Back to videos"
+        empty_title: "Nothing is trending yet"
+        empty_description: "Videos will appear here after they receive qualified viewing activity in the completed ranking window."
       saved:
         cta: "Saved videos"
         eyebrow: "Your library"
