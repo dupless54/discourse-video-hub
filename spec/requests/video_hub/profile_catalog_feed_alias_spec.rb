@@ -15,13 +15,7 @@ describe "Video Hub profile catalog feed alias" do
     VideoHub::FeedQuery
       .expects(:fetch)
       .with(user: user, cursor: nil, limit: "20")
-      .returns(
-        VideoHub::FeedQuery::Result.new(
-          videos: [],
-          has_more: false,
-          next_cursor: nil,
-        ),
-      )
+      .returns(VideoHub::FeedQuery::Result.new(videos: [], has_more: false, next_cursor: nil))
 
     get "/videos.json", params: { limit: 20 }
 
