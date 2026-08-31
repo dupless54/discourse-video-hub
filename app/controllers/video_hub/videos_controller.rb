@@ -145,10 +145,7 @@ module VideoHub
     end
 
     def saved_video_payload(result)
-      {
-        saved: result.saved,
-        bookmark_id: result.bookmark_id,
-      }
+      { saved: result.saved, bookmark_id: result.bookmark_id }
     end
 
     def publish_error_status(code)
