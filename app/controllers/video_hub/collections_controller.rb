@@ -50,7 +50,10 @@ module VideoHub
           video_id: params[:video_id],
         )
 
-      render json: { membership: membership_payload(result) }, status: result.created ? :created : :ok
+      render json: {
+               membership: membership_payload(result),
+             },
+             status: result.created ? :created : :ok
     rescue VideoHub::CollectionManager::CollectionError => error
       render_collection_error(error)
     end
@@ -96,11 +99,7 @@ module VideoHub
     end
 
     def item_payload(item)
-      {
-        id: item.id,
-        video_id: item.video_id,
-        position: item.position,
-      }
+      { id: item.id, video_id: item.video_id, position: item.position }
     end
 
     def membership_payload(result)
