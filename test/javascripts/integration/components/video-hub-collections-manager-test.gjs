@@ -1,10 +1,4 @@
-import {
-  click,
-  fillIn,
-  findAll,
-  render,
-  select,
-} from "@ember/test-helpers";
+import { click, fillIn, findAll, render, select } from "@ember/test-helpers";
 import { module, test } from "qunit";
 import { setupRenderingTest } from "discourse/tests/helpers/component-test";
 import pretender, { response } from "discourse/tests/helpers/create-pretender";
@@ -230,10 +224,14 @@ module(
       );
 
       assert
-        .dom('[data-collection-id="10"] .video-hub-collections__collection-move-up')
+        .dom(
+          '[data-collection-id="10"] .video-hub-collections__collection-move-up'
+        )
         .isDisabled();
       assert
-        .dom('[data-collection-id="20"] .video-hub-collections__collection-move-down')
+        .dom(
+          '[data-collection-id="20"] .video-hub-collections__collection-move-down'
+        )
         .isDisabled();
 
       await click(

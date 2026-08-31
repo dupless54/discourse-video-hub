@@ -78,8 +78,7 @@ class VideoHubCollectionManagerCard extends Component {
 
   get disableCollectionMoveDown() {
     return (
-      this.isBusy ||
-      this.args.collectionIndex === this.args.collectionCount - 1
+      this.isBusy || this.args.collectionIndex === this.args.collectionCount - 1
     );
   }
 
@@ -202,11 +201,7 @@ class VideoHubCollectionManagerCard extends Component {
     const sourceIndex = items.findIndex((item) => item.id === itemId);
     const targetIndex = sourceIndex + direction;
 
-    if (
-      sourceIndex === -1 ||
-      targetIndex < 0 ||
-      targetIndex >= items.length
-    ) {
+    if (sourceIndex === -1 || targetIndex < 0 || targetIndex >= items.length) {
       return;
     }
 
@@ -228,10 +223,7 @@ class VideoHubCollectionManagerCard extends Component {
       const authoritativeItems =
         orderRecordsByIds(items, response?.item_ids) ?? proposedItems;
 
-      this.args.onItemsReordered(
-        this.args.collection.id,
-        authoritativeItems
-      );
+      this.args.onItemsReordered(this.args.collection.id, authoritativeItems);
       this.toasts.success({
         data: { message: i18n("video_hub.collections.order_updated") },
         duration: "short",
@@ -565,15 +557,17 @@ export default class VideoHubCollectionsManager extends Component {
       const response = await ajax("/videos/collections/reorder.json", {
         type: "PUT",
         data: {
-          collection_ids: proposedCollections.map((collection) => collection.id),
+          collection_ids: proposedCollections.map(
+            (collection) => collection.id
+          ),
         },
       });
       const authoritativeCollections =
         orderRecordsByIds(this.collections, response?.collection_ids) ??
         proposedCollections;
 
-      this.collections = authoritativeCollections.map((collection, position) =>
-        ({ ...collection, position })
+      this.collections = authoritativeCollections.map(
+        (collection, position) => ({ ...collection, position })
       );
       this.toasts.success({
         data: { message: i18n("video_hub.collections.order_updated") },
