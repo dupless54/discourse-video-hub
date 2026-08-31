@@ -17,7 +17,7 @@ export default class UserVideoHubProfileLayoutRoute extends Route {
 
   async fetchCatalog() {
     try {
-      return await ajax("/videos/feed.json?limit=20");
+      return await ajax("/videos.json?limit=20");
     } catch {
       return {
         videos: [],
