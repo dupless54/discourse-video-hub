@@ -53,9 +53,7 @@ acceptance("Video Hub immersive explore | anonymous", function () {
         "src",
         "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&playsinline=1&loop=1&playlist=dQw4w9WgXcQ"
       );
-    assert
-      .dom(".video-hub-explore__back")
-      .hasAttribute("href", "/videos");
+    assert.dom(".video-hub-explore__back").hasAttribute("href", "/videos");
     assert.strictEqual(observations.length, 2, "observes each immersive card");
   });
 
