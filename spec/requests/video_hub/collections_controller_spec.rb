@@ -201,7 +201,7 @@ describe "Video Hub collection management" do
     video = create_video(user: Fabricate(:user))
     item =
       VideoHub::VideoCollectionItem.create!(video_collection: collection, video: video, position: 0)
-    video.topic.update_column(:visible, false)
+    video.post.update_column(:hidden, true)
     sign_in(owner)
 
     get "/videos/collections.json"
