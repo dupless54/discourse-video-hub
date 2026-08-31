@@ -13,11 +13,7 @@ describe "Video Hub collection management" do
     collection = create_collection(user: owner, collection_type: "playlist", visible: true)
     video = create_video(user: owner)
     item =
-      VideoHub::VideoCollectionItem.create!(
-        video_collection: collection,
-        video: video,
-        position: 0,
-      )
+      VideoHub::VideoCollectionItem.create!(video_collection: collection, video: video, position: 0)
 
     get "/videos/collections/#{collection.id}.json"
 
