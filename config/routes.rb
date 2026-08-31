@@ -21,6 +21,13 @@ VideoHub::Engine.routes.draw do
          :defaults => {
            format: :json,
          }
+  post "/:id/metrics" => "videos#record_metric",
+       :constraints => {
+         id: /\d+/,
+       },
+       :defaults => {
+         format: :json,
+       }
   get "/:id/:slug" => "videos#show", :constraints => { id: /\d+/, format: :json }
   post "/" => "videos#create", :defaults => { format: :json }
 end
