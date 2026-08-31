@@ -22,6 +22,13 @@ VideoHub::Engine.routes.draw do
   get "/trending/feed" => "videos#trending_feed", :defaults => { format: :json }
   get "/following/feed" => "videos#following_feed", :defaults => { format: :json }
   get "/saved/feed" => "videos#saved_feed", :defaults => { format: :json }
+  get "/collections" => "videos#shell",
+      :constraints => {
+        format: /html/,
+      },
+      :defaults => {
+        format: :html,
+      }
   get "/collections/:id" => "videos#shell",
       :constraints => {
         id: /\d+/,
