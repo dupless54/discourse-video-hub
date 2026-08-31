@@ -1,10 +1,13 @@
 import Component from "@glimmer/component";
+import { tracked } from "@glimmer/tracking";
 import { action } from "@ember/object";
 import didInsert from "@ember/render-modifiers/modifiers/did-insert";
 import { cancel } from "@ember/runloop";
 import { service } from "@ember/service";
 import { ajax } from "discourse/lib/ajax";
+import { popupAjaxError } from "discourse/lib/ajax-error";
 import discourseLater from "discourse/lib/later";
+import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 import VideoHubDiscussion from "./video-hub-discussion";
 import VideoHubPlayer from "./video-hub-player";
@@ -14,15 +17,28 @@ const QUALIFIED_VIEW_DELAY = 3000;
 export default class VideoHubWatch extends Component {
   @service currentUser;
 
+  @tracked saved;
+  @tracked bookmarkId;
+  @tracked saveBusy = false;
+
   metricMounted = false;
   impressionRequested = false;
   qualifiedRequested = false;
   qualifiedTimer = null;
+  saveRequest = null;
+
+  constructor(owner, args) {
+    super(owner, args);
+    this.saved = Boolean(args.model.video.saved);
+    this.bookmarkId = args.model.video.bookmark_id ?? null;
+  }
 
   willDestroy() {
     super.willDestroy();
     this.metricMounted = false;
     this.cancelQualifiedTimer();
+    this.saveRequest?.abort?.();
+    this.saveRequest = null;
   }
 
   get video() {
@@ -39,6 +55,10 @@ export default class VideoHubWatch extends Component {
     });
   }
 
+  get saveButtonLabel() {
+    return this.saved ? "video_hub.watch.unsave" : "video_hub.watch.save";
+  }
+
   @action
   startMetricTracking() {
     this.metricMounted = true;
@@ -49,6 +69,39 @@ export default class VideoHubWatch extends Component {
 
     this.impressionRequested = true;
     void this.recordImpression();
+  }
+
+  @action
+  async toggleSaved() {
+    if (!this.currentUser || this.saveBusy) {
+      return;
+    }
+
+    this.saveBusy = true;
+    const request = ajax(`/videos/${this.video.id}/save`, {
+      type: this.saved ? "DELETE" : "POST",
+    });
+    this.saveRequest = request;
+
+    try {
+      const result = await request;
+
+      if (this.saveRequest !== request) {
+        return;
+      }
+
+      this.saved = Boolean(result.saved);
+      this.bookmarkId = result.bookmark_id ?? null;
+    } catch (error) {
+      if (this.saveRequest === request && !this.isAbortError(error)) {
+        popupAjaxError(error);
+      }
+    } finally {
+      if (this.saveRequest === request) {
+        this.saveRequest = null;
+        this.saveBusy = false;
+      }
+    }
   }
 
   async recordImpression() {
@@ -103,6 +156,10 @@ export default class VideoHubWatch extends Component {
     });
   }
 
+  isAbortError(error) {
+    return error?.statusText === "abort" || error?.name === "AbortError";
+  }
+
   cancelQualifiedTimer() {
     if (this.qualifiedTimer !== null) {
       cancel(this.qualifiedTimer);
@@ -127,15 +184,27 @@ export default class VideoHubWatch extends Component {
             <p class="video-hub-watch__author">{{this.video.author_name}}</p>
           {{/if}}
 
-          <a
-            class="btn btn-primary video-hub-watch__provider-link"
-            href={{this.video.canonical_url}}
-            target="_blank"
-            rel="noopener noreferrer nofollow"
-            aria-label={{this.providerActionLabel}}
-          >
-            {{this.providerActionLabel}}
-          </a>
+          <div class="video-hub-watch__actions">
+            <a
+              class="btn btn-primary video-hub-watch__provider-link"
+              href={{this.video.canonical_url}}
+              target="_blank"
+              rel="noopener noreferrer nofollow"
+              aria-label={{this.providerActionLabel}}
+            >
+              {{this.providerActionLabel}}
+            </a>
+
+            {{#if this.currentUser}}
+              <DButton
+                @action={{this.toggleSaved}}
+                @disabled={{this.saveBusy}}
+                @icon="bookmark"
+                @label={{this.saveButtonLabel}}
+                class="video-hub-watch__save"
+              />
+            {{/if}}
+          </div>
         </section>
       </article>
 
