@@ -31,9 +31,7 @@ describe "Video Hub saved videos" do
       post "/videos/#{video.id}/save.json"
 
       expect(response.status).to eq(200)
-      expect(response.parsed_body).to eq(
-        { "saved" => true, "bookmark_id" => first_bookmark_id },
-      )
+      expect(response.parsed_body).to eq({ "saved" => true, "bookmark_id" => first_bookmark_id })
       expect(
         Bookmark.where(
           user_id: viewer.id,
