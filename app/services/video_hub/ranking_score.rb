@@ -24,16 +24,43 @@ module VideoHub
       end
     end
 
-    def self.score(signal:, published_at:, as_of: Time.zone.now)
-      new(signal: signal, published_at: published_at, as_of: as_of).score
+    def self.score(signal:, published_at:, as_of: Time.zone.now, weights: nil)
+      new(signal: signal, published_at: published_at, as_of: as_of, weights: weights).score
     end
 
-    def initialize(signal:, published_at:, as_of:)
+    def self.current_weights
+      normalize_weights(
+        WEIGHT_SETTINGS.transform_values { |setting| SiteSetting.public_send(setting) },
+      )
+    rescue NoMethodError
+      raise RankingError.new(:invalid_weights)
+    end
+
+    def self.normalize_weights(weights)
+      unless weights.is_a?(Hash) && weights.keys.sort == WEIGHT_SETTINGS.keys.sort
+        raise RankingError.new(:invalid_weights)
+      end
+
+      normalized =
+        WEIGHT_SETTINGS.keys.index_with do |name|
+          weight = Integer(weights.fetch(name))
+          raise RankingError.new(:invalid_weights) unless weight.between?(0, MAX_WEIGHT)
+
+          weight
+        end
+
+      normalized.freeze
+    rescue KeyError, ArgumentError, TypeError
+      raise RankingError.new(:invalid_weights)
+    end
+
+    def initialize(signal:, published_at:, as_of:, weights: nil)
       @signal_version = Integer(signal.version)
       @qualified_views = Integer(signal.qualified_views)
       @qualified_rate_basis_points = Integer(signal.qualified_rate_basis_points)
       @published_at = published_at&.to_time
       @as_of = as_of.to_time
+      @weights = weights.nil? ? self.class.current_weights : self.class.normalize_weights(weights)
     rescue ArgumentError, TypeError, NoMethodError
       raise RankingError.new(:invalid_input)
     end
@@ -46,7 +73,6 @@ module VideoHub
         qualified_volume: qualified_volume_basis_points,
         freshness: freshness_basis_points,
       }.freeze
-      weights = configured_weights.freeze
       total_weight = weights.values.sum
       score_basis_points =
         if total_weight.zero?
@@ -69,7 +95,8 @@ module VideoHub
                 :qualified_views,
                 :qualified_rate_basis_points,
                 :published_at,
-                :as_of
+                :as_of,
+                :weights
 
     def validate_signal!
       unless signal_version == RankingSignals::VERSION
@@ -93,17 +120,6 @@ module VideoHub
       return 0 if age_seconds >= window_seconds
 
       (window_seconds - age_seconds) * MAX_BASIS_POINTS / window_seconds
-    end
-
-    def configured_weights
-      WEIGHT_SETTINGS.transform_values do |setting|
-        weight = Integer(SiteSetting.public_send(setting))
-        raise RankingError.new(:invalid_weights) unless weight.between?(0, MAX_WEIGHT)
-
-        weight
-      end
-    rescue ArgumentError, TypeError
-      raise RankingError.new(:invalid_weights)
     end
   end
 end

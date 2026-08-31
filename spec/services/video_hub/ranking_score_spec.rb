@@ -45,6 +45,24 @@ describe VideoHub::RankingScore do
     expect(result.score_basis_points).to eq(7_500)
   end
 
+  it "uses an explicit frozen weight snapshot instead of later SiteSetting changes" do
+    weights = described_class.current_weights
+    SiteSetting.video_hub_ranking_qualified_rate_weight = 0
+    SiteSetting.video_hub_ranking_qualified_volume_weight = 100
+    SiteSetting.video_hub_ranking_freshness_weight = 0
+
+    result =
+      described_class.score(
+        signal: build_signal(qualified_views: 0, qualified_rate_basis_points: 10_000),
+        published_at: as_of - 14.days,
+        as_of: as_of,
+        weights: weights,
+      )
+
+    expect(result.weights).to eq(qualified_rate: 60, qualified_volume: 25, freshness: 15)
+    expect(result.score_basis_points).to eq(6_000)
+  end
+
   it "returns zero when staff intentionally disables every ranking weight" do
     SiteSetting.video_hub_ranking_qualified_rate_weight = 0
     SiteSetting.video_hub_ranking_qualified_volume_weight = 0
@@ -93,6 +111,23 @@ describe VideoHub::RankingScore do
       described_class.score(signal: Object.new, published_at: as_of, as_of: as_of)
     }.to raise_error(described_class::RankingError) { |error|
       expect(error.code).to eq(:invalid_input)
+    }
+  end
+
+  it "fails closed on malformed explicit weight snapshots" do
+    signal = build_signal
+
+    expect {
+      described_class.score(
+        signal: signal,
+        published_at: as_of,
+        as_of: as_of,
+        weights: {
+          qualified_rate: 100,
+        },
+      )
+    }.to raise_error(described_class::RankingError) { |error|
+      expect(error.code).to eq(:invalid_weights)
     }
   end
 
