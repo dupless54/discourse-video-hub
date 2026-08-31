@@ -16,14 +16,18 @@ describe VideoHub::FollowingFeedCursor do
     tampered = token.dup
     tampered[-1] = tampered[-1] == "a" ? "b" : "a"
 
-    expect { described_class.decode(tampered) }.to raise_error(described_class::CursorError) do |error|
+    expect { described_class.decode(tampered) }.to raise_error(
+      described_class::CursorError,
+    ) do |error|
       expect(error.code).to eq(:invalid_cursor)
     end
   end
 
   it "rejects malformed, whitespace, and oversized tokens" do
     ["", "bad token", "x" * (described_class::MAX_LENGTH + 1)].each do |token|
-      expect { described_class.decode(token) }.to raise_error(described_class::CursorError) do |error|
+      expect { described_class.decode(token) }.to raise_error(
+        described_class::CursorError,
+      ) do |error|
         expect(error.code).to eq(:invalid_cursor)
       end
     end
