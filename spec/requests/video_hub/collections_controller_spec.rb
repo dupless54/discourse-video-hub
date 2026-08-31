@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 describe "Video Hub collection management" do
-  let(:owner) { Fabricate(:user) }
+  let(:owner) { Fabricate(:user, trust_level: TrustLevel[2]) }
   let(:category) { Fabricate(:category) }
 
   before do
