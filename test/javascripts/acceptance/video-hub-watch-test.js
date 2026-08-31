@@ -61,9 +61,14 @@ acceptance("Video Hub canonical watch", function (needs) {
     };
   }
 
+  function stubMetrics() {
+    pretender.post("/videos/42/metrics", () => response({ recorded: true }));
+  }
+
   test("loads the server payload and replaces a stale slug with the canonical watch path", async function (assert) {
     const topic = topicPayload();
 
+    stubMetrics();
     pretender.get("/videos/42/wrong-slug.json", () => response(videoPayload));
     pretender.get("/videos/42/canonical-video.json", () =>
       response(videoPayload)
@@ -106,6 +111,7 @@ acceptance("Video Hub canonical watch", function (needs) {
     let likeRequests = 0;
     let commentRequests = 0;
 
+    stubMetrics();
     pretender.get("/videos/42/canonical-video.json", () =>
       response(videoPayload)
     );
@@ -214,6 +220,7 @@ acceptance("Video Hub canonical watch", function (needs) {
     let nestedCreateRequests = 0;
     let nestedReloads = 0;
 
+    stubMetrics();
     pretender.get("/videos/42/canonical-video.json", () =>
       response(videoPayload)
     );

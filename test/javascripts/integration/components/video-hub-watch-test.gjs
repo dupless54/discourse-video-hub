@@ -1,10 +1,11 @@
-import { click, render } from "@ember/test-helpers";
+import { click, render, settled } from "@ember/test-helpers";
 import { module, test } from "qunit";
 import { setupRenderingTest } from "discourse/tests/helpers/component-test";
+import pretender, { response } from "discourse/tests/helpers/create-pretender";
 import VideoHubWatch from "discourse/plugins/discourse-video-hub/discourse/components/video-hub-watch";
 
 module("Integration | Component | VideoHubWatch", function (hooks) {
-  setupRenderingTest(hooks);
+  setupRenderingTest(hooks, { anonymous: true });
 
   test("keeps TikTok lazy until user activation and renders escaped metadata", async function (assert) {
     const model = {
@@ -139,4 +140,67 @@ module("Integration | Component | VideoHubWatch", function (hooks) {
       .dom(".video-hub-watch__provider-link")
       .hasAttribute("href", "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
   });
+
+  test("does not send canonical metrics for an anonymous viewer", async function (assert) {
+    let requestCount = 0;
+    const model = {
+      video: {
+        id: 11,
+        provider: "youtube",
+        external_id: "dQw4w9WgXcQ",
+        canonical_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        kind: "landscape",
+        title: "Anonymous watch",
+        thumbnail_url: null,
+        author_name: null,
+        watch_path: "/videos/11/anonymous-watch",
+      },
+    };
+
+    pretender.post("/videos/11/metrics", () => {
+      requestCount += 1;
+      return response({ recorded: true });
+    });
+
+    await render(<template><VideoHubWatch @model={{model}} /></template>);
+    await settled();
+
+    assert.strictEqual(requestCount, 0);
+  });
 });
+
+module(
+  "Integration | Component | VideoHubWatch | authenticated metrics",
+  function (hooks) {
+    setupRenderingTest(hooks);
+
+    test("records one canonical impression and qualified view after dwell", async function (assert) {
+      const requestBodies = [];
+      const model = {
+        video: {
+          id: 12,
+          provider: "youtube",
+          external_id: "dQw4w9WgXcQ",
+          canonical_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          kind: "landscape",
+          title: "Authenticated watch",
+          thumbnail_url: null,
+          author_name: "Creator",
+          watch_path: "/videos/12/authenticated-watch",
+        },
+      };
+
+      pretender.post("/videos/12/metrics", (request) => {
+        requestBodies.push(request.requestBody ?? "");
+        return response({ recorded: true });
+      });
+
+      await render(<template><VideoHubWatch @model={{model}} /></template>);
+      await settled();
+
+      assert.strictEqual(requestBodies.length, 2);
+      assert.true(requestBodies[0].includes("impression"));
+      assert.true(requestBodies[1].includes("qualified_view"));
+    });
+  }
+);
