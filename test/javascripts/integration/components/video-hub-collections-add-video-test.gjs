@@ -43,6 +43,7 @@ module(
     setupRenderingTest(hooks);
 
     test("loads the catalog lazily, paginates without duplicates, and adds a canonical video", async function (assert) {
+      const model = collectionModel();
       let catalogRequests = 0;
       let addRequests = 0;
 
@@ -80,9 +81,7 @@ module(
       });
 
       await render(
-        <template>
-          <VideoHubCollectionsManager @model={{collectionModel}} />
-        </template>
+        <template><VideoHubCollectionsManager @model={{model}} /></template>
       );
 
       assert.strictEqual(catalogRequests, 0, "catalog is lazy");
@@ -130,12 +129,12 @@ module(
     });
 
     test("keeps the collection manager usable when catalog loading fails", async function (assert) {
+      const model = collectionModel();
+
       pretender.get("/videos/collections/42/catalog.json", () => response(500));
 
       await render(
-        <template>
-          <VideoHubCollectionsManager @model={{collectionModel}} />
-        </template>
+        <template><VideoHubCollectionsManager @model={{model}} /></template>
       );
       await click(".video-hub-collections__catalog-toggle");
 
