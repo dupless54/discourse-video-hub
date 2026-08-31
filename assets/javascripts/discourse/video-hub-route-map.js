@@ -4,6 +4,7 @@ export default function () {
   this.route("video-hub-trending", { path: "/videos/trending" });
   this.route("video-hub-following", { path: "/videos/following" });
   this.route("video-hub-saved", { path: "/videos/saved" });
+  this.route("video-hub-collections", { path: "/videos/collections" });
   this.route("video-hub-collection", { path: "/videos/collections/:id" });
   this.route("video-hub-watch", { path: "/videos/:id/:slug" });
 }

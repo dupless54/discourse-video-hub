@@ -15,6 +15,7 @@ register_asset "stylesheets/common/video-hub-saved.scss"
 register_asset "stylesheets/common/video-hub-trending.scss"
 register_asset "stylesheets/common/video-hub-following.scss"
 register_asset "stylesheets/common/video-hub-collection.scss"
+register_asset "stylesheets/common/video-hub-collections.scss"
 
 module ::VideoHub
   PLUGIN_NAME = "discourse-video-hub"
