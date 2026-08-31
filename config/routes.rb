@@ -4,6 +4,7 @@ VideoHub::Engine.routes.draw do
   get "/" => "videos#shell", :constraints => { format: /html/ }, :defaults => { format: :html }
   get "/new" => "videos#shell", :constraints => { format: /html/ }, :defaults => { format: :html }
   get "/feed" => "videos#index", :defaults => { format: :json }
+  get "/saved/feed" => "videos#saved_feed", :defaults => { format: :json }
   get "/profile/:username" => "profiles#show", :defaults => { format: :json }
   get "/profile/:username/layout" => "profiles#layout", :defaults => { format: :json }
   put "/profile/:username/layout" => "profiles#update_layout", :defaults => { format: :json }

@@ -12,7 +12,7 @@ module VideoHub
     ].freeze
 
     before_action :ensure_video_hub_enabled
-    before_action :ensure_logged_in, only: %i[create record_metric save unsave]
+    before_action :ensure_logged_in, only: %i[create record_metric save unsave saved_feed]
     skip_before_action :check_xhr, only: %i[shell watch]
 
     def shell
@@ -37,6 +37,25 @@ module VideoHub
         },
       )
     rescue VideoHub::FeedQuery::FeedError => error
+      render json: { error: { code: error.code.to_s } }, status: :bad_request
+    end
+
+    def saved_feed
+      result =
+        VideoHub::SavedFeedQuery.fetch(
+          user: current_user,
+          cursor: params[:cursor],
+          limit: params[:limit].presence || VideoHub::SavedFeedQuery::DEFAULT_LIMIT,
+        )
+
+      render_json_dump(
+        videos: result.entries.map { |entry| saved_feed_video_payload(entry) },
+        pagination: {
+          has_more: result.has_more,
+          next_cursor: result.next_cursor,
+        },
+      )
+    rescue VideoHub::SavedFeedQuery::FeedError => error
       render json: { error: { code: error.code.to_s } }, status: :bad_request
     end
 
@@ -148,6 +167,10 @@ module VideoHub
       return payload unless saved_state
 
       payload.merge(saved: saved_state.saved, bookmark_id: saved_state.bookmark_id)
+    end
+
+    def saved_feed_video_payload(entry)
+      video_payload(entry.video).merge(saved: true, bookmark_id: entry.bookmark_id)
     end
 
     def saved_video_payload(result)
