@@ -36,6 +36,8 @@ en:
         play_video: "Play video"
         player_title: "%{provider} video player"
         open_provider: "Watch on %{provider}"
+        save: "Save video"
+        unsave: "Remove from saved"
         discussion_eyebrow: "Discourse discussion"
         discussion_title: "Comments"
         like: "Like (%{count})"
