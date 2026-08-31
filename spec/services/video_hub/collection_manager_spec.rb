@@ -117,10 +117,10 @@ describe VideoHub::CollectionManager do
     }
   end
 
-  it "fails closed before adding an unavailable or disabled-provider video" do
+  it "fails closed before adding a structurally hidden or disabled-provider video" do
     collection = create_collection(user: owner, position: 0)
     hidden_video = create_video(user: Fabricate(:user))
-    hidden_video.topic.update_column(:visible, false)
+    hidden_video.topic.update_column(:deleted_at, Time.zone.now)
     disabled_video = create_video(user: Fabricate(:user), provider: "instagram")
 
     [hidden_video, disabled_video].each do |video|
