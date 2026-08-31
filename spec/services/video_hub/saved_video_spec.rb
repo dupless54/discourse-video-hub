@@ -10,6 +10,26 @@ describe VideoHub::SavedVideo do
   let(:owner) { Fabricate(:user) }
   let(:video) { create_video(owner: owner) }
 
+  it "returns an anonymous unsaved state without exposing bookmark data" do
+    state = described_class.state(user: nil, video: video)
+
+    expect(state.saved).to eq(false)
+    expect(state.bookmark_id).to be_nil
+  end
+
+  it "returns only the requested viewer's core bookmark state" do
+    other_viewer = Fabricate(:user)
+    other_bookmark = described_class.save(user: other_viewer, video_id: video.id)
+
+    viewer_state = described_class.state(user: viewer, video: video)
+    other_state = described_class.state(user: other_viewer, video: video)
+
+    expect(viewer_state.saved).to eq(false)
+    expect(viewer_state.bookmark_id).to be_nil
+    expect(other_state.saved).to eq(true)
+    expect(other_state.bookmark_id).to eq(other_bookmark.bookmark_id)
+  end
+
   it "saves the visible video's root post through the core bookmark model" do
     result = described_class.save(user: viewer, video_id: video.id)
     bookmark = Bookmark.find(result.bookmark_id)
