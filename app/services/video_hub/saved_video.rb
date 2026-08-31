@@ -40,10 +40,7 @@ module VideoHub
 
       manager = BookmarkManager.new(user)
       bookmark =
-        manager.create_for(
-          bookmarkable_id: video.post_id,
-          bookmarkable_type: Post.polymorphic_name,
-        )
+        manager.create_for(bookmarkable_id: video.post_id, bookmarkable_type: Post.polymorphic_name)
 
       if manager.errors.any? || !bookmark.is_a?(Bookmark)
         bookmark = bookmark_for(video)
