@@ -1,4 +1,10 @@
-import { click, fillIn, render, select } from "@ember/test-helpers";
+import {
+  click,
+  fillIn,
+  findAll,
+  render,
+  select,
+} from "@ember/test-helpers";
 import { module, test } from "qunit";
 import { setupRenderingTest } from "discourse/tests/helpers/component-test";
 import pretender, { response } from "discourse/tests/helpers/create-pretender";
@@ -153,6 +159,111 @@ module(
       assert
         .dom('[data-collection-id="77"] .video-hub-collections__public-link')
         .doesNotExist();
+    });
+
+    test("reorders collections and memberships through authoritative server permutations", async function (assert) {
+      const model = {
+        collections: [
+          {
+            id: 10,
+            collection_type: "playlist",
+            title: "First",
+            description: null,
+            position: 0,
+            visible: false,
+            items: [],
+          },
+          {
+            id: 20,
+            collection_type: "playlist",
+            title: "Second",
+            description: null,
+            position: 1,
+            visible: false,
+            items: [
+              {
+                id: 201,
+                video_id: 91,
+                position: 0,
+                video: {
+                  id: 91,
+                  provider: "youtube",
+                  title: "First item",
+                  thumbnail_url: null,
+                  author_name: "Creator",
+                  watch_path: "/videos/91/first-item",
+                },
+              },
+              {
+                id: 202,
+                video_id: 92,
+                position: 1,
+                video: {
+                  id: 92,
+                  provider: "youtube",
+                  title: "Second item",
+                  thumbnail_url: null,
+                  author_name: "Creator",
+                  watch_path: "/videos/92/second-item",
+                },
+              },
+            ],
+          },
+        ],
+      };
+      let collectionOrder = [];
+      let itemOrder = [];
+
+      pretender.put("/videos/collections/reorder.json", (request) => {
+        const params = new URLSearchParams(request.requestBody ?? "");
+        collectionOrder = params.getAll("collection_ids[]").map(Number);
+        return response({ collection_ids: [20, 10] });
+      });
+      pretender.put("/videos/collections/20/items/reorder.json", (request) => {
+        const params = new URLSearchParams(request.requestBody ?? "");
+        itemOrder = params.getAll("item_ids[]").map(Number);
+        return response({ item_ids: [202, 201] });
+      });
+
+      await render(
+        <template><VideoHubCollectionsManager @model={{model}} /></template>
+      );
+
+      assert
+        .dom('[data-collection-id="10"] .video-hub-collections__collection-move-up')
+        .isDisabled();
+      assert
+        .dom('[data-collection-id="20"] .video-hub-collections__collection-move-down')
+        .isDisabled();
+
+      await click(
+        '[data-collection-id="20"] .video-hub-collections__collection-move-up'
+      );
+
+      assert.deepEqual(collectionOrder, [20, 10]);
+      assert.deepEqual(
+        findAll("[data-collection-id]").map((element) =>
+          Number(element.dataset.collectionId)
+        ),
+        [20, 10]
+      );
+
+      await click(
+        '[data-collection-id="20"] [data-item-id="202"] .video-hub-collections__item-move-up'
+      );
+
+      assert.deepEqual(itemOrder, [202, 201]);
+      assert.deepEqual(
+        findAll('[data-collection-id="20"] [data-item-id]').map((element) =>
+          Number(element.dataset.itemId)
+        ),
+        [202, 201]
+      );
+      assert
+        .dom(
+          '[data-collection-id="20"] [data-item-id="202"] .video-hub-collections__item-move-up'
+        )
+        .isDisabled();
     });
   }
 );
