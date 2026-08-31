@@ -19,13 +19,31 @@ module VideoHub
       new(now: now).freeze
     end
 
-    def initialize(now:)
+    def self.restore(snapshot_at:, metric_as_of:, weights:, version: VERSION)
+      raise ContextError.new(:unsupported_version) unless Integer(version) == VERSION
+
+      new(now: snapshot_at, metric_as_of: metric_as_of, weights: weights).freeze
+    rescue ArgumentError, TypeError
+      raise ContextError.new(:unsupported_version)
+    end
+
+    def initialize(now:, metric_as_of: nil, weights: nil)
+      normalized_time = normalize_time(now)
+
       @version = VERSION
-      @snapshot_at = now.to_time.utc
-      @metric_as_of = snapshot_at.to_date - 1.day
-      @weights = RankingScore.current_weights
-    rescue ArgumentError, TypeError, NoMethodError
-      raise ContextError.new(:invalid_time)
+      @snapshot_at = normalized_time.utc
+      @metric_as_of =
+        (
+          if metric_as_of.nil?
+            normalized_time.in_time_zone(Time.zone).to_date - 1.day
+          else
+            normalize_date(metric_as_of)
+          end
+        )
+      @weights =
+        weights.nil? ? RankingScore.current_weights : RankingScore.normalize_weights(weights)
+    rescue RankingScore::RankingError => error
+      raise ContextError.new(error.code)
     end
 
     def signals(video_ids:)
@@ -39,6 +57,22 @@ module VideoHub
         as_of: snapshot_at,
         weights: weights,
       )
+    end
+
+    private
+
+    def normalize_time(value)
+      value.to_time
+    rescue ArgumentError, TypeError, NoMethodError
+      raise ContextError.new(:invalid_time)
+    end
+
+    def normalize_date(value)
+      return value if value.is_a?(Date)
+
+      Date.iso8601(value.to_s)
+    rescue ArgumentError, TypeError
+      raise ContextError.new(:invalid_metric_day)
     end
   end
 end
