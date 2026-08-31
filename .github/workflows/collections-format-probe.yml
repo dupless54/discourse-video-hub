@@ -1,0 +1,37 @@
+name: Collections Format Probe
+
+on:
+  push:
+    branches:
+      - feature/video-collections-management-page
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Canonicalize scoped files
+        run: |
+          pnpm stylelint --fix assets/stylesheets/common/video-hub-collections.scss
+          pnpm prettier --write \
+            assets/stylesheets/common/video-hub-collections.scss \
+            assets/javascripts/discourse/components/video-hub-collections-manager.gjs \
+            test/javascripts/acceptance/video-hub-collections-test.js \
+            test/javascripts/integration/components/video-hub-collections-manager-test.gjs
+      - name: Print formatter diff
+        run: git diff -- \
+          assets/stylesheets/common/video-hub-collections.scss \
+          assets/javascripts/discourse/components/video-hub-collections-manager.gjs \
+          test/javascripts/acceptance/video-hub-collections-test.js \
+          test/javascripts/integration/components/video-hub-collections-manager-test.gjs
