@@ -12,7 +12,8 @@ module VideoHub
     ].freeze
 
     before_action :ensure_video_hub_enabled
-    before_action :ensure_logged_in, only: %i[create record_metric save unsave saved_feed]
+    before_action :ensure_logged_in,
+                  only: %i[create record_metric save unsave saved_feed following_feed]
     skip_before_action :check_xhr, only: %i[shell watch]
 
     def shell
@@ -57,6 +58,27 @@ module VideoHub
         },
       )
     rescue VideoHub::TrendingFeedQuery::FeedError => error
+      render json: { error: { code: error.code.to_s } }, status: :bad_request
+    end
+
+    def following_feed
+      result =
+        VideoHub::FollowingFeedQuery.fetch(
+          user: current_user,
+          cursor: params[:cursor],
+          limit: params[:limit].presence || VideoHub::FollowingFeedQuery::DEFAULT_LIMIT,
+        )
+
+      render_json_dump(
+        videos: result.videos.map { |video| video_payload(video) },
+        pagination: {
+          has_more: result.has_more,
+          next_cursor: result.next_cursor,
+        },
+      )
+    rescue VideoHub::FollowingFeedQuery::FeedError => error
+      raise Discourse::NotFound if error.code == :follow_unavailable
+
       render json: { error: { code: error.code.to_s } }, status: :bad_request
     end
 
