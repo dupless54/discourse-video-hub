@@ -51,8 +51,10 @@ acceptance("Video Hub immersive explore | anonymous", function () {
       .dom('[data-video-hub-feed-index="0"] .video-hub-player__iframe')
       .hasAttribute(
         "src",
-        "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&playsinline=1&loop=1&playlist=dQw4w9WgXcQ"
-      );
+        "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&playsinline=1&loop=1&playlist=dQw4w9WgXcQ&controls=1"
+      )
+      .hasAttribute("data-interactive", "false");
+    assert.dom(".video-hub-mobile-feed__actions").exists({ count: 2 });
     assert.dom(".video-hub-explore__back").hasAttribute("href", "/videos");
     assert.strictEqual(observations.length, 2, "observes each immersive card");
   });
