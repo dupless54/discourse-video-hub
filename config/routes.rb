@@ -46,6 +46,7 @@ VideoHub::Engine.routes.draw do
         format: :json,
       }
   post "/collections" => "collections#create", :defaults => { format: :json }
+  put "/collections/reorder" => "collections#reorder", :defaults => { format: :json }
   put "/collections/:id" => "collections#update",
       :constraints => {
         id: /\d+/,
@@ -60,6 +61,13 @@ VideoHub::Engine.routes.draw do
          :defaults => {
            format: :json,
          }
+  put "/collections/:id/items/reorder" => "collections#reorder_items",
+      :constraints => {
+        id: /\d+/,
+      },
+      :defaults => {
+        format: :json,
+      }
   put "/collections/:id/videos/:video_id" => "collections#add_video",
       :constraints => {
         id: /\d+/,
