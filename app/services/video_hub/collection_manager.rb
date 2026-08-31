@@ -49,7 +49,7 @@ module VideoHub
 
     def list
       owned_collections
-        .includes(:items)
+        .includes(items: { video: %i[topic post] })
         .order(:position, :id)
         .map { |collection| collection_entry(collection, sorted_items(collection.items)) }
         .freeze
@@ -181,6 +181,7 @@ module VideoHub
 
     def locked_items(collection)
       VideoHub::VideoCollectionItem
+        .includes(video: %i[topic post])
         .where(video_collection_id: collection.id)
         .lock
         .order(:position, :id)
