@@ -1,0 +1,32 @@
+name: Mobile Explore Format Probe
+
+on:
+  push:
+    branches:
+      - feature/mobile-explore-social-controls
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Print canonical Prettier diff
+        run: |
+          pnpm prettier --write \
+            assets/stylesheets/common/video-hub-explore-interactions.scss \
+            assets/javascripts/discourse/components/video-hub-mobile-feed-item.gjs \
+            test/javascripts/acceptance/video-hub-explore-test.js \
+            test/javascripts/integration/components/video-hub-explore-social-controls-test.gjs
+          git diff -- \
+            assets/stylesheets/common/video-hub-explore-interactions.scss \
+            assets/javascripts/discourse/components/video-hub-mobile-feed-item.gjs \
+            test/javascripts/acceptance/video-hub-explore-test.js \
+            test/javascripts/integration/components/video-hub-explore-social-controls-test.gjs
