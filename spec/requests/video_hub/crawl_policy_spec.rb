@@ -14,6 +14,7 @@ describe "Video Hub crawl policy" do
     [
       "/videos",
       "/videos/new",
+      "/videos/trending",
       "/videos/saved",
       "/u/#{user.username}/videos",
       "/u/#{user.username}/videos/edit",

@@ -257,6 +257,12 @@ export default class VideoHubLanding extends Component {
             >
               {{i18n "video_hub.publish.cta"}}
             </LinkTo>
+            <LinkTo
+              @route="video-hub-trending"
+              class="btn btn-default video-hub-page__trending-link"
+            >
+              {{i18n "video_hub.trending.cta"}}
+            </LinkTo>
             {{#if this.currentUser}}
               <LinkTo
                 @route="video-hub-saved"
