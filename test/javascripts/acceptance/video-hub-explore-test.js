@@ -55,9 +55,7 @@ acceptance("Video Hub immersive explore | anonymous", function () {
       )
       .hasAttribute("data-interactive", "false");
     assert.dom(".video-hub-mobile-feed__actions").exists({ count: 2 });
-    assert
-      .dom(".video-hub-explore__back")
-      .hasAttribute("href", "/videos");
+    assert.dom(".video-hub-explore__back").hasAttribute("href", "/videos");
     assert.strictEqual(observations.length, 2, "observes each immersive card");
   });
 
