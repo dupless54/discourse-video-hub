@@ -170,6 +170,115 @@ describe VideoHub::CollectionManager do
     expect { removed.item.reload }.to raise_error(ActiveRecord::RecordNotFound)
   end
 
+  it "atomically reverses owner collections without transient unique-position collisions" do
+    first = create_collection(user: owner, title: "First", position: 0)
+    second = create_collection(user: owner, title: "Second", position: 1)
+    third = create_collection(user: owner, title: "Third", position: 2)
+    ordered_ids = [third.id, second.id, first.id]
+
+    expect(described_class.reorder_collections(user: owner, collection_ids: ordered_ids)).to eq(
+      ordered_ids,
+    )
+    expect(
+      VideoHub::VideoCollection.where(user_id: owner.id).order(:position).pluck(:id, :position),
+    ).to eq([[third.id, 0], [second.id, 1], [first.id, 2]])
+    expect(described_class.list(user: owner).map { |entry| entry.collection.id }).to eq(ordered_ids)
+  end
+
+  it "rejects incomplete, duplicate, or foreign collection orders without mutating positions" do
+    first = create_collection(user: owner, title: "First", position: 0)
+    second = create_collection(user: owner, title: "Second", position: 1)
+    foreign = create_collection(user: Fabricate(:user), title: "Foreign", position: 0)
+    original_positions =
+      VideoHub::VideoCollection.where(user_id: owner.id).order(:position).pluck(:id, :position)
+
+    [[second.id], [first.id, first.id], [first.id, foreign.id]].each do |ordered_ids|
+      expect do
+        described_class.reorder_collections(user: owner, collection_ids: ordered_ids)
+      end.to raise_error(VideoHub::CollectionManager::CollectionError) { |error|
+        expect(error.code).to eq(:invalid_collection_order)
+      }
+
+      expect(
+        VideoHub::VideoCollection.where(user_id: owner.id).order(:position).pluck(:id, :position),
+      ).to eq(original_positions)
+    end
+  end
+
+  it "atomically reorders collection memberships by exact item permutation" do
+    collection = create_collection(user: owner, position: 0)
+    first =
+      described_class.add_video(
+        user: owner,
+        collection_id: collection.id,
+        video_id: create_video(user: Fabricate(:user)).id,
+      )
+    second =
+      described_class.add_video(
+        user: owner,
+        collection_id: collection.id,
+        video_id: create_video(user: Fabricate(:user)).id,
+      )
+    third =
+      described_class.add_video(
+        user: owner,
+        collection_id: collection.id,
+        video_id: create_video(user: Fabricate(:user)).id,
+      )
+    ordered_ids = [third.item.id, first.item.id, second.item.id]
+
+    expect(
+      described_class.reorder_items(
+        user: owner,
+        collection_id: collection.id,
+        item_ids: ordered_ids,
+      ),
+    ).to eq(ordered_ids)
+    expect(collection.items.order(:position).pluck(:id, :position)).to eq(
+      [[third.item.id, 0], [first.item.id, 1], [second.item.id, 2]],
+    )
+    expect(described_class.list(user: owner).first.items.map(&:id)).to eq(ordered_ids)
+  end
+
+  it "rejects invalid item permutations and foreign collection targets without partial writes" do
+    collection = create_collection(user: owner, title: "Owned", position: 0)
+    first =
+      described_class.add_video(
+        user: owner,
+        collection_id: collection.id,
+        video_id: create_video(user: Fabricate(:user)).id,
+      )
+    second =
+      described_class.add_video(
+        user: owner,
+        collection_id: collection.id,
+        video_id: create_video(user: Fabricate(:user)).id,
+      )
+    another_collection = create_collection(user: owner, title: "Another", position: 1)
+    foreign_item =
+      described_class.add_video(
+        user: owner,
+        collection_id: another_collection.id,
+        video_id: create_video(user: Fabricate(:user)).id,
+      )
+    original_positions = collection.items.order(:position).pluck(:id, :position)
+
+    [[first.item.id], [first.item.id, first.item.id], [first.item.id, foreign_item.item.id]].each do |ids|
+      expect do
+        described_class.reorder_items(user: owner, collection_id: collection.id, item_ids: ids)
+      end.to raise_error(VideoHub::CollectionManager::CollectionError) { |error|
+        expect(error.code).to eq(:invalid_item_order)
+      }
+
+      expect(collection.items.order(:position).pluck(:id, :position)).to eq(original_positions)
+    end
+
+    foreign_collection = create_collection(user: Fabricate(:user), title: "Foreign", position: 0)
+    expect do
+      described_class.reorder_items(user: owner, collection_id: foreign_collection.id, item_ids: [])
+    end.to raise_error(Discourse::NotFound)
+  end
+
   it "destroys an owned collection and compacts remaining collection positions" do
     first = create_collection(user: owner, title: "First", position: 0)
     removed = create_collection(user: owner, title: "Removed", position: 1)
