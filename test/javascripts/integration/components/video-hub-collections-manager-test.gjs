@@ -142,9 +142,12 @@ module(
       );
       await click('.video-hub-collections__create button[type="submit"]');
 
+      const params = new URLSearchParams(requestBody);
+
       assert.strictEqual(requests, 1);
-      assert.true(requestBody.includes("collection_type=series"));
-      assert.true(requestBody.includes("title=My+series"));
+      assert.strictEqual(params.get("collection[collection_type]"), "series");
+      assert.strictEqual(params.get("collection[title]"), "My series");
+      assert.strictEqual(params.get("collection[description]"), "Episodes");
       assert.dom('[data-collection-id="77"]').exists();
       assert.dom('[data-collection-id="77"] h2').hasText("My series");
       assert
