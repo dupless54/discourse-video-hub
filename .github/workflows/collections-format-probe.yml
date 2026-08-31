@@ -6,7 +6,7 @@ on:
       - feature/video-collections-management-page
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format:
@@ -29,9 +29,21 @@ jobs:
             assets/javascripts/discourse/components/video-hub-collections-manager.gjs \
             test/javascripts/acceptance/video-hub-collections-test.js \
             test/javascripts/integration/components/video-hub-collections-manager-test.gjs
-      - name: Print formatter diff
-        run: git diff -- \
-          assets/stylesheets/common/video-hub-collections.scss \
-          assets/javascripts/discourse/components/video-hub-collections-manager.gjs \
-          test/javascripts/acceptance/video-hub-collections-test.js \
-          test/javascripts/integration/components/video-hub-collections-manager-test.gjs
+      - name: Commit canonical formatter output
+        run: |
+          if git diff --quiet -- \
+            assets/stylesheets/common/video-hub-collections.scss \
+            assets/javascripts/discourse/components/video-hub-collections-manager.gjs \
+            test/javascripts/acceptance/video-hub-collections-test.js \
+            test/javascripts/integration/components/video-hub-collections-manager-test.gjs; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            assets/stylesheets/common/video-hub-collections.scss \
+            assets/javascripts/discourse/components/video-hub-collections-manager.gjs \
+            test/javascripts/acceptance/video-hub-collections-test.js \
+            test/javascripts/integration/components/video-hub-collections-manager-test.gjs
+          git commit -m "STYLE: apply canonical collections formatting"
+          git push origin HEAD:feature/video-collections-management-page
