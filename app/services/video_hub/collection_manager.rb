@@ -19,7 +19,11 @@ module VideoHub
     end
 
     def self.create(user:, collection_type:, title:, description: nil)
-      new(user: user).create(collection_type: collection_type, title: title, description: description)
+      new(user: user).create(
+        collection_type: collection_type,
+        title: title,
+        description: description,
+      )
     end
 
     def self.update(user:, collection_id:, attributes:)
@@ -109,7 +113,9 @@ module VideoHub
       collection.with_lock do
         items = locked_items(collection)
         existing_item = items.find { |item| item.video_id == normalized_video_id }
-        return AddResult.new(collection: collection, item: existing_item, created: false).freeze if existing_item
+        if existing_item
+          return AddResult.new(collection: collection, item: existing_item, created: false).freeze
+        end
 
         video = eligible_video!(normalized_video_id)
         if collection.collection_type == "series" && video.user_id != user.id
@@ -166,7 +172,9 @@ module VideoHub
 
     def eligible_video!(video_id)
       video = VideoHub::Video.includes(:topic, :post).find_by(id: video_id, status: "published")
-      raise Discourse::NotFound unless VideoHub::WatchQuery.visible_video?(video, guardian: guardian)
+      unless VideoHub::WatchQuery.visible_video?(video, guardian: guardian)
+        raise Discourse::NotFound
+      end
 
       video
     end
