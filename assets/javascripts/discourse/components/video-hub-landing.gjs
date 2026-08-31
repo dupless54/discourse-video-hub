@@ -265,6 +265,12 @@ export default class VideoHubLanding extends Component {
             </LinkTo>
             {{#if this.currentUser}}
               <LinkTo
+                @route="video-hub-following"
+                class="btn btn-default video-hub-page__following-link"
+              >
+                {{i18n "video_hub.following.cta"}}
+              </LinkTo>
+              <LinkTo
                 @route="video-hub-saved"
                 class="btn btn-default video-hub-page__saved-link"
               >
