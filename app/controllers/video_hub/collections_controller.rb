@@ -108,10 +108,7 @@ module VideoHub
     end
 
     def public_item_payload(item)
-      {
-        position: item.collection_item.position,
-        video: public_video_payload(item.video),
-      }
+      { position: item.collection_item.position, video: public_video_payload(item.video) }
     end
 
     def public_video_payload(video)
