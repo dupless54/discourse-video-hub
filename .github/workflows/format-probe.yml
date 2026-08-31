@@ -3,7 +3,7 @@ name: Format Probe
 on:
   push:
     branches:
-      - main
+      - feature/video-collection-reorder-api
 
 permissions:
   contents: read
@@ -14,13 +14,10 @@ jobs:
     container: discourse/discourse_test:slim
     steps:
       - uses: actions/checkout@v6
-      - name: Install formatters
-        run: |
-          pnpm install --frozen-lockfile
-          bundle install
+      - name: Install formatter
+        run: bundle install
       - name: Print canonical formatting diff
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pnpm prettier "assets/**/*.{scss,js,gjs}" "test/**/*.{js,gjs}" --write
-          bundle exec stree write Gemfile $(git ls-files '*.rb') $(git ls-files '*.rake') $(git ls-files '*.thor')
-          git diff -- app/controllers/video_hub/videos_controller.rb config/routes.rb test/javascripts/integration/components/video-hub-landing-test.gjs
+          bundle exec stree write app/services/video_hub/collection_manager.rb spec/requests/video_hub/collections_controller_spec.rb spec/services/video_hub/collection_manager_spec.rb
+          git diff -- app/services/video_hub/collection_manager.rb spec/requests/video_hub/collections_controller_spec.rb spec/services/video_hub/collection_manager_spec.rb
