@@ -1,5 +1,6 @@
 export default function () {
   this.route("videos", { path: "/videos" });
+  this.route("video-hub-explore", { path: "/videos/explore" });
   this.route("video-hub-new", { path: "/videos/new" });
   this.route("video-hub-trending", { path: "/videos/trending" });
   this.route("video-hub-following", { path: "/videos/following" });
