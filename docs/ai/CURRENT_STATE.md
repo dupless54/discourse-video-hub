@@ -3,18 +3,19 @@
 ## Project
 - repository: `https://github.com/dupless54/discourse-video-hub`
 - visibility: public
-- phase: V1 feature-complete; repository-side `1.0.0-rc.1` release preparation is active
+- phase: V1 feature-complete; `1.0.0-rc.1` is merged and repository-CI verified; deployed smoke verification is next
 - current main SHA: `FRESH_READ_REQUIRED` (do not hard-code a self-changing state-file commit)
-- verified integrated main baseline: `5f25d20e8f037a904a90d6627942d52df62fd472` (PR #70 squash merge)
-- last verified release-documentation exact head: `215d0f7956945dd3a2a5cf08b06fcef02597c9bf`
-- last verified release-documentation CI: Official Discourse Plugin run #387 / `33387015674` — `SUCCESS`
+- verified release-candidate main baseline: `4f68ad49f912745303683e37c53c039f85771175` (PR #71 squash merge)
+- release-candidate exact PR head: `e03c9d50971ca3cca66ca265cd63ce90fd962f38`
+- exact-head release CI: Official Discourse Plugin run #389 / `33389224236` — `SUCCESS`
+- post-merge main CI: Official Discourse Plugin run #390 / `33389546207` — `SUCCESS`
 - last verified: 2026-08-31 UTC
 
 ## Active work
-- branch: `release/v1.0.0-rc.1`
-- goal: prepare the first public release candidate without claiming stable `1.0.0`
-- scoped paths: `plugin.rb`, `CHANGELOG.md`, `docs/RELEASE_CHECKLIST.md`, `docs/ai/CURRENT_STATE.md`
-- exact PR/head and CI must be fresh-read before delivery or merge claims
+- repository-side `1.0.0-rc.1` preparation is complete
+- no runtime release-prep branch is required for the next step
+- next release gate is the real disposable/staging Discourse smoke matrix in `docs/RELEASE_CHECKLIST.md`
+- exact main/tag/release state must still be fresh-read before publication claims
 
 ## Implemented on main
 - strict public YouTube/Shorts, TikTok, and Instagram/Reels provider URL resolution and metadata fetching
@@ -32,20 +33,21 @@
 - official reusable Discourse Plugin CI coverage for lint/format/types/backend/frontend/annotations and migration/runtime checks
 
 ## Release readiness
-- release-candidate plugin metadata is being prepared as `1.0.0-rc.1`
-- `CHANGELOG.md` now defines the integrated release-candidate scope
-- `docs/RELEASE_CHECKLIST.md` defines repository gates plus the required real Discourse-instance smoke matrix
-- no stable `v1.0.0` tag or GitHub Release has been published
-- a real disposable/staging Discourse smoke pass remains required before stable promotion
-- fresh official CI on every exact release/stable candidate head is mandatory; `NO_CI`, pending, cancelled, stale-head, neutral, skipped required checks, or failed checks are not GREEN
+- `plugin.rb` reports `1.0.0-rc.1`
+- `CHANGELOG.md` contains the integrated RC scope
+- `docs/RELEASE_CHECKLIST.md` contains repository gates plus the required real-instance smoke matrix
+- release candidate has exact-head and post-merge Official Discourse Plugin CI GREEN
+- no stable `v1.0.0` tag or stable GitHub Release has been published
+- a real disposable/staging Discourse smoke pass remains mandatory before stable promotion
+- after smoke, stable promotion must use a narrowly scoped `1.0.0` version PR with fresh exact-head and post-merge CI GREEN
 
 ## Known blockers
-- no unresolved V1 feature implementation blocker is known
-- stable `1.0.0` is intentionally blocked until the release candidate is merged, post-merge CI is GREEN, and the deployed smoke checklist passes
-- deploy, destructive database operations, force-push/reset/clean remain outside automatic release-prep authority
+- no unresolved V1 feature implementation or repository-CI blocker is known
+- stable `1.0.0` is blocked only on deployed smoke verification and the intentional stable-version/tag/release sequence
+- deploy, destructive database operations, force-push/reset/clean remain outside automatic repository authority
 
 ## Next action
-- open the scoped `1.0.0-rc.1` release-prep PR and require latest exact-head Official Discourse Plugin CI GREEN
-- if GREEN and scope is exact, squash merge; then verify post-merge `main` CI and perform the real-instance smoke checklist before stable promotion
+- install/update exact `1.0.0-rc.1` on a disposable or staging Discourse instance and complete `docs/RELEASE_CHECKLIST.md`
+- if every required smoke item passes, open the narrow `1.0.0` promotion PR and repeat exact-head/post-merge CI before stable tag/release publication
 
-Rules: fresh-read remote SHA/CI before claims; `NO_CI != GREEN`; `NOT_RUN != PASS`; merged source/tests override stale planning text; no stable-release claim without intentional version/tag and smoke verification.
+Rules: fresh-read remote SHA/CI before claims; `NO_CI != GREEN`; `NOT_RUN != PASS`; merged source/tests override stale planning text; no stable-release claim without deployed smoke verification and intentional stable version/tag.
