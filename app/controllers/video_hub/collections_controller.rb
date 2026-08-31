@@ -76,6 +76,31 @@ module VideoHub
       render_collection_error(error)
     end
 
+    def reorder
+      collection_ids =
+        VideoHub::CollectionManager.reorder_collections(
+          user: current_user,
+          collection_ids: collection_order_params[:collection_ids],
+        )
+
+      render json: { collection_ids: collection_ids }
+    rescue VideoHub::CollectionManager::CollectionError => error
+      render_collection_error(error)
+    end
+
+    def reorder_items
+      item_ids =
+        VideoHub::CollectionManager.reorder_items(
+          user: current_user,
+          collection_id: params[:id],
+          item_ids: item_order_params[:item_ids],
+        )
+
+      render json: { item_ids: item_ids }
+    rescue VideoHub::CollectionManager::CollectionError => error
+      render_collection_error(error)
+    end
+
     private
 
     def ensure_video_hub_enabled
@@ -88,6 +113,14 @@ module VideoHub
 
     def update_params
       params.require(:collection).permit(:title, :description, :visible)
+    end
+
+    def collection_order_params
+      params.permit(collection_ids: [])
+    end
+
+    def item_order_params
+      params.permit(item_ids: [])
     end
 
     def public_collection_payload(result)
