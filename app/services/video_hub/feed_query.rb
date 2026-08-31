@@ -1,13 +1,9 @@
 # frozen_string_literal: true
 
-require "base64"
-
 module VideoHub
   class FeedQuery
     DEFAULT_LIMIT = 20
-    SCAN_BATCH_SIZE = 50
     MAX_SCAN_ROWS = 200
-    CURSOR_MAX_LENGTH = 128
 
     PROVIDER_SETTINGS = {
       "youtube" => :video_hub_youtube_enabled,
@@ -16,6 +12,8 @@ module VideoHub
     }.freeze
 
     Result = Struct.new(:videos, :has_more, :next_cursor, keyword_init: true)
+    RankedEntry =
+      Struct.new(:video, :score_basis_points, :published_microseconds, keyword_init: true)
 
     class FeedError < StandardError
       attr_reader :code
@@ -39,46 +37,22 @@ module VideoHub
     def fetch
       raise FeedError.new(:invalid_limit) unless limit.between?(1, DEFAULT_LIMIT)
 
-      position = decode_cursor(cursor)
-      visible = []
-      scanned = 0
-      last_scanned = nil
-      exhausted = false
-
-      while visible.length <= limit && scanned < MAX_SCAN_ROWS
-        batch_limit = [SCAN_BATCH_SIZE, MAX_SCAN_ROWS - scanned].min
-        batch = candidate_scope(position).limit(batch_limit).to_a
-
-        if batch.empty?
-          exhausted = true
-          break
-        end
-
-        batch.each do |video|
-          position = [video.published_at, video.id]
-          last_scanned = video
-          scanned += 1
-          visible << video if visible_to_guardian?(video)
-          break if visible.length > limit || scanned >= MAX_SCAN_ROWS
-        end
-
-        break if visible.length > limit || scanned >= MAX_SCAN_ROWS
-
-        if batch.length < batch_limit
-          exhausted = true
-          break
-        end
-      end
-
-      page = visible.first(limit)
-      has_more = visible.length > limit || (!exhausted && scanned >= MAX_SCAN_ROWS)
-      cursor_source = page.length == limit ? page.last : last_scanned
+      decoded_cursor = decode_cursor(cursor)
+      context = decoded_cursor&.context || RankingContext.capture
+      ranked = ranked_candidates(context)
+      ranked = ranked.select { |entry| after_cursor?(entry, decoded_cursor) } if decoded_cursor
+      page_entries = ranked.first(limit + 1)
+      has_more = page_entries.length > limit
+      page_entries = page_entries.first(limit)
+      cursor_source = page_entries.last
 
       Result.new(
-        videos: page.freeze,
+        videos: page_entries.map(&:video).freeze,
         has_more: has_more,
-        next_cursor: has_more && cursor_source ? encode_cursor(cursor_source) : nil,
+        next_cursor: has_more && cursor_source ? encode_cursor(context, cursor_source) : nil,
       ).freeze
+    rescue RankingCursor::CursorError
+      raise FeedError.new(:invalid_cursor)
     rescue ArgumentError, TypeError
       raise FeedError.new(:invalid_limit)
     end
@@ -87,35 +61,45 @@ module VideoHub
 
     attr_reader :guardian, :cursor, :limit
 
-    def candidate_scope(position)
-      scope =
-        Video
-          .joins(:topic, :post)
-          .includes(:topic, :post, :user)
-          .where(status: "published", provider: enabled_providers)
-          .where.not(published_at: nil)
-          .where(
-            topics: {
-              category_id: guardian.allowed_category_ids,
-              deleted_at: nil,
-              visible: true,
-            },
-            posts: {
-              deleted_at: nil,
-              hidden: false,
-            },
-          )
-          .order(published_at: :desc, id: :desc)
+    def ranked_candidates(context)
+      visible = candidate_scope(context).to_a.select { |video| visible_to_guardian?(video) }
+      signals = context.signals(video_ids: visible.map(&:id))
 
-      return scope unless position
+      visible
+        .map do |video|
+          score = context.score(signal: signals.fetch(video.id), published_at: video.published_at)
 
-      published_at, id = position
-      scope.where(
-        "video_hub_videos.published_at < :published_at OR " \
-          "(video_hub_videos.published_at = :published_at AND video_hub_videos.id < :id)",
-        published_at: published_at,
-        id: id,
-      )
+          RankedEntry.new(
+            video: video,
+            score_basis_points: score.score_basis_points,
+            published_microseconds: timestamp_microseconds(video.published_at),
+          ).freeze
+        end
+        .sort_by do |entry|
+          [-entry.score_basis_points, -entry.published_microseconds, -entry.video.id]
+        end
+    end
+
+    def candidate_scope(context)
+      Video
+        .joins(:topic, :post)
+        .includes(:topic, :post, :user)
+        .where(status: "published", provider: enabled_providers)
+        .where.not(published_at: nil)
+        .where("video_hub_videos.published_at <= ?", context.snapshot_at)
+        .where(
+          topics: {
+            category_id: guardian.allowed_category_ids,
+            deleted_at: nil,
+            visible: true,
+          },
+          posts: {
+            deleted_at: nil,
+            hidden: false,
+          },
+        )
+        .order(published_at: :desc, id: :desc)
+        .limit(MAX_SCAN_ROWS)
     end
 
     def enabled_providers
@@ -128,28 +112,35 @@ module VideoHub
       guardian.can_see?(video.topic) && guardian.can_see?(video.post)
     end
 
-    def encode_cursor(video)
-      microseconds = video.published_at.to_i * 1_000_000 + video.published_at.usec
-      Base64.urlsafe_encode64("#{microseconds}:#{video.id}", padding: false)
+    def after_cursor?(entry, decoded_cursor)
+      return true if entry.score_basis_points < decoded_cursor.score_basis_points
+      return false if entry.score_basis_points > decoded_cursor.score_basis_points
+
+      cursor_published_microseconds = timestamp_microseconds(decoded_cursor.published_at)
+      return true if entry.published_microseconds < cursor_published_microseconds
+      return false if entry.published_microseconds > cursor_published_microseconds
+
+      entry.video.id < decoded_cursor.video_id
+    end
+
+    def encode_cursor(context, entry)
+      RankingCursor.encode(
+        context: context,
+        score_basis_points: entry.score_basis_points,
+        published_at: entry.video.published_at,
+        video_id: entry.video.id,
+      )
     end
 
     def decode_cursor(value)
       return if value.blank?
-      raise FeedError.new(:invalid_cursor) unless value.is_a?(String)
-      raise FeedError.new(:invalid_cursor) if value.length > CURSOR_MAX_LENGTH
-      raise FeedError.new(:invalid_cursor) if value.match?(/[[:space:][:cntrl:]]/)
 
-      decoded = Base64.urlsafe_decode64(value)
-      match = decoded.match(/\A([0-9]{1,20}):([0-9]{1,20})\z/)
-      raise FeedError.new(:invalid_cursor) unless match
+      RankingCursor.decode(value)
+    end
 
-      microseconds = Integer(match[1], 10)
-      id = Integer(match[2], 10)
-      raise FeedError.new(:invalid_cursor) if microseconds <= 0 || id <= 0
-
-      [Time.at(Rational(microseconds, 1_000_000)).utc, id]
-    rescue ArgumentError
-      raise FeedError.new(:invalid_cursor)
+    def timestamp_microseconds(value)
+      time = value.to_time
+      time.to_i * 1_000_000 + time.usec
     end
   end
 end
