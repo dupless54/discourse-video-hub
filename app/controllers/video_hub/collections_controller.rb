@@ -5,7 +5,13 @@ module VideoHub
     requires_plugin VideoHub::PLUGIN_NAME
 
     before_action :ensure_video_hub_enabled
-    before_action :ensure_logged_in
+    before_action :ensure_logged_in, except: :show
+
+    def show
+      result = VideoHub::CollectionQuery.fetch(user: current_user, id: params[:id])
+
+      render json: { collection: public_collection_payload(result) }
+    end
 
     def index
       entries = VideoHub::CollectionManager.list(user: current_user)
@@ -82,6 +88,43 @@ module VideoHub
 
     def update_params
       params.require(:collection).permit(:title, :description, :visible)
+    end
+
+    def public_collection_payload(result)
+      collection = result.collection
+
+      {
+        id: collection.id,
+        collection_type: collection.collection_type,
+        title: collection.title,
+        description: collection.description,
+        owner: {
+          id: result.owner.id,
+          username: result.owner.username,
+          name: result.owner.name,
+        },
+        items: result.items.map { |item| public_item_payload(item) },
+      }
+    end
+
+    def public_item_payload(item)
+      { position: item.collection_item.position, video: public_video_payload(item.video) }
+    end
+
+    def public_video_payload(video)
+      {
+        id: video.id,
+        provider: video.provider,
+        external_id: video.external_id,
+        canonical_url: video.canonical_url,
+        kind: video.kind,
+        title: video.title,
+        thumbnail_url: video.thumbnail_url,
+        duration_seconds: video.duration_seconds,
+        author_name: video.author_name,
+        published_at: video.published_at&.iso8601,
+        watch_path: "/videos/#{video.id}/#{video.topic.slug}",
+      }
     end
 
     def collection_payload(entry)

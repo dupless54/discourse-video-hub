@@ -23,6 +23,13 @@ VideoHub::Engine.routes.draw do
   get "/following/feed" => "videos#following_feed", :defaults => { format: :json }
   get "/saved/feed" => "videos#saved_feed", :defaults => { format: :json }
   get "/collections" => "collections#index", :defaults => { format: :json }
+  get "/collections/:id" => "collections#show",
+      :constraints => {
+        id: /\d+/,
+      },
+      :defaults => {
+        format: :json,
+      }
   post "/collections" => "collections#create", :defaults => { format: :json }
   put "/collections/:id" => "collections#update",
       :constraints => {

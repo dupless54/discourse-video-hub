@@ -1,12 +1,72 @@
 # frozen_string_literal: true
 
 describe "Video Hub collection management" do
-  let(:owner) { Fabricate(:user) }
+  let(:owner) { Fabricate(:user, trust_level: TrustLevel[2]) }
   let(:category) { Fabricate(:category) }
 
   before do
     SiteSetting.video_hub_enabled = true
     SiteSetting.video_hub_youtube_enabled = true
+  end
+
+  it "serves a visible collection publicly with stable owner and video payloads" do
+    collection = create_collection(user: owner, collection_type: "playlist", visible: true)
+    video = create_video(user: owner)
+    item =
+      VideoHub::VideoCollectionItem.create!(video_collection: collection, video: video, position: 0)
+
+    get "/videos/collections/#{collection.id}.json"
+
+    expect(response.status).to eq(200)
+    expect(response.parsed_body.fetch("collection")).to eq(
+      {
+        "id" => collection.id,
+        "collection_type" => "playlist",
+        "title" => "Collection",
+        "description" => nil,
+        "owner" => {
+          "id" => owner.id,
+          "username" => owner.username,
+          "name" => owner.name,
+        },
+        "items" => [
+          {
+            "position" => item.position,
+            "video" => {
+              "id" => video.id,
+              "provider" => "youtube",
+              "external_id" => video.external_id,
+              "canonical_url" => video.canonical_url,
+              "kind" => "landscape",
+              "title" => video.title,
+              "thumbnail_url" => nil,
+              "duration_seconds" => nil,
+              "author_name" => "Collection author",
+              "published_at" => video.published_at.iso8601,
+              "watch_path" => "/videos/#{video.id}/#{video.topic.slug}",
+            },
+          },
+        ],
+      },
+    )
+  end
+
+  it "keeps private collections indistinguishable from missing public collections" do
+    collection = create_collection(user: owner, collection_type: "playlist")
+
+    get "/videos/collections/#{collection.id}.json"
+
+    expect(response.status).to eq(404)
+  end
+
+  it "returns not found before public collection access when Video Hub is disabled" do
+    collection = create_collection(user: owner, collection_type: "playlist", visible: true)
+    SiteSetting.video_hub_enabled = false
+    VideoHub::CollectionQuery.expects(:fetch).never
+
+    get "/videos/collections/#{collection.id}.json"
+
+    expect(response.status).to eq(404)
   end
 
   it "requires login before reading or mutating collections" do
@@ -159,13 +219,13 @@ describe "Video Hub collection management" do
     expect(response.status).to eq(404)
   end
 
-  def create_collection(user:, collection_type:)
+  def create_collection(user:, collection_type:, visible: false)
     VideoHub::VideoCollection.create!(
       user: user,
       collection_type: collection_type,
       title: "Collection",
       position: 0,
-      visible: false,
+      visible: visible,
     )
   end
 
