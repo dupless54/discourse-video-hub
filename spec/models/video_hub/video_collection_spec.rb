@@ -80,8 +80,10 @@ describe VideoHub::VideoCollection do
 
   it "enforces owner position uniqueness and lookup indexes at the database layer" do
     indexes = described_class.connection.indexes(:video_hub_video_collections)
-    position_index = indexes.find { |candidate| candidate.name == "idx_video_hub_collections_owner_position" }
-    type_index = indexes.find { |candidate| candidate.name == "idx_video_hub_collections_owner_type" }
+    position_index =
+      indexes.find { |candidate| candidate.name == "idx_video_hub_collections_owner_position" }
+    type_index =
+      indexes.find { |candidate| candidate.name == "idx_video_hub_collections_owner_type" }
 
     expect(position_index).to be_present
     expect(position_index.unique).to eq(true)
