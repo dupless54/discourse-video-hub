@@ -13,6 +13,7 @@ VideoHub::Engine.routes.draw do
   get "/saved" => "videos#shell", :constraints => { format: /html/ }, :defaults => { format: :html }
   get "/feed" => "videos#index", :defaults => { format: :json }
   get "/trending/feed" => "videos#trending_feed", :defaults => { format: :json }
+  get "/following/feed" => "videos#following_feed", :defaults => { format: :json }
   get "/saved/feed" => "videos#saved_feed", :defaults => { format: :json }
   get "/profile/:username" => "profiles#show", :defaults => { format: :json }
   get "/profile/:username/layout" => "profiles#layout", :defaults => { format: :json }
