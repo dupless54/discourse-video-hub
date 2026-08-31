@@ -2,7 +2,6 @@
 
 VideoHub::Engine.routes.draw do
   get "/" => "videos#shell", :constraints => { format: /html/ }, :defaults => { format: :html }
-  get "/" => "videos#index", :constraints => { format: /json/ }, :defaults => { format: :json }
   get "/new" => "videos#shell", :constraints => { format: /html/ }, :defaults => { format: :html }
   get "/trending" => "videos#shell",
       :constraints => {
