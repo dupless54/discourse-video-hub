@@ -208,12 +208,7 @@ describe "Video Hub collection management" do
 
     expect(response.status).to eq(200)
     expect(response.parsed_body.dig("collections", 0, "items", 0)).to eq(
-      {
-        "id" => item.id,
-        "video_id" => video.id,
-        "position" => 0,
-        "video" => nil,
-      },
+      { "id" => item.id, "video_id" => video.id, "position" => 0, "video" => nil },
     )
   end
 
