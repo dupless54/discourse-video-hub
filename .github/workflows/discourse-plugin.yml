@@ -1,11 +1,17 @@
-name: Discourse Plugin
+name: Syntax Tree Probe
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
 
 jobs:
-  ci:
-    uses: discourse/.github/.github/workflows/discourse-plugin.yml@v1
+  format:
+    runs-on: ubuntu-latest
+    container: discourse/discourse_test:slim
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Ruby dependencies
+        run: bundle install
+      - name: Show canonical Syntax Tree output
+        run: |
+          bundle exec stree write config/routes.rb
+          cat config/routes.rb
