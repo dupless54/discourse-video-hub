@@ -40,6 +40,26 @@ module VideoHub
       render json: { error: { code: error.code.to_s } }, status: :bad_request
     end
 
+    def trending_feed
+      result =
+        VideoHub::TrendingFeedQuery.fetch(
+          user: current_user,
+          cursor: params[:cursor],
+          limit: params[:limit].presence || VideoHub::TrendingFeedQuery::DEFAULT_LIMIT,
+        )
+
+      render_json_dump(
+        videos: result.videos.map { |video| video_payload(video) },
+        providers: enabled_providers,
+        pagination: {
+          has_more: result.has_more,
+          next_cursor: result.next_cursor,
+        },
+      )
+    rescue VideoHub::TrendingFeedQuery::FeedError => error
+      render json: { error: { code: error.code.to_s } }, status: :bad_request
+    end
+
     def saved_feed
       result =
         VideoHub::SavedFeedQuery.fetch(
