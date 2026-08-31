@@ -9,6 +9,17 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 
+function orderRecordsByIds(records, orderedIds) {
+  if (!Array.isArray(orderedIds) || orderedIds.length !== records.length) {
+    return null;
+  }
+
+  const recordsById = new Map(records.map((record) => [record.id, record]));
+  const orderedRecords = orderedIds.map((id) => recordsById.get(id));
+
+  return orderedRecords.every(Boolean) ? orderedRecords : null;
+}
+
 class VideoHubCollectionManagerCard extends Component {
   @service dialog;
   @service toasts;
@@ -16,6 +27,7 @@ class VideoHubCollectionManagerCard extends Component {
   @tracked isSaving = false;
   @tracked isDeleting = false;
   @tracked removingVideoId = null;
+  @tracked reorderingItems = false;
 
   @cached
   get formData() {
@@ -40,8 +52,34 @@ class VideoHubCollectionManagerCard extends Component {
     return this.args.collection.items?.length ?? 0;
   }
 
+  get itemRows() {
+    const items = this.args.collection.items ?? [];
+
+    return items.map((item, index) => ({
+      item,
+      disableMoveUp: this.isBusy || index === 0,
+      disableMoveDown: this.isBusy || index === items.length - 1,
+    }));
+  }
+
   get isBusy() {
-    return this.isSaving || this.isDeleting || this.removingVideoId !== null;
+    return (
+      this.isSaving ||
+      this.isDeleting ||
+      this.removingVideoId !== null ||
+      this.reorderingItems ||
+      Boolean(this.args.collectionOrderBusy)
+    );
+  }
+
+  get disableCollectionMoveUp() {
+    return this.isBusy || this.args.collectionIndex === 0;
+  }
+
+  get disableCollectionMoveDown() {
+    return (
+      this.isBusy || this.args.collectionIndex === this.args.collectionCount - 1
+    );
   }
 
   @action
@@ -144,6 +182,59 @@ class VideoHubCollectionManagerCard extends Component {
     }
   }
 
+  @action
+  moveCollection(direction) {
+    if (this.isBusy) {
+      return;
+    }
+
+    this.args.onMoveCollection(this.args.collection.id, direction);
+  }
+
+  @action
+  async moveItem(itemId, direction) {
+    if (this.isBusy) {
+      return;
+    }
+
+    const items = this.args.collection.items ?? [];
+    const sourceIndex = items.findIndex((item) => item.id === itemId);
+    const targetIndex = sourceIndex + direction;
+
+    if (sourceIndex === -1 || targetIndex < 0 || targetIndex >= items.length) {
+      return;
+    }
+
+    const proposedItems = [...items];
+    [proposedItems[sourceIndex], proposedItems[targetIndex]] = [
+      proposedItems[targetIndex],
+      proposedItems[sourceIndex],
+    ];
+    this.reorderingItems = true;
+
+    try {
+      const response = await ajax(
+        `/videos/collections/${this.args.collection.id}/items/reorder.json`,
+        {
+          type: "PUT",
+          data: { item_ids: proposedItems.map((item) => item.id) },
+        }
+      );
+      const authoritativeItems =
+        orderRecordsByIds(items, response?.item_ids) ?? proposedItems;
+
+      this.args.onItemsReordered(this.args.collection.id, authoritativeItems);
+      this.toasts.success({
+        data: { message: i18n("video_hub.collections.order_updated") },
+        duration: "short",
+      });
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.reorderingItems = false;
+    }
+  }
+
   <template>
     <article
       class="video-hub-collections__collection"
@@ -160,14 +251,36 @@ class VideoHubCollectionManagerCard extends Component {
           <h2>{{@collection.title}}</h2>
         </div>
 
-        {{#if @collection.visible}}
-          <a
-            class="btn btn-default video-hub-collections__public-link"
-            href={{this.publicPath}}
+        <div class="video-hub-collections__collection-actions">
+          <div
+            class="video-hub-collections__reorder-controls"
+            aria-label={{i18n "video_hub.collections.collection_order_label"}}
           >
-            {{i18n "video_hub.collections.view_public"}}
-          </a>
-        {{/if}}
+            <DButton
+              @action={{fn this.moveCollection -1}}
+              @disabled={{this.disableCollectionMoveUp}}
+              @icon="arrow-up"
+              @label="video_hub.collections.move_up"
+              class="btn-default video-hub-collections__collection-move-up"
+            />
+            <DButton
+              @action={{fn this.moveCollection 1}}
+              @disabled={{this.disableCollectionMoveDown}}
+              @icon="arrow-down"
+              @label="video_hub.collections.move_down"
+              class="btn-default video-hub-collections__collection-move-down"
+            />
+          </div>
+
+          {{#if @collection.visible}}
+            <a
+              class="btn btn-default video-hub-collections__public-link"
+              href={{this.publicPath}}
+            >
+              {{i18n "video_hub.collections.view_public"}}
+            </a>
+          {{/if}}
+        </div>
       </header>
 
       <Form @data={{this.formData}} @onSubmit={{this.save}} as |form|>
@@ -224,30 +337,31 @@ class VideoHubCollectionManagerCard extends Component {
 
         {{#if @collection.items.length}}
           <ul class="video-hub-collections__item-list">
-            {{#each @collection.items as |item|}}
+            {{#each this.itemRows as |row|}}
               <li
                 class="video-hub-collections__item"
-                data-video-id={{item.video_id}}
+                data-item-id={{row.item.id}}
+                data-video-id={{row.item.video_id}}
               >
-                {{#if item.video}}
+                {{#if row.item.video}}
                   <a
                     class="video-hub-collections__item-preview"
-                    href={{item.video.watch_path}}
+                    href={{row.item.video.watch_path}}
                   >
                     <div
                       class="video-hub-collections__thumbnail"
                       aria-hidden="true"
                     >
-                      {{#if item.video.thumbnail_url}}
-                        <img src={{item.video.thumbnail_url}} alt="" />
+                      {{#if row.item.video.thumbnail_url}}
+                        <img src={{row.item.video.thumbnail_url}} alt="" />
                       {{else}}
-                        <span>{{item.video.provider}}</span>
+                        <span>{{row.item.video.provider}}</span>
                       {{/if}}
                     </div>
                     <div class="video-hub-collections__item-copy">
-                      <strong>{{item.video.title}}</strong>
-                      {{#if item.video.author_name}}
-                        <span>{{item.video.author_name}}</span>
+                      <strong>{{row.item.video.title}}</strong>
+                      {{#if row.item.video.author_name}}
+                        <span>{{row.item.video.author_name}}</span>
                       {{/if}}
                     </div>
                   </a>
@@ -270,12 +384,35 @@ class VideoHubCollectionManagerCard extends Component {
                   </div>
                 {{/if}}
 
-                <DButton
-                  @action={{fn this.removeVideo item.video_id}}
-                  @disabled={{this.isBusy}}
-                  @label="video_hub.collections.remove_video"
-                  class="btn-default video-hub-collections__remove-video"
-                />
+                <div class="video-hub-collections__item-actions">
+                  <div
+                    class="video-hub-collections__reorder-controls"
+                    aria-label={{i18n
+                      "video_hub.collections.video_order_label"
+                    }}
+                  >
+                    <DButton
+                      @action={{fn this.moveItem row.item.id -1}}
+                      @disabled={{row.disableMoveUp}}
+                      @icon="arrow-up"
+                      @label="video_hub.collections.move_up"
+                      class="btn-default video-hub-collections__item-move-up"
+                    />
+                    <DButton
+                      @action={{fn this.moveItem row.item.id 1}}
+                      @disabled={{row.disableMoveDown}}
+                      @icon="arrow-down"
+                      @label="video_hub.collections.move_down"
+                      class="btn-default video-hub-collections__item-move-down"
+                    />
+                  </div>
+                  <DButton
+                    @action={{fn this.removeVideo row.item.video_id}}
+                    @disabled={{this.isBusy}}
+                    @label="video_hub.collections.remove_video"
+                    class="btn-default video-hub-collections__remove-video"
+                  />
+                </div>
               </li>
             {{/each}}
           </ul>
@@ -299,6 +436,7 @@ export default class VideoHubCollectionsManager extends Component {
     description: "",
   };
   @tracked creating = false;
+  @tracked reorderingCollections = false;
 
   constructor() {
     super(...arguments);
@@ -307,7 +445,7 @@ export default class VideoHubCollectionsManager extends Component {
 
   @action
   async createCollection(data) {
-    if (this.creating) {
+    if (this.creating || this.reorderingCollections) {
       return;
     }
 
@@ -373,6 +511,73 @@ export default class VideoHubCollectionsManager extends Component {
         ),
       };
     });
+  }
+
+  @action
+  reorderItems(collectionId, items) {
+    this.collections = this.collections.map((collection) => {
+      if (collection.id !== collectionId) {
+        return collection;
+      }
+
+      return {
+        ...collection,
+        items: items.map((item, position) => ({ ...item, position })),
+      };
+    });
+  }
+
+  @action
+  async moveCollection(collectionId, direction) {
+    if (this.reorderingCollections || this.creating) {
+      return;
+    }
+
+    const sourceIndex = this.collections.findIndex(
+      (collection) => collection.id === collectionId
+    );
+    const targetIndex = sourceIndex + direction;
+
+    if (
+      sourceIndex === -1 ||
+      targetIndex < 0 ||
+      targetIndex >= this.collections.length
+    ) {
+      return;
+    }
+
+    const proposedCollections = [...this.collections];
+    [proposedCollections[sourceIndex], proposedCollections[targetIndex]] = [
+      proposedCollections[targetIndex],
+      proposedCollections[sourceIndex],
+    ];
+    this.reorderingCollections = true;
+
+    try {
+      const response = await ajax("/videos/collections/reorder.json", {
+        type: "PUT",
+        data: {
+          collection_ids: proposedCollections.map(
+            (collection) => collection.id
+          ),
+        },
+      });
+      const authoritativeCollections =
+        orderRecordsByIds(this.collections, response?.collection_ids) ??
+        proposedCollections;
+
+      this.collections = authoritativeCollections.map(
+        (collection, position) => ({ ...collection, position })
+      );
+      this.toasts.success({
+        data: { message: i18n("video_hub.collections.order_updated") },
+        duration: "short",
+      });
+    } catch (error) {
+      popupAjaxError(error);
+    } finally {
+      this.reorderingCollections = false;
+    }
   }
 
   <template>
@@ -444,12 +649,17 @@ export default class VideoHubCollectionsManager extends Component {
 
       {{#if this.collections.length}}
         <section class="video-hub-collections__list" aria-live="polite">
-          {{#each this.collections as |collection|}}
+          {{#each this.collections as |collection index|}}
             <VideoHubCollectionManagerCard
               @collection={{collection}}
+              @collectionIndex={{index}}
+              @collectionCount={{this.collections.length}}
+              @collectionOrderBusy={{this.reorderingCollections}}
               @onUpdated={{this.updateCollection}}
               @onDeleted={{this.deleteCollection}}
               @onVideoRemoved={{this.removeVideo}}
+              @onItemsReordered={{this.reorderItems}}
+              @onMoveCollection={{this.moveCollection}}
             />
           {{/each}}
         </section>
