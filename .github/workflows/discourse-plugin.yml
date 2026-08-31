@@ -13,4 +13,9 @@ jobs:
       - name: Print canonical formatting
         run: |
           bundle exec stree write app/controllers/video_hub/videos_controller.rb spec/services/video_hub/following_feed_cursor_spec.rb spec/services/video_hub/following_feed_query_spec.rb
-          git diff -- app/controllers/video_hub/videos_controller.rb spec/services/video_hub/following_feed_cursor_spec.rb spec/services/video_hub/following_feed_query_spec.rb
+          echo '---CONTROLLER---'
+          cat app/controllers/video_hub/videos_controller.rb
+          echo '---CURSOR_SPEC---'
+          cat spec/services/video_hub/following_feed_cursor_spec.rb
+          echo '---QUERY_SPEC---'
+          cat spec/services/video_hub/following_feed_query_spec.rb
