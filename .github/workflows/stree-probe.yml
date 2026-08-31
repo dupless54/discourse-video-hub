@@ -1,0 +1,23 @@
+name: Syntax Tree Probe
+
+on:
+  push:
+    branches:
+      - feature/public-video-collection-read
+
+permissions:
+  contents: read
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    container: discourse/discourse_test:slim
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install formatter
+        run: bundle install
+      - name: Print canonical Syntax Tree diff
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          bundle exec stree write app/controllers/video_hub/collections_controller.rb spec/requests/video_hub/collections_controller_spec.rb spec/services/video_hub/collection_query_spec.rb
+          git diff -- app/controllers/video_hub/collections_controller.rb spec/requests/video_hub/collections_controller_spec.rb spec/services/video_hub/collection_query_spec.rb
