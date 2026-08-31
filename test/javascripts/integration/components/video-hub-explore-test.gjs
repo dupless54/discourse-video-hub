@@ -1,5 +1,5 @@
 import Service from "@ember/service";
-import { render, settled, triggerKeyEvent } from "@ember/test-helpers";
+import { click, render, settled, triggerKeyEvent } from "@ember/test-helpers";
 import { module, test } from "qunit";
 import { setupRenderingTest } from "discourse/tests/helpers/component-test";
 import pretender, { response } from "discourse/tests/helpers/create-pretender";
@@ -19,7 +19,7 @@ module(
       this.owner.register("service:capabilities", DesktopCapabilities);
     });
 
-    test("keeps one active player, prefetches near the end, dedupes, and supports keyboard navigation", async function (assert) {
+    test("keeps one active player, exposes native controls on demand, prefetches near the end, dedupes, and supports keyboard navigation", async function (assert) {
       const observations = stubIntersectionObserver();
       const model = {
         videos: [
@@ -93,13 +93,34 @@ module(
       assert.dom(".video-hub-player__iframe").exists({ count: 1 });
       assert
         .dom('[data-video-hub-feed-index="0"]')
-        .hasAttribute("data-active", "true");
+        .hasAttribute("data-active", "true")
+        .hasAttribute("data-controls-active", "false");
       assert
         .dom('[data-video-hub-feed-index="0"] .video-hub-player__iframe')
         .hasAttribute(
           "src",
-          "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&playsinline=1&loop=1&playlist=dQw4w9WgXcQ"
-        );
+          "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&playsinline=1&loop=1&playlist=dQw4w9WgXcQ&controls=1"
+        )
+        .hasAttribute("data-interactive", "false");
+
+      await click(
+        '[data-video-hub-feed-index="0"] .video-hub-mobile-feed__action--controls'
+      );
+
+      assert
+        .dom('[data-video-hub-feed-index="0"]')
+        .hasAttribute("data-controls-active", "true");
+      assert
+        .dom('[data-video-hub-feed-index="0"] .video-hub-player__iframe')
+        .hasAttribute("data-interactive", "true");
+
+      await click(
+        '[data-video-hub-feed-index="0"] .video-hub-mobile-feed__action--controls'
+      );
+
+      assert
+        .dom('[data-video-hub-feed-index="0"] .video-hub-player__iframe')
+        .hasAttribute("data-interactive", "false");
 
       assert.strictEqual(observations.length, 2);
       await observations[1].trigger({ intersectionRatio: 0.8 });
@@ -115,7 +136,7 @@ module(
         .dom('[data-video-hub-feed-index="1"] .video-hub-player__iframe')
         .hasAttribute(
           "src",
-          "https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&mute=1&playsinline=1&loop=1&playlist=9bZkp7q19f0"
+          "https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&mute=1&playsinline=1&loop=1&playlist=9bZkp7q19f0&controls=1"
         );
       assert
         .dom('[data-video-id="101"]')
