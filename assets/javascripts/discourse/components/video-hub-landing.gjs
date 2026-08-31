@@ -263,10 +263,7 @@ export default class VideoHubLanding extends Component {
           <strong class="video-hub-explore__title">
             {{i18n "video_hub.explore.title"}}
           </strong>
-          <LinkTo
-            @route="video-hub-new"
-            class="video-hub-explore__publish"
-          >
+          <LinkTo @route="video-hub-new" class="video-hub-explore__publish">
             {{i18n "video_hub.explore.share"}}
           </LinkTo>
         </header>
