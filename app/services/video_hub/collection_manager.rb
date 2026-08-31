@@ -247,9 +247,9 @@ module VideoHub
 
       temporary_offset = records.map(&:position).max + records.length + 1
       record_class = records.first.class
-      record_class
-        .where(id: records.map(&:id))
-        .update_all(position: Arel.sql("position + #{temporary_offset}"))
+      record_class.where(id: records.map(&:id)).update_all(
+        position: Arel.sql("position + #{temporary_offset}"),
+      )
 
       records_by_id = records.index_by(&:id)
       ordered_ids.each_with_index do |id, position|
