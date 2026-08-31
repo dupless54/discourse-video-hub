@@ -44,6 +44,17 @@ en:
         remove: "Remove from saved"
         empty_title: "No saved videos yet"
         empty_description: "Save a video from its watch page and it will appear here."
+      collection:
+        eyebrow: "Public collection"
+        playlist: "Playlist"
+        series: "Series"
+        back_to_videos: "Back to videos"
+        owner: "Curated by @%{username}"
+        video_count:
+          one: "%{count} video"
+          other: "%{count} videos"
+        empty_title: "This collection is empty"
+        empty_description: "Visible videos added to this collection will appear here."
       publish:
         cta: "Share video"
         eyebrow: "New video"
