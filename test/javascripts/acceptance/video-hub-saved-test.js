@@ -41,19 +41,22 @@ acceptance("Video Hub saved videos", function (needs) {
 });
 
 acceptance("Video Hub saved videos | anonymous", function () {
-  test("opens the login flow without requesting the private saved feed", async function (assert) {
-    let requests = 0;
+  test(
+    "opens the login flow without requesting the private saved feed",
+    async function (assert) {
+      let requests = 0;
 
-    pretender.get("/videos/saved/feed.json", () => {
-      requests += 1;
-      return response({
-        videos: [],
-        pagination: { has_more: false, next_cursor: null },
+      pretender.get("/videos/saved/feed.json", () => {
+        requests += 1;
+        return response({
+          videos: [],
+          pagination: { has_more: false, next_cursor: null },
+        });
       });
-    });
 
-    await visit("/videos/saved");
+      await visit("/videos/saved");
 
-    assert.strictEqual(requests, 0);
-  });
+      assert.strictEqual(requests, 0);
+    }
+  );
 });
