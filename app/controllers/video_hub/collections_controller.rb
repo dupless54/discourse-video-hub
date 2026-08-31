@@ -142,7 +142,21 @@ module VideoHub
     end
 
     def item_payload(item)
-      { id: item.id, video_id: item.video_id, position: item.position }
+      video = item.video
+
+      {
+        id: item.id,
+        video_id: item.video_id,
+        position: item.position,
+        video:
+          if VideoHub::WatchQuery.visible_video?(video, guardian: current_user_guardian)
+            public_video_payload(video)
+          end,
+      }
+    end
+
+    def current_user_guardian
+      @current_user_guardian ||= Guardian.new(current_user)
     end
 
     def membership_payload(result)
