@@ -125,6 +125,15 @@ export default class VideoHubMobileFeedItem extends Component {
           <p class="video-hub-mobile-feed__author">{{@video.author_name}}</p>
         {{/if}}
 
+        {{#if @immersive}}
+          <a
+            class="video-hub-mobile-feed__watch-link"
+            href={{@video.watch_path}}
+          >
+            {{i18n "video_hub.explore.open_video"}}
+          </a>
+        {{/if}}
+
         <div class="video-hub-mobile-feed__controls">
           <DButton
             @action={{this.previous}}
