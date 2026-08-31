@@ -29,11 +29,7 @@ body:has(.video-hub-explore) {
       max(0.85rem, env(safe-area-inset-right)) 0.75rem
       max(0.85rem, env(safe-area-inset-left));
     pointer-events: none;
-    background: linear-gradient(
-      to bottom,
-      rgb(0 0 0 / 0.58),
-      rgb(0 0 0 / 0)
-    );
+    background: linear-gradient(to bottom, rgb(0 0 0 / 0.58), rgb(0 0 0 / 0));
   }
 
   &__back,
@@ -216,8 +212,7 @@ body:has(.video-hub-explore) {
     left: 0;
     box-sizing: border-box;
     min-height: 42%;
-    padding: 9rem
-      max(5.4rem, calc(1rem + env(safe-area-inset-right)))
+    padding: 9rem max(5.4rem, calc(1rem + env(safe-area-inset-right)))
       max(1.25rem, calc(1rem + env(safe-area-inset-bottom)))
       max(1rem, env(safe-area-inset-left));
     color: #fff;
