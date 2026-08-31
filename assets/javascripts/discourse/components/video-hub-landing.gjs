@@ -47,8 +47,12 @@ export default class VideoHubLanding extends Component {
     }));
   }
 
+  get isImmersive() {
+    return this.args.immersive === true;
+  }
+
   get useMobileFeed() {
-    return !this.capabilities.viewport.sm;
+    return this.isImmersive || !this.capabilities.viewport.sm;
   }
 
   get canLoadMore() {
@@ -74,7 +78,7 @@ export default class VideoHubLanding extends Component {
   }
 
   @action
-  activateMobileVideo(videoId) {
+  activateMobileVideo(videoId, index) {
     if (!this.videos.some((video) => video.id === videoId)) {
       return;
     }
@@ -88,6 +92,14 @@ export default class VideoHubLanding extends Component {
 
     if (this.visibleMobileVideoIds.has(videoId)) {
       this.beginMetricTracking(videoId);
+    }
+
+    if (
+      this.isImmersive &&
+      Number.isInteger(index) &&
+      index >= Math.max(0, this.videos.length - 2)
+    ) {
+      void this.loadMore();
     }
   }
 
@@ -114,7 +126,7 @@ export default class VideoHubLanding extends Component {
       return;
     }
 
-    this.activateMobileVideo(video.id);
+    this.activateMobileVideo(video.id, index);
     document
       .querySelector(`[data-video-hub-feed-index="${index}"]`)
       ?.scrollIntoView?.({ block: "start" });
@@ -242,68 +254,31 @@ export default class VideoHubLanding extends Component {
   }
 
   <template>
-    <main class="wrap video-hub-page">
-      <header class="video-hub-page__hero">
-        <div class="video-hub-page__intro">
-          <p class="video-hub-page__eyebrow">
-            {{i18n "video_hub.eyebrow"}}
-          </p>
-          <h1>{{i18n "video_hub.title"}}</h1>
-          <p>{{i18n "video_hub.description"}}</p>
-          <div class="video-hub-page__actions">
-            <LinkTo
-              @route="video-hub-new"
-              class="btn btn-primary video-hub-page__publish-link"
-            >
-              {{i18n "video_hub.publish.cta"}}
-            </LinkTo>
-            <LinkTo
-              @route="video-hub-trending"
-              class="btn btn-default video-hub-page__trending-link"
-            >
-              {{i18n "video_hub.trending.cta"}}
-            </LinkTo>
-            {{#if this.currentUser}}
-              <LinkTo
-                @route="video-hub-following"
-                class="btn btn-default video-hub-page__following-link"
-              >
-                {{i18n "video_hub.following.cta"}}
-              </LinkTo>
-              <LinkTo
-                @route="video-hub-saved"
-                class="btn btn-default video-hub-page__saved-link"
-              >
-                {{i18n "video_hub.saved.cta"}}
-              </LinkTo>
-            {{/if}}
-          </div>
-        </div>
-
-        {{#if this.providerItems.length}}
-          <aside
-            class="video-hub-page__providers"
-            aria-label={{i18n "video_hub.supported_providers"}}
+    {{#if this.isImmersive}}
+      <main class="video-hub-explore">
+        <header class="video-hub-explore__topbar">
+          <LinkTo @route="videos" class="video-hub-explore__back">
+            {{i18n "video_hub.explore.back_to_videos"}}
+          </LinkTo>
+          <strong class="video-hub-explore__title">
+            {{i18n "video_hub.explore.title"}}
+          </strong>
+          <LinkTo
+            @route="video-hub-new"
+            class="video-hub-explore__publish"
           >
-            <span>{{i18n "video_hub.supported_providers"}}</span>
-            <ul>
-              {{#each this.providerItems as |provider|}}
-                <li data-provider={{provider.id}}>{{provider.label}}</li>
-              {{/each}}
-            </ul>
-          </aside>
-        {{/if}}
-      </header>
+            {{i18n "video_hub.explore.share"}}
+          </LinkTo>
+        </header>
 
-      {{#if this.videos.length}}
-        {{#if this.useMobileFeed}}
+        {{#if this.videos.length}}
           <section
-            class="video-hub-mobile-feed"
-            aria-label={{i18n "video_hub.feed.label"}}
-            aria-describedby="video-hub-mobile-feed-instructions"
+            class="video-hub-mobile-feed video-hub-mobile-feed--immersive"
+            aria-label={{i18n "video_hub.explore.label"}}
+            aria-describedby="video-hub-explore-instructions"
           >
-            <p id="video-hub-mobile-feed-instructions" class="sr-only">
-              {{i18n "video_hub.feed.instructions"}}
+            <p id="video-hub-explore-instructions" class="sr-only">
+              {{i18n "video_hub.explore.instructions"}}
             </p>
             {{#each this.videos as |video index|}}
               <VideoHubMobileFeedItem
@@ -314,39 +289,139 @@ export default class VideoHubLanding extends Component {
                 @onActivate={{this.activateMobileVideo}}
                 @onVisibilityChange={{this.updateMobileVisibility}}
                 @onNavigate={{this.navigateMobileFeed}}
+                @immersive={{true}}
               />
             {{/each}}
           </section>
+
+          {{#if this.loadingMore}}
+            <div class="video-hub-explore__loading" aria-live="polite">
+              {{i18n "video_hub.explore.loading_more"}}
+            </div>
+          {{/if}}
         {{else}}
-          <section class="video-hub-page__feed" aria-live="polite">
-            {{#each this.videos as |video|}}
-              <VideoHubCard @video={{video}} />
-            {{/each}}
+          <section class="video-hub-explore__empty" aria-live="polite">
+            <h1>{{i18n "video_hub.explore.empty_title"}}</h1>
+            <p>{{i18n "video_hub.explore.empty_description"}}</p>
+            <LinkTo @route="video-hub-new" class="btn btn-primary">
+              {{i18n "video_hub.publish.cta"}}
+            </LinkTo>
           </section>
         {{/if}}
+      </main>
+    {{else}}
+      <main class="wrap video-hub-page">
+        <header class="video-hub-page__hero">
+          <div class="video-hub-page__intro">
+            <p class="video-hub-page__eyebrow">
+              {{i18n "video_hub.eyebrow"}}
+            </p>
+            <h1>{{i18n "video_hub.title"}}</h1>
+            <p>{{i18n "video_hub.description"}}</p>
+            <div class="video-hub-page__actions">
+              <LinkTo
+                @route="video-hub-explore"
+                class="btn btn-primary video-hub-page__explore-link"
+              >
+                {{i18n "video_hub.explore.cta"}}
+              </LinkTo>
+              <LinkTo
+                @route="video-hub-new"
+                class="btn btn-default video-hub-page__publish-link"
+              >
+                {{i18n "video_hub.publish.cta"}}
+              </LinkTo>
+              <LinkTo
+                @route="video-hub-trending"
+                class="btn btn-default video-hub-page__trending-link"
+              >
+                {{i18n "video_hub.trending.cta"}}
+              </LinkTo>
+              {{#if this.currentUser}}
+                <LinkTo
+                  @route="video-hub-following"
+                  class="btn btn-default video-hub-page__following-link"
+                >
+                  {{i18n "video_hub.following.cta"}}
+                </LinkTo>
+                <LinkTo
+                  @route="video-hub-saved"
+                  class="btn btn-default video-hub-page__saved-link"
+                >
+                  {{i18n "video_hub.saved.cta"}}
+                </LinkTo>
+              {{/if}}
+            </div>
+          </div>
 
-        {{#if this.showLoadMore}}
-          <div class="video-hub-page__pagination">
-            <DButton
-              @action={{this.loadMore}}
-              @disabled={{this.loadingMore}}
-              @isLoading={{this.loadingMore}}
-              @label="video_hub.load_more"
-              class="btn-default"
-            />
-          </div>
+          {{#if this.providerItems.length}}
+            <aside
+              class="video-hub-page__providers"
+              aria-label={{i18n "video_hub.supported_providers"}}
+            >
+              <span>{{i18n "video_hub.supported_providers"}}</span>
+              <ul>
+                {{#each this.providerItems as |provider|}}
+                  <li data-provider={{provider.id}}>{{provider.label}}</li>
+                {{/each}}
+              </ul>
+            </aside>
+          {{/if}}
+        </header>
+
+        {{#if this.videos.length}}
+          {{#if this.useMobileFeed}}
+            <section
+              class="video-hub-mobile-feed"
+              aria-label={{i18n "video_hub.feed.label"}}
+              aria-describedby="video-hub-mobile-feed-instructions"
+            >
+              <p id="video-hub-mobile-feed-instructions" class="sr-only">
+                {{i18n "video_hub.feed.instructions"}}
+              </p>
+              {{#each this.videos as |video index|}}
+                <VideoHubMobileFeedItem
+                  @video={{video}}
+                  @index={{index}}
+                  @total={{this.videos.length}}
+                  @activeVideoId={{this.activeMobileVideoId}}
+                  @onActivate={{this.activateMobileVideo}}
+                  @onVisibilityChange={{this.updateMobileVisibility}}
+                  @onNavigate={{this.navigateMobileFeed}}
+                />
+              {{/each}}
+            </section>
+          {{else}}
+            <section class="video-hub-page__feed" aria-live="polite">
+              {{#each this.videos as |video|}}
+                <VideoHubCard @video={{video}} />
+              {{/each}}
+            </section>
+          {{/if}}
+
+          {{#if this.showLoadMore}}
+            <div class="video-hub-page__pagination">
+              <DButton
+                @action={{this.loadMore}}
+                @disabled={{this.loadingMore}}
+                @isLoading={{this.loadingMore}}
+                @label="video_hub.load_more"
+                class="btn-default"
+              />
+            </div>
+          {{/if}}
+        {{else}}
+          <section class="video-hub-page__empty" aria-live="polite">
+            <div class="video-hub-page__empty-preview" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <h2>{{i18n "video_hub.empty_title"}}</h2>
+            <p>{{i18n "video_hub.empty_description"}}</p>
+          </section>
         {{/if}}
-      {{else}}
-        <section class="video-hub-page__empty" aria-live="polite">
-          <div class="video-hub-page__empty-preview" aria-hidden="true">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          <h2>{{i18n "video_hub.empty_title"}}</h2>
-          <p>{{i18n "video_hub.empty_description"}}</p>
-        </section>
-      {{/if}}
-    </main>
+      </main>
+    {{/if}}
   </template>
 }
