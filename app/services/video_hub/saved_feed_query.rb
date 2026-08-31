@@ -25,11 +25,13 @@ module VideoHub
       @user = user
       @guardian = Guardian.new(user)
       @cursor = cursor
-      @limit = Integer(limit)
+      @limit = limit
     end
 
     def fetch
       raise FeedError.new(:login_required) unless user
+
+      @limit = Integer(limit)
       raise FeedError.new(:invalid_limit) unless limit.between?(1, DEFAULT_LIMIT)
 
       decoded_cursor = decode_cursor(cursor)
