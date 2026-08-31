@@ -1,11 +1,16 @@
-name: Discourse Plugin
+name: Syntax Tree Probe
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
 
 jobs:
-  ci:
-    uses: discourse/.github/.github/workflows/discourse-plugin.yml@v1
+  stree:
+    runs-on: ubuntu-latest
+    container: discourse/discourse_test:slim
+    steps:
+      - uses: actions/checkout@v6
+      - run: bundle install
+      - name: Print canonical formatting
+        run: |
+          bundle exec stree write app/controllers/video_hub/videos_controller.rb spec/services/video_hub/following_feed_cursor_spec.rb spec/services/video_hub/following_feed_query_spec.rb
+          git diff -- app/controllers/video_hub/videos_controller.rb spec/services/video_hub/following_feed_cursor_spec.rb spec/services/video_hub/following_feed_query_spec.rb
