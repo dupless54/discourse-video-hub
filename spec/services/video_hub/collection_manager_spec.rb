@@ -31,11 +31,14 @@ describe VideoHub::CollectionManager do
     expect(described_class.list(user: owner).map { |entry| entry.collection.id }).to eq(
       [first.collection.id, second.collection.id],
     )
-    expect(described_class.list(user: owner).map { |entry| entry.collection.id }).not_to include(foreign.id)
+    expect(described_class.list(user: owner).map { |entry| entry.collection.id }).not_to include(
+      foreign.id,
+    )
   end
 
   it "updates mutable metadata without allowing collection type changes" do
-    collection = create_collection(user: owner, collection_type: "playlist", title: "Before", position: 0)
+    collection =
+      create_collection(user: owner, collection_type: "playlist", title: "Before", position: 0)
 
     result =
       described_class.update(
@@ -65,7 +68,9 @@ describe VideoHub::CollectionManager do
       described_class.update(
         user: other_user,
         collection_id: collection.id,
-        attributes: { title: "Unauthorized" },
+        attributes: {
+          title: "Unauthorized",
+        },
       )
     end.to raise_error(Discourse::NotFound)
 
@@ -80,7 +85,8 @@ describe VideoHub::CollectionManager do
     collection = create_collection(user: owner, collection_type: "playlist", position: 0)
     video = create_video(user: Fabricate(:user))
 
-    first = described_class.add_video(user: owner, collection_id: collection.id, video_id: video.id)
+    first =
+      described_class.add_video(user: owner, collection_id: collection.id, video_id: video.id)
     retry_result =
       described_class.add_video(user: owner, collection_id: collection.id, video_id: video.id)
 
@@ -102,7 +108,11 @@ describe VideoHub::CollectionManager do
     expect(result.item.video_id).to eq(own_video.id)
 
     expect do
-      described_class.add_video(user: owner, collection_id: collection.id, video_id: foreign_video.id)
+      described_class.add_video(
+        user: owner,
+        collection_id: collection.id,
+        video_id: foreign_video.id,
+      )
     end.to raise_error(VideoHub::CollectionManager::CollectionError) { |error|
       expect(error.code).to eq(:series_video_not_owned)
     }
@@ -116,7 +126,11 @@ describe VideoHub::CollectionManager do
 
     [hidden_video, disabled_video].each do |video|
       expect do
-        described_class.add_video(user: owner, collection_id: collection.id, video_id: video.id)
+        described_class.add_video(
+          user: owner,
+          collection_id: collection.id,
+          video_id: video.id,
+        )
       end.to raise_error(Discourse::NotFound)
     end
 
@@ -129,10 +143,16 @@ describe VideoHub::CollectionManager do
     removed_video = create_video(user: Fabricate(:user))
     last_video = create_video(user: Fabricate(:user))
 
-    first = described_class.add_video(user: owner, collection_id: collection.id, video_id: first_video.id)
+    first =
+      described_class.add_video(user: owner, collection_id: collection.id, video_id: first_video.id)
     removed =
-      described_class.add_video(user: owner, collection_id: collection.id, video_id: removed_video.id)
-    last = described_class.add_video(user: owner, collection_id: collection.id, video_id: last_video.id)
+      described_class.add_video(
+        user: owner,
+        collection_id: collection.id,
+        video_id: removed_video.id,
+      )
+    last =
+      described_class.add_video(user: owner, collection_id: collection.id, video_id: last_video.id)
 
     expect(
       described_class.remove_video(
