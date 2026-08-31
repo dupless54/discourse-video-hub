@@ -125,9 +125,7 @@ describe "Video Hub collection management" do
     put "/videos/collections/#{collection.id}/videos/#{video.id}.json"
 
     expect(response.status).to eq(422)
-    expect(response.parsed_body).to eq(
-      { "error" => { "code" => "series_video_not_owned" } },
-    )
+    expect(response.parsed_body).to eq({ "error" => { "code" => "series_video_not_owned" } })
     expect(collection.items).to be_empty
   end
 
