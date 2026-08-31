@@ -262,9 +262,9 @@ describe "Video Hub collection management" do
     )
 
     get "/videos/collections.json"
-    expect(response.parsed_body.dig("collections", 0, "items").map { |item| item.fetch("id") }).to eq(
-      ordered_ids,
-    )
+    expect(
+      response.parsed_body.dig("collections", 0, "items").map { |item| item.fetch("id") },
+    ).to eq(ordered_ids)
   end
 
   it "rejects non-exact reorder permutations without partial writes" do
