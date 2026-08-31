@@ -38,9 +38,7 @@ describe VideoHub::TrendingFeedCursor do
         video_id: 42,
       )
 
-    expect { described_class.decode(ranking_token) }.to raise_error(
-      described_class::CursorError,
-    )
+    expect { described_class.decode(ranking_token) }.to raise_error(described_class::CursorError)
   end
 
   it "rejects tampered and malformed tokens" do
