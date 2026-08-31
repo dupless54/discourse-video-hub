@@ -183,6 +183,105 @@
     }
   }
 
+  &__catalog {
+    display: grid;
+    gap: 1rem;
+    padding: 1.1rem;
+    border: 1px solid var(--primary-low);
+    border-radius: 0.9rem;
+    background: var(--primary-very-low);
+  }
+
+  &__catalog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__catalog-copy {
+    min-width: 0;
+
+    h3 {
+      margin: 0;
+      font-size: var(--font-up-1);
+    }
+
+    p {
+      max-width: 52rem;
+      margin: 0.35rem 0 0;
+      color: var(--primary-medium);
+    }
+  }
+
+  &__catalog-toggle {
+    flex: 0 0 auto;
+    min-height: 2.5rem;
+    white-space: nowrap;
+  }
+
+  &__catalog-panel {
+    display: grid;
+    gap: 0.85rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--primary-low);
+  }
+
+  &__catalog-list {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__catalog-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem;
+    border: 1px solid var(--primary-low);
+    border-radius: 0.8rem;
+    background: var(--secondary);
+  }
+
+  &__catalog-preview {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 0.85rem;
+    align-items: center;
+    min-width: 0;
+    color: var(--primary);
+    text-decoration: none;
+
+    &:hover strong {
+      color: var(--tertiary);
+      text-decoration: underline;
+    }
+  }
+
+  &__catalog-add {
+    min-height: 2.5rem;
+    white-space: nowrap;
+  }
+
+  &__catalog-state {
+    padding: 1rem;
+    border: 1px dashed var(--primary-low-mid);
+    border-radius: 0.75rem;
+    color: var(--primary-medium);
+    text-align: center;
+
+    p {
+      margin: 0 0 0.75rem;
+    }
+  }
+
+  &__catalog-load-more {
+    justify-self: start;
+  }
+
   &__items {
     display: grid;
     gap: 1rem;
@@ -361,8 +460,14 @@
       justify-self: start;
     }
 
+    &__catalog-card,
     &__item {
       grid-template-columns: 1fr;
+    }
+
+    &__catalog-add,
+    &__catalog-load-more {
+      justify-self: start;
     }
 
     &__item-actions {
@@ -388,6 +493,15 @@
 
 @media (width <= 480px) {
   .video-hub-collections {
+    &__catalog {
+      padding: 0.85rem;
+    }
+
+    &__catalog-header {
+      display: grid;
+    }
+
+    &__catalog-preview,
     &__item-preview {
       grid-template-columns: 5.5rem minmax(0, 1fr);
     }
@@ -412,6 +526,9 @@
       box-sizing: border-box;
     }
 
+    &__catalog-toggle,
+    &__catalog-add,
+    &__catalog-load-more,
     &__collection-actions .btn,
     &__item-actions .btn,
     &__form-actions .btn {
