@@ -78,9 +78,9 @@ describe VideoHub::CollectionCatalogQuery do
   it "keeps foreign collection targets fail-closed" do
     collection = create_collection(user: Fabricate(:user))
 
-    expect do
-      described_class.fetch(user: owner, collection_id: collection.id)
-    end.to raise_error(Discourse::NotFound)
+    expect do described_class.fetch(user: owner, collection_id: collection.id) end.to raise_error(
+      Discourse::NotFound,
+    )
   end
 
   def create_collection(user:, collection_type: "playlist")

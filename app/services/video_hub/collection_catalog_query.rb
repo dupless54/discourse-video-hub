@@ -35,7 +35,8 @@ module VideoHub
 
       collection = owned_collection!
       scanned = candidate_scope(collection).limit(MAX_SCAN_ROWS).to_a
-      visible = scanned.select { |video| VideoHub::WatchQuery.visible_video?(video, guardian: guardian) }
+      visible =
+        scanned.select { |video| VideoHub::WatchQuery.visible_video?(video, guardian: guardian) }
       page = visible.first(limit)
 
       has_more, next_cursor = pagination_for(scanned, visible, page)
@@ -68,7 +69,9 @@ module VideoHub
           .where.not(published_at: nil)
           .where.not(
             id:
-              VideoHub::VideoCollectionItem.where(video_collection_id: collection.id).select(:video_id),
+              VideoHub::VideoCollectionItem.where(video_collection_id: collection.id).select(
+                :video_id,
+              ),
           )
           .where(
             topics: {
