@@ -19,6 +19,30 @@ module VideoHub
       render json: { collections: entries.map { |entry| collection_payload(entry) } }
     end
 
+    def catalog
+      result =
+        VideoHub::CollectionCatalogQuery.fetch(
+          user: current_user,
+          collection_id: params[:id],
+          cursor: params[:cursor],
+          limit: params[:limit].presence || VideoHub::CollectionCatalogQuery::DEFAULT_LIMIT,
+        )
+
+      render json: {
+               collection: {
+                 id: result.collection.id,
+                 collection_type: result.collection.collection_type,
+               },
+               videos: result.videos.map { |video| public_video_payload(video) },
+               pagination: {
+                 has_more: result.has_more,
+                 next_cursor: result.next_cursor,
+               },
+             }
+    rescue VideoHub::CollectionCatalogQuery::CatalogError => error
+      render json: { error: { code: error.code.to_s } }, status: :bad_request
+    end
+
     def create
       attributes = create_params.to_h.symbolize_keys
       entry = VideoHub::CollectionManager.create(user: current_user, **attributes)
