@@ -42,6 +42,14 @@ module VideoHub
       new(user: user).remove_video(collection_id: collection_id, video_id: video_id)
     end
 
+    def self.reorder_collections(user:, collection_ids:)
+      new(user: user).reorder_collections(collection_ids: collection_ids)
+    end
+
+    def self.reorder_items(user:, collection_id:, item_ids:)
+      new(user: user).reorder_items(collection_id: collection_id, item_ids: item_ids)
+    end
+
     def initialize(user:)
       @user = user
       @guardian = Guardian.new(user)
@@ -155,6 +163,33 @@ module VideoHub
       raise CollectionError.new(:invalid_collection)
     end
 
+    def reorder_collections(collection_ids:)
+      normalized_ids = normalize_order_ids(collection_ids, :invalid_collection_order)
+
+      user.with_lock do
+        collections = owned_collections.lock.order(:position, :id).to_a
+        validate_exact_order!(normalized_ids, collections.map(&:id), :invalid_collection_order)
+        rewrite_positions!(collections, normalized_ids)
+        normalized_ids.freeze
+      end
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved, ActiveRecord::RecordNotUnique
+      raise CollectionError.new(:invalid_collection_order)
+    end
+
+    def reorder_items(collection_id:, item_ids:)
+      collection = owned_collection!(collection_id)
+      normalized_ids = normalize_order_ids(item_ids, :invalid_item_order)
+
+      collection.with_lock do
+        items = locked_items(collection)
+        validate_exact_order!(normalized_ids, items.map(&:id), :invalid_item_order)
+        rewrite_positions!(items, normalized_ids)
+        normalized_ids.freeze
+      end
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved, ActiveRecord::RecordNotUnique
+      raise CollectionError.new(:invalid_item_order)
+    end
+
     private
 
     attr_reader :guardian, :user
@@ -204,6 +239,45 @@ module VideoHub
       records.each_with_index do |record, position|
         record.update!(position: position) unless record.position == position
       end
+    end
+
+    def rewrite_positions!(records, ordered_ids)
+      current_ids = records.sort_by { |record| [record.position, record.id] }.map(&:id)
+      return if current_ids == ordered_ids || records.empty?
+
+      temporary_offset = records.map(&:position).max + records.length + 1
+      record_class = records.first.class
+      record_class
+        .where(id: records.map(&:id))
+        .update_all(position: Arel.sql("position + #{temporary_offset}"))
+      records.each { |record| record.position += temporary_offset }
+
+      records_by_id = records.index_by(&:id)
+      ordered_ids.each_with_index do |id, position|
+        records_by_id.fetch(id).update!(position: position)
+      end
+    end
+
+    def validate_exact_order!(ordered_ids, existing_ids, error_code)
+      return if ordered_ids.length == existing_ids.length && ordered_ids.sort == existing_ids.sort
+
+      raise CollectionError.new(error_code)
+    end
+
+    def normalize_order_ids(values, error_code)
+      raise CollectionError.new(error_code) unless values.is_a?(Array)
+
+      ids = values.map { |value| normalize_order_integer(value, error_code) }
+      raise CollectionError.new(error_code) unless ids.uniq.length == ids.length
+
+      ids
+    end
+
+    def normalize_order_integer(value, error_code)
+      return value if value.is_a?(Integer) && value.positive?
+      return value.to_i if value.is_a?(String) && value.match?(/\A[1-9]\d*\z/)
+
+      raise CollectionError.new(error_code)
     end
 
     def normalize_positive_integer(value)
