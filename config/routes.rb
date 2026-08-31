@@ -22,6 +22,38 @@ VideoHub::Engine.routes.draw do
   get "/trending/feed" => "videos#trending_feed", :defaults => { format: :json }
   get "/following/feed" => "videos#following_feed", :defaults => { format: :json }
   get "/saved/feed" => "videos#saved_feed", :defaults => { format: :json }
+  get "/collections" => "collections#index", :defaults => { format: :json }
+  post "/collections" => "collections#create", :defaults => { format: :json }
+  put "/collections/:id" => "collections#update",
+      :constraints => {
+        id: /\d+/,
+      },
+      :defaults => {
+        format: :json,
+      }
+  delete "/collections/:id" => "collections#destroy",
+         :constraints => {
+           id: /\d+/,
+         },
+         :defaults => {
+           format: :json,
+         }
+  put "/collections/:id/videos/:video_id" => "collections#add_video",
+      :constraints => {
+        id: /\d+/,
+        video_id: /\d+/,
+      },
+      :defaults => {
+        format: :json,
+      }
+  delete "/collections/:id/videos/:video_id" => "collections#remove_video",
+         :constraints => {
+           id: /\d+/,
+           video_id: /\d+/,
+         },
+         :defaults => {
+           format: :json,
+         }
   get "/profile/:username" => "profiles#show", :defaults => { format: :json }
   get "/profile/:username/layout" => "profiles#layout", :defaults => { format: :json }
   put "/profile/:username/layout" => "profiles#update_layout", :defaults => { format: :json }
