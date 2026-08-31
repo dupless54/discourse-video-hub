@@ -44,6 +44,17 @@ tr_TR:
         remove: "Kayıtlardan çıkar"
         empty_title: "Henüz kaydedilmiş video yok"
         empty_description: "Bir videoyu izleme sayfasından kaydettiğinde burada görünür."
+      collection:
+        eyebrow: "Herkese açık koleksiyon"
+        playlist: "Oynatma listesi"
+        series: "Seri"
+        back_to_videos: "Videolara dön"
+        owner: "@%{username} tarafından hazırlandı"
+        video_count:
+          one: "%{count} video"
+          other: "%{count} video"
+        empty_title: "Bu koleksiyon boş"
+        empty_description: "Bu koleksiyona eklenen görünür videolar burada gösterilir."
       publish:
         cta: "Video paylaş"
         eyebrow: "Yeni video"

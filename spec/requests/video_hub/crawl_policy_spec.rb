@@ -10,6 +10,14 @@ describe "Video Hub crawl policy" do
 
   it "marks aggregate Video Hub SPA surfaces noindex while keeping links crawlable" do
     user = Fabricate(:user)
+    collection =
+      VideoHub::VideoCollection.create!(
+        user: user,
+        collection_type: "playlist",
+        title: "Crawl policy collection",
+        position: 0,
+        visible: true,
+      )
 
     [
       "/videos",
@@ -17,6 +25,7 @@ describe "Video Hub crawl policy" do
       "/videos/trending",
       "/videos/following",
       "/videos/saved",
+      "/videos/collections/#{collection.id}",
       "/u/#{user.username}/videos",
       "/u/#{user.username}/videos/edit",
     ].each do |path|
