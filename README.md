@@ -12,7 +12,7 @@ Video Hub is designed around external public video URLs. It does **not** require
 
 ## Main Branch Status
 
-The current `main` branch contains the completed V1 product scope plus several originally planned extensions. The plugin metadata version is still `0.1.0`; there is no GitHub Release or release tag yet, so `main` should currently be treated as a **feature-complete release candidate**, not a published stable release.
+The current `main` branch contains the completed V1 product scope plus several originally planned extensions. Plugin metadata is now **`1.0.0-rc.1`**. The release-candidate merge commit passed the post-merge Official Discourse Plugin CI on `main`, so the repository baseline is CI-verified as the first release candidate. A real staging/disposable Discourse smoke pass is still required before stable `1.0.0` promotion.
 
 Shipped on `main`:
 
@@ -34,15 +34,17 @@ Shipped on `main`:
 
 ## Release Status
 
-The repository has not published a GitHub Release yet. Before assigning the first stable tag, release hardening should keep these gates explicit:
+`1.0.0-rc.1` is the first repository-verified release candidate. The scoped release-prep PR and its post-merge `main` workflow both passed Official Discourse Plugin CI. The integrated release notes are in [`CHANGELOG.md`](CHANGELOG.md), and the required real-instance validation matrix is in [`docs/RELEASE_CHECKLIST.md`](docs/RELEASE_CHECKLIST.md).
 
-- fresh official Discourse Plugin CI on the exact release candidate;
-- a real Discourse-instance smoke test covering install/rebuild, migrations, publish, watch, discovery, profile, saved/following/trending, and collections;
-- semantic version selection and `plugin.rb` version bump;
-- release notes/changelog generated from the merged feature history;
-- final confirmation that optional integrations, especially `discourse-follow`, fail closed when unavailable.
+Before promoting to stable `1.0.0`:
 
-Do not infer release status from the `0.1.0` metadata value alone.
+- install/update this exact candidate on a disposable or staging Discourse instance;
+- complete the provider, publish/watch/discussion, discovery, Saved/Trending/Following, profile, collection, SEO/privacy, light/dark, and responsive smoke matrix;
+- verify optional integrations, especially `discourse-follow`, fail closed when unavailable;
+- open a narrowly scoped stable-version PR from `1.0.0-rc.1` to `1.0.0` and require fresh exact-head plus post-merge Official Discourse Plugin CI GREEN;
+- only then create the stable tag and GitHub Release.
+
+No stable `v1.0.0` tag or stable GitHub Release is claimed by this repository state.
 
 ## Product Architecture
 
