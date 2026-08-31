@@ -1,11 +1,17 @@
-name: Discourse Plugin
+name: Format Probe
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
 
 jobs:
-  ci:
-    uses: discourse/.github/.github/workflows/discourse-plugin.yml@v1
+  format:
+    runs-on: ubuntu-latest
+    container: discourse/discourse_test:slim
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install JS dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Show canonical Prettier output
+        run: |
+          pnpm prettier test/javascripts/acceptance/video-hub-saved-test.js --write
+          cat test/javascripts/acceptance/video-hub-saved-test.js
