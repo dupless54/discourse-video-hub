@@ -10,6 +10,36 @@ describe "Video Hub saved videos" do
   let(:viewer) { Fabricate(:user) }
   let(:video) { create_video(owner: owner) }
 
+  describe "GET /videos/:id/:slug" do
+    it "returns an anonymous unsaved state without bookmark data" do
+      get "/videos/#{video.id}/saved-request-video.json"
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body.dig("video", "saved")).to eq(false)
+      expect(response.parsed_body.dig("video", "bookmark_id")).to be_nil
+    end
+
+    it "returns only the authenticated viewer's saved state" do
+      other_viewer = Fabricate(:user)
+      other_bookmark = VideoHub::SavedVideo.save(user: other_viewer, video_id: video.id)
+      sign_in(viewer)
+
+      get "/videos/#{video.id}/saved-request-video.json"
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body.dig("video", "saved")).to eq(false)
+      expect(response.parsed_body.dig("video", "bookmark_id")).to be_nil
+
+      viewer_bookmark = VideoHub::SavedVideo.save(user: viewer, video_id: video.id)
+      get "/videos/#{video.id}/saved-request-video.json"
+
+      expect(response.status).to eq(200)
+      expect(response.parsed_body.dig("video", "saved")).to eq(true)
+      expect(response.parsed_body.dig("video", "bookmark_id")).to eq(viewer_bookmark.bookmark_id)
+      expect(response.parsed_body.dig("video", "bookmark_id")).not_to eq(other_bookmark.bookmark_id)
+    end
+  end
+
   describe "POST /videos/:id/save" do
     it "requires login before creating any bookmark" do
       post "/videos/#{video.id}/save.json"
