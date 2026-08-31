@@ -17,6 +17,15 @@ tr_TR:
         youtube: "YouTube"
         tiktok: "TikTok"
         instagram: "Instagram"
+      saved:
+        cta: "Kaydedilenler"
+        eyebrow: "Kütüphanen"
+        title: "Kaydedilen videolar"
+        description: "Daha sonra izlemek için kaydettiğin videolar. Görünürlük, videonun bağlı olduğu Discourse konu ve gönderi izinlerini izlemeye devam eder."
+        back_to_videos: "Videolara dön"
+        remove: "Kayıtlardan çıkar"
+        empty_title: "Henüz kaydedilmiş video yok"
+        empty_description: "Bir videoyu izleme sayfasından kaydettiğinde burada görünür."
       publish:
         cta: "Video paylaş"
         eyebrow: "Yeni video"

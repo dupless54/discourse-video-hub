@@ -17,6 +17,15 @@ en:
         youtube: "YouTube"
         tiktok: "TikTok"
         instagram: "Instagram"
+      saved:
+        cta: "Saved videos"
+        eyebrow: "Your library"
+        title: "Saved videos"
+        description: "Videos you saved for later. Visibility still follows the original Discourse topic and post permissions."
+        back_to_videos: "Back to videos"
+        remove: "Remove from saved"
+        empty_title: "No saved videos yet"
+        empty_description: "Save a video from its watch page and it will appear here."
       publish:
         cta: "Share video"
         eyebrow: "New video"
