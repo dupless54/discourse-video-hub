@@ -103,7 +103,11 @@ describe VideoHub::VideosController do
       get "/videos/#{video.id}/wrong-slug.json"
 
       expect(response.status).to eq(200)
-      expect(response.parsed_body).to eq({ "video" => video_payload(video) })
+      expect(response.parsed_body).to eq(
+        {
+          "video" => video_payload(video).merge("saved" => false, "bookmark_id" => nil),
+        },
+      )
     end
 
     it "preserves not-found semantics from the watch query" do
