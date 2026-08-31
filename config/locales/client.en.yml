@@ -72,6 +72,10 @@ en:
         delete: "Delete collection"
         delete_confirm: "Delete ‘%{title}’? The collection will be removed, but its original videos and discussions will remain."
         view_public: "View public page"
+        collection_order_label: "Collection order"
+        video_order_label: "Video order"
+        move_up: "Move up"
+        move_down: "Move down"
         items_label: "Collection videos"
         items_title: "Videos in this collection"
         items_description: "Video visibility still follows the original Discourse topic and post permissions."
@@ -88,6 +92,7 @@ en:
         updated: "Collection updated."
         deleted: "Collection deleted."
         video_removed: "Video removed from the collection."
+        order_updated: "Collection order updated."
       publish:
         cta: "Share video"
         eyebrow: "New video"
