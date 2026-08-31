@@ -13,6 +13,19 @@ module VideoHub
       end
     end
 
+    def self.state(user:, video:)
+      return Result.new(saved: false, bookmark_id: nil).freeze unless user
+
+      bookmark =
+        Bookmark.find_by(
+          user_id: user.id,
+          bookmarkable_type: Post.polymorphic_name,
+          bookmarkable_id: video.post_id,
+        )
+
+      Result.new(saved: bookmark.present?, bookmark_id: bookmark&.id).freeze
+    end
+
     def self.save(user:, video_id:)
       new(user:, video_id:).save
     end

@@ -42,8 +42,11 @@ module VideoHub
 
     def show
       result = VideoHub::WatchQuery.fetch(user: current_user, id: params[:id])
+      saved_state = VideoHub::SavedVideo.state(user: current_user, video: result.video)
 
-      render json: { video: video_payload(result.video, slug: result.slug) }
+      render json: {
+               video: video_payload(result.video, slug: result.slug, saved_state: saved_state),
+             }
     end
 
     def watch
@@ -126,8 +129,8 @@ module VideoHub
       providers
     end
 
-    def video_payload(video, slug: video.topic.slug)
-      {
+    def video_payload(video, slug: video.topic.slug, saved_state: nil)
+      payload = {
         id: video.id,
         provider: video.provider,
         external_id: video.external_id,
@@ -142,6 +145,9 @@ module VideoHub
         published_at: video.published_at&.iso8601,
         watch_path: "/videos/#{video.id}/#{slug}",
       }
+      return payload unless saved_state
+
+      payload.merge(saved: saved_state.saved, bookmark_id: saved_state.bookmark_id)
     end
 
     def saved_video_payload(result)
