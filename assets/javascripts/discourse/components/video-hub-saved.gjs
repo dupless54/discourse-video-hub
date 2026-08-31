@@ -24,7 +24,10 @@ class VideoHubSavedItem extends Component {
         type: "DELETE",
       });
 
-      if (response?.saved === false && typeof this.args.onRemoved === "function") {
+      if (
+        response?.saved === false &&
+        typeof this.args.onRemoved === "function"
+      ) {
         this.args.onRemoved(this.args.video.id);
       }
     } catch (error) {
@@ -62,8 +65,8 @@ export default class VideoHubSaved extends Component {
   get canLoadMore() {
     return Boolean(
       this.pagination.has_more &&
-        this.pagination.next_cursor &&
-        !this.loadingMore
+      this.pagination.next_cursor &&
+      !this.loadingMore
     );
   }
 
