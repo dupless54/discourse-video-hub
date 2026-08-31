@@ -26,6 +26,15 @@ en:
         back_to_videos: "Back to videos"
         empty_title: "Nothing is trending yet"
         empty_description: "Videos will appear here after they receive qualified viewing activity in the completed ranking window."
+      following:
+        cta: "Following"
+        eyebrow: "People you follow"
+        title: "Following videos"
+        description: "The newest visible videos from people you follow, in chronological order."
+        source: "Your follow relationships come from the official Discourse Follow plugin."
+        back_to_videos: "Back to videos"
+        empty_title: "No videos from people you follow yet"
+        empty_description: "Follow community members with Discourse Follow. Their visible Video Hub posts will appear here when they publish."
       saved:
         cta: "Saved videos"
         eyebrow: "Your library"
