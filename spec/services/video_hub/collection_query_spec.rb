@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 describe VideoHub::CollectionQuery do
-  let(:owner) { Fabricate(:user) }
+  let(:owner) { Fabricate(:user, trust_level: TrustLevel[2]) }
   let(:category) { Fabricate(:category) }
 
   before do
