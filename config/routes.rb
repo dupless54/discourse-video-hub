@@ -3,6 +3,13 @@
 VideoHub::Engine.routes.draw do
   get "/" => "videos#shell", :constraints => { format: /html/ }, :defaults => { format: :html }
   get "/new" => "videos#shell", :constraints => { format: /html/ }, :defaults => { format: :html }
+  get "/explore" => "videos#shell",
+      :constraints => {
+        format: /html/,
+      },
+      :defaults => {
+        format: :html,
+      }
   get "/trending" => "videos#shell",
       :constraints => {
         format: /html/,
@@ -123,6 +130,6 @@ VideoHub::Engine.routes.draw do
          :defaults => {
            format: :json,
          }
-  get "/:id/:slug" => "videos#show", :constraints => { id: /\d+/, format: :json }
+  get "/:id/:slug" => "videos#show", :constraints => { id: /\d+/, format: /json/ }
   post "/" => "videos#create", :defaults => { format: :json }
 end
