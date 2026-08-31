@@ -12,7 +12,7 @@ module VideoHub
     ].freeze
 
     before_action :ensure_video_hub_enabled
-    before_action :ensure_logged_in, only: %i[create record_metric]
+    before_action :ensure_logged_in, only: %i[create record_metric save unsave]
     skip_before_action :check_xhr, only: %i[shell watch]
 
     def shell
@@ -96,6 +96,22 @@ module VideoHub
       render json: { error: { code: error.code.to_s } }, status: :unprocessable_entity
     end
 
+    def save
+      result = VideoHub::SavedVideo.save(user: current_user, video_id: params[:id])
+
+      render json: saved_video_payload(result)
+    rescue VideoHub::SavedVideo::SaveError => error
+      render json: { error: { code: error.code.to_s } }, status: :unprocessable_entity
+    end
+
+    def unsave
+      result = VideoHub::SavedVideo.unsave(user: current_user, video_id: params[:id])
+
+      render json: saved_video_payload(result)
+    rescue VideoHub::SavedVideo::SaveError => error
+      render json: { error: { code: error.code.to_s } }, status: :unprocessable_entity
+    end
+
     private
 
     def ensure_video_hub_enabled
@@ -125,6 +141,13 @@ module VideoHub
         post_id: video.post_id,
         published_at: video.published_at&.iso8601,
         watch_path: "/videos/#{video.id}/#{slug}",
+      }
+    end
+
+    def saved_video_payload(result)
+      {
+        saved: result.saved,
+        bookmark_id: result.bookmark_id,
       }
     end
 
