@@ -2,7 +2,7 @@
 
 # name: discourse-video-hub
 # about: Native video discovery and profile showcases for public video links
-# version: 0.1.0
+# version: 1.0.0-rc.1
 # authors: dupless54
 # url: https://github.com/dupless54/discourse-video-hub
 
