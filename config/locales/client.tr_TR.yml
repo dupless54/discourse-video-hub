@@ -20,6 +20,7 @@ tr_TR:
         instructions: "Her seferinde bir videoya geçmek için dikey kaydır veya kaydırma tekerleğini kullan. Ok, Page Up, Page Down, Home ve End tuşları da desteklenir."
         back_to_videos: "Videolara dön"
         share: "Paylaş"
+        open_video: "Videoyu aç"
         loading_more: "Daha fazla video yükleniyor…"
         empty_title: "Henüz keşfedilecek video yok"
         empty_description: "Desteklenen herkese açık bir video paylaş; tam ekran keşfet akışında görünebilir."
