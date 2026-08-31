@@ -14,14 +14,11 @@ jobs:
     container: discourse/discourse_test:slim
     steps:
       - uses: actions/checkout@v6
-      - name: Install formatters
-        run: |
-          pnpm install --frozen-lockfile
-          bundle install
+      - name: Install formatter
+        run: pnpm install --frozen-lockfile
       - name: Print canonical formatting diff
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          pnpm stylelint "assets/stylesheets/common/video-hub-explore.scss" --fix
           pnpm prettier \
             "assets/stylesheets/common/video-hub-explore.scss" \
             "assets/javascripts/discourse/components/video-hub-landing.gjs" \
