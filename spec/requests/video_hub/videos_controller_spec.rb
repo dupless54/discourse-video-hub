@@ -104,9 +104,7 @@ describe VideoHub::VideosController do
 
       expect(response.status).to eq(200)
       expect(response.parsed_body).to eq(
-        {
-          "video" => video_payload(video).merge("saved" => false, "bookmark_id" => nil),
-        },
+        { "video" => video_payload(video).merge("saved" => false, "bookmark_id" => nil) },
       )
     end
 
