@@ -36,6 +36,8 @@ tr_TR:
         play_video: "Videoyu oynat"
         player_title: "%{provider} video oynatıcısı"
         open_provider: "%{provider} sitesinde izle"
+        save: "Videoyu kaydet"
+        unsave: "Kayıtlardan çıkar"
         discussion_eyebrow: "Discourse tartışması"
         discussion_title: "Yorumlar"
         like: "Beğen (%{count})"
