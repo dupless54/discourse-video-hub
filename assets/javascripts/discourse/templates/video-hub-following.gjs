@@ -1,5 +1,5 @@
 import VideoHubFollowing from "../components/video-hub-following";
 
-<template>
-  <VideoHubFollowing @model={{@model}} />
+export default <template>
+  <VideoHubFollowing @model={{@controller.model}} />
 </template>
