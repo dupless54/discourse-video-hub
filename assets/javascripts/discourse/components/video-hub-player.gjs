@@ -23,7 +23,7 @@ export default class VideoHubPlayer extends Component {
       YOUTUBE_ID.test(externalId)
     ) {
       if (this.args.immersive) {
-        return `https://www.youtube.com/embed/${externalId}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${externalId}`;
+        return `https://www.youtube.com/embed/${externalId}?autoplay=1&mute=1&playsinline=1&loop=1&playlist=${externalId}&controls=1`;
       }
 
       return `https://www.youtube.com/embed/${externalId}?autoplay=1`;
@@ -77,6 +77,7 @@ export default class VideoHubPlayer extends Component {
       {{#if this.showPlayer}}
         <iframe
           class="video-hub-player__iframe"
+          data-interactive={{if @interactive "true" "false"}}
           src={{this.embedUrl}}
           title={{this.playerTitle}}
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
