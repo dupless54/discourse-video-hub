@@ -6,6 +6,7 @@ import { service } from "@ember/service";
 import Form from "discourse/components/form";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
+import VideoHubCollectionCatalog from "discourse/plugins/discourse-video-hub/discourse/components/video-hub-collection-catalog";
 import DButton from "discourse/ui-kit/d-button";
 import { i18n } from "discourse-i18n";
 
@@ -28,6 +29,7 @@ class VideoHubCollectionManagerCard extends Component {
   @tracked isDeleting = false;
   @tracked removingVideoId = null;
   @tracked reorderingItems = false;
+  @tracked catalogBusy = false;
 
   @cached
   get formData() {
@@ -68,6 +70,7 @@ class VideoHubCollectionManagerCard extends Component {
       this.isDeleting ||
       this.removingVideoId !== null ||
       this.reorderingItems ||
+      this.catalogBusy ||
       Boolean(this.args.collectionOrderBusy)
     );
   }
@@ -80,6 +83,11 @@ class VideoHubCollectionManagerCard extends Component {
     return (
       this.isBusy || this.args.collectionIndex === this.args.collectionCount - 1
     );
+  }
+
+  @action
+  setCatalogBusy(isBusy) {
+    this.catalogBusy = Boolean(isBusy);
   }
 
   @action
@@ -326,6 +334,13 @@ class VideoHubCollectionManagerCard extends Component {
         </div>
       </Form>
 
+      <VideoHubCollectionCatalog
+        @collection={{@collection}}
+        @disabled={{this.isBusy}}
+        @onBusyChange={{this.setCatalogBusy}}
+        @onVideoAdded={{@onVideoAdded}}
+      />
+
       <section
         class="video-hub-collections__items"
         aria-label={{i18n "video_hub.collections.items_label"}}
@@ -498,6 +513,28 @@ export default class VideoHubCollectionsManager extends Component {
   }
 
   @action
+  addVideo(collectionId, item) {
+    this.collections = this.collections.map((collection) => {
+      if (collection.id !== collectionId) {
+        return collection;
+      }
+
+      const items = [
+        ...(collection.items ?? []).filter(
+          (existingItem) => existingItem.video_id !== item.video_id
+        ),
+        item,
+      ].sort(
+        (left, right) =>
+          (left.position ?? Number.MAX_SAFE_INTEGER) -
+            (right.position ?? Number.MAX_SAFE_INTEGER) || left.id - right.id
+      );
+
+      return { ...collection, items };
+    });
+  }
+
+  @action
   removeVideo(collectionId, videoId) {
     this.collections = this.collections.map((collection) => {
       if (collection.id !== collectionId) {
@@ -657,6 +694,7 @@ export default class VideoHubCollectionsManager extends Component {
               @collectionOrderBusy={{this.reorderingCollections}}
               @onUpdated={{this.updateCollection}}
               @onDeleted={{this.deleteCollection}}
+              @onVideoAdded={{this.addVideo}}
               @onVideoRemoved={{this.removeVideo}}
               @onItemsReordered={{this.reorderItems}}
               @onMoveCollection={{this.moveCollection}}
