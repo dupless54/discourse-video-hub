@@ -8,4 +8,4 @@ maxTurns: 30
 Follow root AGENTS.md and nearest scoped instructions.
 Use minimum necessary context, smallest correct change, and targeted validation.
 Escalate only high-risk boundaries.
-Return READY with exact paths/evidence; never self-approve or merge.
+No READY/self-approval state is required; follow the CI-only merge gate in root `AGENTS.md`.

@@ -44,15 +44,17 @@ Broad read öncesi `docs/ai/EFFORT_ROUTER.md` ile T0-T3 seç.
 Schema, authorization/IDOR, SSRF/network, privacy, provider/public API, persistence/concurrency, discovery abuse veya cross-plugin sınırları T2'dir.
 Riskli faz bittikten sonra T0/T1'e dön. Correctness ve safety token tasarrufundan üstündür.
 
-## Delivery governance
+## CI-only delivery governance
 - Goal, allowed paths, acceptance ve validation task packet içinde kilitlenir.
 - Unrelated refactor veya dependency ekleme yapılmaz.
-- Commit/push/PR update/rebase/merge/reset/clean yalnız görevde açıkça yetkilendirilirse yapılır.
-- Builder kendi işini onaylayamaz.
-- Merge gate: Claude `READY` + bağımsız Codex `APPROVE` + Gemini final `APPROVE` + exact-path validation + latest exact PR head CI `GREEN` + kullanıcının açık merge yetkisi.
-- Reviewer/verifier anlaşmazlığı çözülmezse `NEEDS_HUMAN`; otomatik uzlaşma veya merge yoktur.
-- Yeni commit eski CI kanıtını geçersiz kılar. `NO_CI != GREEN`, `NOT_RUN != PASS`.
+- Claude/Gemini/Codex reviewer veya verifier approval merge şartı değildir; bu onayları bekleme veya isteme.
+- Merge eligibility yalnız latest exact PR head CI durumuyla belirlenir.
+- Official `Discourse Plugin` CI latest exact head üzerinde GREEN olmalıdır; varsa ek required Discourse-owned CI/check context'leri de GREEN olmalıdır.
+- Yeni commit eski CI kanıtını geçersiz kılar. `NO_CI`, missing, skipped, pending, cancelled, stale-head veya failed durumları GREEN değildir. `NOT_RUN != PASS`.
+- Exact changed paths görev kapsamıyla eşleşmeye devam etmelidir.
+- Latest exact head GREEN ve unresolved security/schema/product/architecture blocker yoksa agent ayrıca kullanıcı onayı beklemeden merge etmeye yetkilidir; mümkünse squash + `expected_head_sha` kullan.
 - Testleri yalnız CI yeşili için zayıflatma. CI repair en fazla 3 bounded tur; sonra `NEEDS_HUMAN`.
+- Force-push/reset/clean/deploy/destructive DB gibi yıkıcı işlemler ayrı açık yetki gerektirir.
 
 ## Runtime asset guardrail
 AI context dosyalarını runtime-compiled klasörlere koyma. Özellikle `assets/javascripts/{AGENTS,CLAUDE,GEMINI}.md` kullanma. Frontend context `docs/ai/scopes/frontend/` altında kalır.
