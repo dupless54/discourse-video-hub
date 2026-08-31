@@ -28,13 +28,7 @@ VideoHub::Engine.routes.draw do
        :defaults => {
          format: :json,
        }
-  post "/:id/save" => "videos#save",
-       :constraints => {
-         id: /\d+/,
-       },
-       :defaults => {
-         format: :json,
-       }
+  post "/:id/save" => "videos#save", :constraints => { id: /\d+/ }, :defaults => { format: :json }
   delete "/:id/save" => "videos#unsave",
          :constraints => {
            id: /\d+/,
