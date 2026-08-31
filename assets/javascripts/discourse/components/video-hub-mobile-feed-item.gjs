@@ -25,6 +25,18 @@ export default class VideoHubMobileFeedItem extends Component {
     return this.args.index >= this.args.total - 1;
   }
 
+  get itemClass() {
+    const classes = ["video-hub-mobile-feed__item"];
+    if (this.args.immersive) {
+      classes.push("video-hub-mobile-feed__item--immersive");
+    }
+    return classes.join(" ");
+  }
+
+  get positionLabel() {
+    return `${this.args.index + 1} / ${this.args.total}`;
+  }
+
   @action
   onIntersection(entry) {
     const metricVisible =
@@ -33,7 +45,7 @@ export default class VideoHubMobileFeedItem extends Component {
     this.args.onVisibilityChange?.(this.args.video.id, metricVisible);
 
     if (metricVisible) {
-      this.args.onActivate?.(this.args.video.id);
+      this.args.onActivate?.(this.args.video.id, this.args.index);
     }
   }
 
@@ -86,15 +98,25 @@ export default class VideoHubMobileFeedItem extends Component {
     <article
       {{dObserveIntersection this.onIntersection threshold=ACTIVE_THRESHOLD}}
       {{on "keydown" this.onKeydown}}
-      class="video-hub-mobile-feed__item"
+      class={{this.itemClass}}
       data-video-hub-feed-index={{@index}}
       data-video-id={{@video.id}}
       data-active={{if this.isActive "true" "false"}}
       tabindex="0"
     >
-      <VideoHubPlayer @video={{@video}} @active={{this.isActive}} />
+      <VideoHubPlayer
+        @video={{@video}}
+        @active={{this.isActive}}
+        @immersive={{@immersive}}
+      />
 
       <div class="video-hub-mobile-feed__details">
+        {{#if @immersive}}
+          <span class="video-hub-mobile-feed__position" aria-hidden="true">
+            {{this.positionLabel}}
+          </span>
+        {{/if}}
+
         <p class="video-hub-mobile-feed__provider">{{this.providerLabel}}</p>
         <h2>
           <a href={{@video.watch_path}}>{{@video.title}}</a>
