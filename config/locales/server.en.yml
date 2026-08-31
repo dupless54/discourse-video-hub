@@ -6,3 +6,6 @@ en:
     video_hub_youtube_enabled: "Allow public YouTube and YouTube Shorts links"
     video_hub_tiktok_enabled: "Allow public TikTok links"
     video_hub_instagram_enabled: "Allow public Instagram and Reels links"
+    video_hub_ranking_qualified_rate_weight: "Ranking weight for qualified-view rate"
+    video_hub_ranking_qualified_volume_weight: "Ranking weight for qualified-view volume"
+    video_hub_ranking_freshness_weight: "Ranking weight for publication freshness"
