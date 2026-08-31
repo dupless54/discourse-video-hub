@@ -263,7 +263,11 @@ describe VideoHub::CollectionManager do
       )
     original_positions = collection.items.order(:position).pluck(:id, :position)
 
-    [[first.item.id], [first.item.id, first.item.id], [first.item.id, foreign_item.item.id]].each do |ids|
+    [
+      [first.item.id],
+      [first.item.id, first.item.id],
+      [first.item.id, foreign_item.item.id],
+    ].each do |ids|
       expect do
         described_class.reorder_items(user: owner, collection_id: collection.id, item_ids: ids)
       end.to raise_error(VideoHub::CollectionManager::CollectionError) { |error|
